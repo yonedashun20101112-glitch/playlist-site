@@ -256,6 +256,24 @@ function makeTable(year){
 
 function ranking(year=null){
   let data = year ? songs.filter(s=>yearOf(s)==year) : songs;
+
+  if(year === null){
+    const songMap = {};
+
+    data.forEach(s=>{
+      const key = `${s.title}__${s.artist}`;
+
+      if(!songMap[key]){
+        songMap[key] = {...s, days:0, tags:[...s.tags]};
+      }
+
+      songMap[key].days += Number(s.days || 0);
+      songMap[key].tags = [...new Set([...songMap[key].tags, ...s.tags])];
+    });
+
+    data = Object.values(songMap);
+  }
+
   data = [...data].sort((a,b)=>Number(b.days)-Number(a.days));
 
   const artistMap = {};
