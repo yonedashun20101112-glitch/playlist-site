@@ -170,19 +170,25 @@ th{background:#fafafa}
 .tags{
   margin-top:10px;
   display:flex;
-  gap:8px;
-  flex-wrap:wrap;
+  gap:6px;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  white-space:nowrap;
 }
 .tagIcon{
   width:30px;
   height:30px;
+  min-width:30px;
   border-radius:50%;
+  border:0;
   background:#f1f1f1;
   display:flex;
   align-items:center;
   justify-content:center;
   overflow:hidden;
   font-size:16px;
+  cursor:pointer;
+  padding:0;
 }
 .tagIcon img{
   width:100%;
@@ -344,9 +350,9 @@ function tagHtml(tags){
   return tags.map(t=>{
     const src = tagIcons[t.key];
     return `
-      <span class="tagIcon" title="${t.label}">
+      <button class="tagIcon" title="${t.label}" onclick="filterByTag('${t.key}')">
         ${src ? `<img src="${src}" alt="${t.label}" onerror="this.replaceWith(document.createTextNode('${t.fallback}'))">` : t.fallback}
-      </span>
+      </button>
     `;
   }).join("");
 }
@@ -531,6 +537,16 @@ function searchSong(){
     result.length ? result.map(s=>card(s)).join("") : "該当なし";
 }
 
+function filterByTag(tagKey){
+  show("cards");
+
+  const merged = mergeSongs(songs);
+  const result = merged.filter(s=>s.tags.some(t=>t.key === tagKey));
+
+  document.getElementById("songSearchInput").value = "";
+  document.getElementById("songSearchResult").innerHTML =
+    result.length ? result.map(s=>card(s)).join("") : "該当なし";
+}
 fetch(csvUrl)
 .then(res=>res.text())
 .then(csv=>{
