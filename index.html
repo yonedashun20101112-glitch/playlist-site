@@ -187,6 +187,13 @@ input{
   margin-top:22px;
 }
 
+.note{
+  margin-top:10px;
+  color:#777;
+  font-size:13px;
+  line-height:1.5;
+}
+
 @media(max-width:600px){
   header{padding:26px 18px}
   h1{font-size:28px}
@@ -325,7 +332,8 @@ function card(song, rank=null, showDays=false){
     <div class="title">${song.title}</div>
     <div class="artist">${song.artist}</div>
     <div class="months">${displayMonths(song)}登録</div>
-    ${showDays ? `<div class="days">${song.days}日</div>` : ""}
+${showDays ? `<div class="days">${song.days}日</div>` : ""}
+${song.note ? `<div class="note">${song.note}</div>` : ""}
     <div class="tags">${tagHtml(song.tags)}</div>
     <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
   </div>`;
@@ -468,7 +476,7 @@ fetch(csvUrl)
   document.getElementById("rank2026").innerHTML = ranking("2026");
   document.getElementById("rankAll").innerHTML = ranking();
   document.getElementById("cards").innerHTML =
-    `<h2>カードタイプ表示</h2><div class="grid">${songs.map(s=>card(s)).join("")}</div>`;
+  `<h2>カードタイプ表示</h2><div class="grid">${mergeSongs(songs).map(s=>card(s)).join("")}</div>`;
 });
 </script>
 </body>
