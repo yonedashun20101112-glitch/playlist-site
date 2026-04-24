@@ -217,6 +217,20 @@ input{
   th,td{font-size:13px;padding:10px}
   button{font-size:13px;padding:9px 12px}
 }
+
+.videoBox{
+  margin-top:28px;
+  background:white;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.videoBox video{
+  width:100%;
+  border-radius:16px;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -397,8 +411,16 @@ function makeTable(year){
         <td>${s.pastCount}</td>
         <td><div class="tags">${tagHtml(s.tags)}</div></td>
       </tr>`).join("")}
-  </table>
-  </div>`;
+ </table>
+</div>
+
+${year === "2025" ? `
+  <div class="videoBox">
+    <h2>2025年まとめ動画</h2>
+    <video controls src="movie2025.mp4"></video>
+  </div>
+` : ""}
+`;
 }
 
 function mergeSongs(data){
