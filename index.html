@@ -227,7 +227,14 @@ input{
   <section id="rank2025" class="section"></section>
   <section id="rank2026" class="section"></section>
   <section id="rankAll" class="section"></section>
-  <section id="cards" class="section"></section>
+ <section id="cards" class="section">
+  <h2>曲検索</h2>
+  <div class="searchBox">
+    <input id="songSearchInput" placeholder="曲名・アーティストで検索">
+    <button onclick="searchSong()">検索</button>
+  </div>
+  <div id="songSearchResult" class="grid"></div>
+</section>
 
   <section id="search" class="section">
     <div class="searchBox">
@@ -441,6 +448,27 @@ function searchDate(){
     return st <= target && target <= en;
   });
 
+function searchSong(){
+  const keyword = document.getElementById("songSearchInput").value.trim().toLowerCase();
+
+  if(!keyword){
+    document.getElementById("songSearchResult").innerHTML = "";
+    return;
+  }
+
+  const merged = mergeSongs(songs);
+
+  const result = merged.filter(s=>{
+    return (
+      s.title.toLowerCase().includes(keyword) ||
+      s.artist.toLowerCase().includes(keyword)
+    );
+  });
+
+  document.getElementById("songSearchResult").innerHTML =
+    result.length ? result.map(s=>card(s)).join("") : "該当なし";
+}
+
   document.getElementById("searchResult").innerHTML =
     result.length ? result.map(s=>card(s)).join("") : "該当なし";
 }
@@ -475,8 +503,6 @@ fetch(csvUrl)
   document.getElementById("rank2025").innerHTML = ranking("2025");
   document.getElementById("rank2026").innerHTML = ranking("2026");
   document.getElementById("rankAll").innerHTML = ranking();
-  document.getElementById("cards").innerHTML =
-  `<h2>カードタイプ表示</h2><div class="grid">${mergeSongs(songs).map(s=>card(s)).join("")}</div>`;
 });
 </script>
 </body>
