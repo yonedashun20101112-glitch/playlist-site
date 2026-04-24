@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>playlist</title>
+</head>
+<body>
+
+<h1>プレイリスト</h1>
+
+<div id="data"></div>
+
+<script>
+fetch("https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all")
+  .then(res => res.text())
+  .then(text => {
+    const rows = text.split("\n").map(r => r.split(","));
+    let html = "<table border='1'>";
+    rows.forEach(row => {
+      html += "<tr>";
+      row.forEach(cell => {
+        html += "<td>" + cell + "</td>";
+      });
+      html += "</tr>";
+    });
+    html += "</table>";
+    document.getElementById("data").innerHTML = html;
+  });
+</script>
+
+</body>
+</html>
