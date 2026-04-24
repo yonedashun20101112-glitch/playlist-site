@@ -19,6 +19,20 @@ header{
   background:linear-gradient(135deg,#ff2d55,#ff5e3a,#ffcc00);
   color:white;
 }
+
+.siteHeader{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  height:48px;
+  width:48px;
+  border-radius:12px;
+  object-fit:cover;
+}
+  
 h1{margin:0;font-size:34px}
 .sub{opacity:.9;margin-top:6px}
 
@@ -207,11 +221,12 @@ input{
 </head>
 
 <body>
-<header>
-  <header style="display:flex;align-items:center;gap:12px;">
-  <img src="logo.png" style="height:40px;">
-  <h1>Weekly Playlist</h1>
-  <div class="sub">Apple Music style playlist archive</div>
+<header class="siteHeader">
+  <img src="logo.png" class="logo" alt="logo">
+  <div>
+    <h1>Weekly Playlist</h1>
+    <div class="sub">Apple Music style playlist archive</div>
+  </div>
 </header>
 
 <nav>
