@@ -217,30 +217,23 @@ input{
   th,td{font-size:13px;padding:10px}
   button{font-size:13px;padding:9px 12px}
 }
-
-.videoBox{
-  margin-top:28px;
-  background:white;
-  border-radius:22px;
-  padding:16px;
-  box-shadow:0 8px 24px rgba(0,0,0,.08);
-}
-
-.videoBox video{
-  width:100%;
-  border-radius:16px;
-  margin-top:10px;
-}
 </style>
 </head>
 
 <body>
-<header class="siteHeader">
+<header class="siteHeader" id="mainHeader">
   <img src="logo.png" class="logo" alt="logo">
   <div>
     <h1>Weekly Playlist</h1>
     <div class="sub">Apple Music style playlist archive</div>
   </div>
+  header.bg2025{
+  background-image:
+    linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
+    url("header2025.jpg");
+  background-size:cover;
+  background-position:center;
+}
 </header>
 
 <nav>
@@ -294,9 +287,18 @@ let songs = [];
 function show(id){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+
   document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
   event.target.classList.add("active");
+
   document.getElementById("detail").innerHTML = "";
+
+  const header = document.getElementById("mainHeader");
+  header.classList.remove("bg2025");
+
+  if(id === "table2025" || id === "rank2025"){
+    header.classList.add("bg2025");
+  }
 }
 
 function clean(v){
@@ -413,13 +415,6 @@ function makeTable(year){
       </tr>`).join("")}
  </table>
 </div>
-
-${year === "2025" ? `
-  <div class="videoBox">
-    <h2>2025年まとめ動画</h2>
-    <video controls src="movie2025.mp4"></video>
-  </div>
-` : ""}
 `;
 }
 
