@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Weekly Playlist</title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  
+
 <style>
 body{
   margin:0;
@@ -13,32 +13,14 @@ body{
   background:#f5f5f7;
   color:#111;
 }
-
-.rankCard{
-  position:relative;
-}
-.rankNum{
-  position:absolute;
-  top:12px;
-  right:14px;
-  font-size:32px;
-  font-weight:900;
-  color:#ff2d55;
-  background:rgba(255,255,255,.9);
-  padding:4px 10px;
-  border-radius:999px;
-}
-.rank1{font-size:44px;color:#ffcc00;}
-.rank2{font-size:40px;color:#999;}
-.rank3{font-size:36px;color:#cd7f32;}
-  
 header{
-  padding:36px 20px;
+  padding:34px 20px;
   background:linear-gradient(135deg,#ff2d55,#ff5e3a,#ffcc00);
   color:white;
 }
 h1{margin:0;font-size:34px}
 .sub{opacity:.9;margin-top:6px}
+
 nav{
   display:flex;
   gap:8px;
@@ -55,13 +37,15 @@ button{
   border-radius:999px;
   padding:10px 15px;
   background:#eee;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
+  white-space:nowrap;
 }
 button.active{
   background:#ff2d55;
   color:white;
 }
+
 main{
   max-width:1200px;
   margin:auto;
@@ -69,12 +53,17 @@ main{
 }
 .section{display:none}
 .section.active{display:block}
+
+.tableWrap{
+  overflow-x:auto;
+  background:white;
+  border-radius:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
+}
 table{
   width:100%;
+  min-width:780px;
   border-collapse:collapse;
-  background:white;
-  border-radius:16px;
-  overflow:hidden;
 }
 th,td{
   padding:12px;
@@ -82,9 +71,16 @@ th,td{
   text-align:left;
   font-size:14px;
 }
-th{
-  background:#fafafa;
+th{background:#fafafa}
+.songBtn{
+  background:none;
+  padding:0;
+  border-radius:0;
+  color:#ff2d55;
+  font-weight:900;
+  text-align:left;
 }
+
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
@@ -92,14 +88,30 @@ th{
 }
 .card{
   background:white;
-  border-radius:20px;
+  border-radius:22px;
   padding:16px;
   box-shadow:0 8px 24px rgba(0,0,0,.08);
+  position:relative;
 }
+.rankNum{
+  position:absolute;
+  top:12px;
+  right:14px;
+  font-size:32px;
+  font-weight:900;
+  color:#ff2d55;
+  background:rgba(255,255,255,.9);
+  padding:4px 10px;
+  border-radius:999px;
+}
+.rank1{font-size:44px;color:#ffcc00}
+.rank2{font-size:40px;color:#999}
+.rank3{font-size:36px;color:#cd7f32}
+
 .cover{
   width:100%;
   aspect-ratio:1/1;
-  border-radius:16px;
+  border-radius:18px;
   background:linear-gradient(135deg,#ff2d55,#ffcc00);
   display:flex;
   align-items:center;
@@ -115,19 +127,40 @@ th{
   height:100%;
   object-fit:cover;
 }
-.title{font-size:18px;font-weight:800}
+.title{font-size:18px;font-weight:900}
 .artist{color:#666;margin-top:4px}
-.tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
-.tag{
-  font-size:12px;
-  padding:5px 8px;
-  background:#f1f1f1;
-  border-radius:999px;
+.months{
+  margin-top:8px;
+  color:#555;
+  font-size:14px;
+  font-weight:700;
 }
 .days{
   margin-top:10px;
-  font-weight:800;
+  font-weight:900;
   color:#ff2d55;
+}
+.tags{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.tagIcon{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:#f1f1f1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-size:16px;
+}
+.tagIcon img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 a.music{
   display:inline-block;
@@ -137,7 +170,7 @@ a.music{
   background:#ff2d55;
   color:white;
   text-decoration:none;
-  font-weight:800;
+  font-weight:900;
   font-size:13px;
 }
 input{
@@ -145,10 +178,22 @@ input{
   border-radius:12px;
   border:1px solid #ccc;
   width:220px;
+  max-width:70%;
   font-size:16px;
 }
-.searchBox{
-  margin-bottom:18px;
+.searchBox{margin-bottom:18px}
+
+#detail{
+  margin-top:22px;
+}
+
+@media(max-width:600px){
+  header{padding:26px 18px}
+  h1{font-size:28px}
+  main{padding:14px}
+  .grid{grid-template-columns:1fr}
+  th,td{font-size:13px;padding:10px}
+  button{font-size:13px;padding:9px 12px}
 }
 </style>
 </head>
@@ -176,6 +221,7 @@ input{
   <section id="rank2026" class="section"></section>
   <section id="rankAll" class="section"></section>
   <section id="cards" class="section"></section>
+
   <section id="search" class="section">
     <div class="searchBox">
       <input id="dateInput" placeholder="例：2025/04/28">
@@ -183,10 +229,20 @@ input{
     </div>
     <div id="searchResult" class="grid"></div>
   </section>
+
+  <section id="detail"></section>
 </main>
 
 <script>
 const csvUrl = "https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all";
+
+const tagIcons = {
+  anime: "icons/anime.png",
+  weekly: "icons/weekly.png",
+  karaoke: "icons/karaoke.png",
+  repeat: "icons/repeat.png"
+};
+
 let songs = [];
 
 function show(id){
@@ -194,85 +250,151 @@ function show(id){
   document.getElementById(id).classList.add("active");
   document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
   event.target.classList.add("active");
+  document.getElementById("detail").innerHTML = "";
 }
 
-function clean(v){return (v||"").replace(/^"|"$/g,"").trim();}
-function toDate(v){return new Date(clean(v).replaceAll("/","-"));}
-function yearOf(s){return clean(s.start).slice(0,4);}
+function clean(v){
+  return (v || "").replace(/^"|"$/g,"").trim();
+}
+
+function toDate(v){
+  return new Date(clean(v).replaceAll("/","-"));
+}
+
+function yearOf(s){
+  return clean(s.start).slice(0,4);
+}
+
+function shortDate(v){
+  const x = clean(v);
+  const m = x.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  return m ? `${m[2]}/${m[3]}` : x;
+}
+
+function monthLabel(s){
+  const x = clean(s.start);
+  const m = x.match(/^(\d{4})\/(\d{2})\/\d{2}$/);
+  return m ? `${m[1]}/${m[2]}` : "";
+}
 
 function getTags(row){
   const text = row.join(" ");
   const tags = [];
-  if(text.includes("ア")) tags.push("📺 アニメ");
-  if(text.includes("週")) tags.push("⭐ 週間選出楽曲");
-  if(text.includes("カ")) tags.push("🎤 カラオケ曲");
-  if(text.includes("リ")) tags.push("🔁 リピート曲");
+  if(text.includes("ア")) tags.push({key:"anime", label:"アニメ", fallback:"📺"});
+  if(text.includes("週")) tags.push({key:"weekly", label:"週間選出楽曲", fallback:"⭐"});
+  if(text.includes("カ")) tags.push({key:"karaoke", label:"カラオケ曲", fallback:"🎤"});
+  if(text.includes("リ")) tags.push({key:"repeat", label:"リピート曲", fallback:"🔁"});
   return tags;
+}
+
+function tagHtml(tags){
+  return tags.map(t=>{
+    const src = tagIcons[t.key];
+    return `
+      <span class="tagIcon" title="${t.label}">
+        ${src ? `<img src="${src}" alt="${t.label}" onerror="this.replaceWith(document.createTextNode('${t.fallback}'))">` : t.fallback}
+      </span>
+    `;
+  }).join("");
 }
 
 function appleLink(song){
   return "https://music.apple.com/jp/search?term=" + encodeURIComponent(song.title + " " + song.artist);
 }
 
-function card(song, rank=null){
+function displayMonths(song){
+  const same = songs.filter(s=>s.title === song.title && s.artist === song.artist);
+  const months = [...new Set(same.map(monthLabel).filter(Boolean))];
+
+  if(months.length >= 4){
+    return `${months[0]}, ${months[1]}, ${months[2]}他`;
+  }
+  return months.join(", ");
+}
+
+function card(song, rank=null, showDays=false){
   let rankClass = "";
   if(rank===1) rankClass = "rank1";
   if(rank===2) rankClass = "rank2";
   if(rank===3) rankClass = "rank3";
 
   return `
-  <div class="card rankCard">
+  <div class="card">
     ${rank ? `<div class="rankNum ${rankClass}">#${rank}</div>` : ""}
     <div class="cover">${song.cover ? `<img src="${song.cover}">` : song.title[0]}</div>
     <div class="title">${song.title}</div>
     <div class="artist">${song.artist}</div>
-    <div class="days">${song.days}日</div>
-    <div class="tags">${song.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+    <div class="months">${displayMonths(song)}登録</div>
+    ${showDays ? `<div class="days">${song.days}日</div>` : ""}
+    <div class="tags">${tagHtml(song.tags)}</div>
     <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
   </div>`;
 }
 
+function showSongCard(index){
+  const song = songs[index];
+  document.getElementById("detail").innerHTML =
+    `<h2>選択した曲</h2><div class="grid">${card(song)}</div>`;
+  document.getElementById("detail").scrollIntoView({behavior:"smooth"});
+}
+
 function makeTable(year){
   const data = songs.filter(s=>yearOf(s)==year);
+
   return `
-  <h2>${year}年 楽曲表</h2>
+  <h2>${year}年 登録・抹消表</h2>
+  <div class="tableWrap">
   <table>
     <tr>
-      <th>曲名</th><th>アーティスト</th><th>追加日</th><th>抹消日</th>
-      <th>登録期間</th><th>過去登録回数</th><th>タグ</th>
+      <th>曲名</th>
+      <th>アーティスト</th>
+      <th>追加日</th>
+      <th>抹消日</th>
+      <th>登録期間</th>
+      <th>過去登録回数</th>
+      <th>タグ</th>
     </tr>
     ${data.map(s=>`
       <tr>
-        <td>${s.title}</td>
+        <td><button class="songBtn" onclick="showSongCard(${s.rawIndex})">${s.title}</button></td>
         <td>${s.artist}</td>
-        <td>${s.start}</td>
-        <td>${s.end || "現在"}</td>
+        <td>${shortDate(s.start)}</td>
+        <td>${s.end ? shortDate(s.end) : "現在"}</td>
         <td>${s.days}日</td>
         <td>${s.pastCount}</td>
-        <td>${s.tags.join(" / ")}</td>
+        <td><div class="tags">${tagHtml(s.tags)}</div></td>
       </tr>`).join("")}
-  </table>`;
+  </table>
+  </div>`;
+}
+
+function mergeSongs(data){
+  const map = {};
+
+  data.forEach(s=>{
+    const key = `${s.title}__${s.artist}`;
+
+    if(!map[key]){
+      map[key] = {
+        ...s,
+        days:0,
+        tags:[...s.tags],
+        cover:s.cover,
+        apple:s.apple
+      };
+    }
+
+    map[key].days += Number(s.days || 0);
+    map[key].tags = [...new Map([...map[key].tags, ...s.tags].map(t=>[t.key,t])).values()];
+    if(!map[key].cover && s.cover) map[key].cover = s.cover;
+    if(!map[key].apple && s.apple) map[key].apple = s.apple;
+  });
+
+  return Object.values(map);
 }
 
 function ranking(year=null){
-  let data = year ? songs.filter(s=>yearOf(s)==year) : songs;
-
-  if(year === null){
-    const songMap = {};
-
-    data.forEach(s=>{
-      const key = `${s.title}__${s.artist}`;
-
-      if(!songMap[key]){
-        songMap[key] = {...s, days:0, tags:[...s.tags]};
-      }
-
-      songMap[key].days += Number(s.days || 0);
-      songMap[key].tags = [...new Set([...songMap[key].tags, ...s.tags])];
-    });
-
-    data = Object.values(songMap);
-  }
+  let data = year ? songs.filter(s=>yearOf(s)==year) : mergeSongs(songs);
 
   data = [...data].sort((a,b)=>Number(b.days)-Number(a.days));
 
@@ -287,15 +409,17 @@ function ranking(year=null){
 
   return `
     <h2>${year || "累計"} 登録日数ランキング</h2>
-    <div class="grid">${data.slice(0,30).map((s,i)=>card(s,i+1)).join("")}</div>
+    <div class="grid">${data.slice(0,30).map((s,i)=>card(s,i+1,true)).join("")}</div>
 
     <h2>アーティスト別ランキング</h2>
+    <div class="tableWrap">
     <table>
       <tr><th>順位</th><th>アーティスト</th><th>合計日数</th></tr>
       ${artistRank.map((a,i)=>`
         <tr><td>${i+1}</td><td>${a[0]}</td><td>${a[1]}日</td></tr>
       `).join("")}
     </table>
+    </div>
   `;
 }
 
@@ -334,7 +458,7 @@ fetch(csvUrl)
   songs.forEach((s,i)=>{
     s.pastCount = songs
       .slice(0,i)
-      .filter(x=>x.title===s.title)
+      .filter(x=>x.title===s.title && x.artist===s.artist)
       .length;
   });
 
