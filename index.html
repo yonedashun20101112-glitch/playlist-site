@@ -413,6 +413,9 @@ function ranking(year=null){
 
   data = [...data].sort((a,b)=>Number(b.days)-Number(a.days));
 
+  const top5 = data.slice(0,5);
+  const rest25 = data.slice(5,30);
+
   const artistMap = {};
   data.forEach(s=>{
     artistMap[s.artist] = (artistMap[s.artist]||0) + Number(s.days||0);
@@ -423,17 +426,32 @@ function ranking(year=null){
     .slice(0,20);
 
   return `
-    <h2>${year || "累計"} 登録日数ランキング</h2>
-    <div class="grid">${data.slice(0,30).map((s,i)=>card(s,i+1,true)).join("")}</div>
+    <h2>${year || "累計"} 登録日数ランキング TOP5</h2>
+    <div class="grid">${top5.map((s,i)=>card(s,i+1,true)).join("")}</div>
+
+    <h2>6位〜30位</h2>
+    <div class="tableWrap">
+      <table>
+        <tr><th>順位</th><th>曲名</th><th>アーティスト</th><th>日数</th></tr>
+        ${rest25.map((s,i)=>`
+          <tr>
+            <td>${i+6}</td>
+            <td>${s.title}</td>
+            <td>${s.artist}</td>
+            <td>${s.days}日</td>
+          </tr>
+        `).join("")}
+      </table>
+    </div>
 
     <h2>アーティスト別ランキング</h2>
     <div class="tableWrap">
-    <table>
-      <tr><th>順位</th><th>アーティスト</th><th>合計日数</th></tr>
-      ${artistRank.map((a,i)=>`
-        <tr><td>${i+1}</td><td>${a[0]}</td><td>${a[1]}日</td></tr>
-      `).join("")}
-    </table>
+      <table>
+        <tr><th>順位</th><th>アーティスト</th><th>合計日数</th></tr>
+        ${artistRank.map((a,i)=>`
+          <tr><td>${i+1}</td><td>${a[0]}</td><td>${a[1]}日</td></tr>
+        `).join("")}
+      </table>
     </div>
   `;
 }
@@ -447,6 +465,10 @@ function searchDate(){
     const en = s.end ? toDate(s.end) : new Date("2099-12-31");
     return st <= target && target <= en;
   });
+
+  document.getElementById("searchResult").innerHTML =
+    result.length ? result.map(s=>card(s)).join("") : "該当なし";
+}
 
 function searchSong(){
   const keyword = document.getElementById("songSearchInput").value.trim().toLowerCase();
@@ -466,10 +488,6 @@ function searchSong(){
   });
 
   document.getElementById("songSearchResult").innerHTML =
-    result.length ? result.map(s=>card(s)).join("") : "該当なし";
-}
-
-  document.getElementById("searchResult").innerHTML =
     result.length ? result.map(s=>card(s)).join("") : "該当なし";
 }
 
