@@ -1,32 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>playlist</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Playlist</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0f0f12;
+      color: #fff;
+    }
+
+    header {
+      padding: 32px 20px;
+      background: linear-gradient(135deg, #1db954, #111);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .sub {
+      opacity: .8;
+      margin-top: 8px;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #1b1b20;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .artist {
+      color: #b8b8b8;
+      margin-bottom: 14px;
+    }
+
+    .meta {
+      font-size: 14px;
+      color: #ddd;
+      line-height: 1.7;
+    }
+
+    .days {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 10px;
+      background: #1db954;
+      color: #000;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .note {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #aaa;
+    }
+  </style>
 </head>
+
 <body>
+  <header>
+    <h1>Weekly Playlist</h1>
+    <div class="sub">2025 / 2026 楽曲ログ</div>
+  </header>
 
-<h1>プレイリスト</h1>
+  <main>
+    <div id="list" class="grid"></div>
+  </main>
 
-<div id="data"></div>
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all";
 
-<script>
-fetch("https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all")
-  .then(res => res.text())
-  .then(text => {
-    const rows = text.split("\n").map(r => r.split(","));
-    let html = "<table border='1'>";
-    rows.forEach(row => {
-      html += "<tr>";
-      row.forEach(cell => {
-        html += "<td>" + cell + "</td>";
+    fetch(csvUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const parsed = Papa.parse(csv, { skipEmptyLines: true });
+        const rows = parsed.data;
+
+        const list = document.getElementById("list");
+
+        rows.forEach(row => {
+          const title = row[0] || "";
+          const artist = row[1] || "";
+          const start = row[6] || "";
+          const end = row[7] || "";
+          const days = row[8] || "";
+          const note = row[10] || "";
+
+          if (!title) return;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+            <div class="title">${title}</div>
+            <div class="artist">${artist}</div>
+            <div class="meta">
+              登録：${start}<br>
+              抹消：${end || "現在"}<br>
+            </div>
+            ${days ? `<div class="days">${days}日</div>` : ""}
+            ${note ? `<div class="note">${note}</div>` : ""}
+          `;
+
+          list.appendChild(card);
+        });
       });
-      html += "</tr>";
-    });
-    html += "</table>";
-    document.getElementById("data").innerHTML = html;
-  });
-</script>
-
+  </script>
 </body>
 </html>
