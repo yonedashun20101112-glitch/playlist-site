@@ -3,202 +3,306 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Playlist</title>
+<title>Weekly Playlist</title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 body{
   margin:0;
-  font-family:-apple-system;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
   background:#f5f5f7;
+  color:#111;
 }
 header{
-  padding:30px;
-  background:linear-gradient(135deg,#ff2d55,#ff9500);
+  padding:36px 20px;
+  background:linear-gradient(135deg,#ff2d55,#ff5e3a,#ffcc00);
   color:white;
 }
-h1{margin:0}
+h1{margin:0;font-size:34px}
+.sub{opacity:.9;margin-top:6px}
 nav{
   display:flex;
   gap:8px;
-  padding:10px;
   overflow:auto;
+  padding:14px;
   background:white;
+  position:sticky;
+  top:0;
+  z-index:10;
+  border-bottom:1px solid #ddd;
 }
 button{
-  border:none;
-  padding:8px 12px;
-  border-radius:20px;
+  border:0;
+  border-radius:999px;
+  padding:10px 15px;
   background:#eee;
+  font-weight:700;
   cursor:pointer;
 }
 button.active{
   background:#ff2d55;
   color:white;
 }
-.section{display:none;padding:20px}
+main{
+  max-width:1200px;
+  margin:auto;
+  padding:20px;
+}
+.section{display:none}
 .section.active{display:block}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-  gap:15px;
-}
-
-.card{
-  background:white;
-  border-radius:20px;
-  padding:15px;
-  position:relative;
-}
-
-.rank{
-  position:absolute;
-  top:10px;
-  right:15px;
-  font-size:28px;
-  font-weight:900;
-  color:#ff2d55;
-}
-
-.rank.top1{font-size:42px;color:#ffcc00;}
-.rank.top2{font-size:36px;color:#c0c0c0;}
-.rank.top3{font-size:32px;color:#cd7f32;}
-
-.cover{
-  width:100%;
-  aspect-ratio:1;
-  border-radius:15px;
-  background:#ddd;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:40px;
-  margin-bottom:10px;
-}
-
-.title{font-weight:700}
-.artist{color:#666}
-
-.days{color:#ff2d55;font-weight:700;margin-top:6px}
-
-.tag{
-  display:inline-block;
-  background:#eee;
-  padding:4px 8px;
-  border-radius:10px;
-  font-size:12px;
-  margin:3px;
-}
-
 table{
   width:100%;
   border-collapse:collapse;
   background:white;
+  border-radius:16px;
+  overflow:hidden;
 }
-td,th{
-  padding:8px;
+th,td{
+  padding:12px;
   border-bottom:1px solid #eee;
+  text-align:left;
+  font-size:14px;
 }
-
+th{
+  background:#fafafa;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px;
+}
+.card{
+  background:white;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+.cover{
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:16px;
+  background:linear-gradient(135deg,#ff2d55,#ffcc00);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:42px;
+  font-weight:900;
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.cover img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.title{font-size:18px;font-weight:800}
+.artist{color:#666;margin-top:4px}
+.tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.tag{
+  font-size:12px;
+  padding:5px 8px;
+  background:#f1f1f1;
+  border-radius:999px;
+}
+.days{
+  margin-top:10px;
+  font-weight:800;
+  color:#ff2d55;
+}
+a.music{
+  display:inline-block;
+  margin-top:12px;
+  padding:9px 12px;
+  border-radius:999px;
+  background:#ff2d55;
+  color:white;
+  text-decoration:none;
+  font-weight:800;
+  font-size:13px;
+}
+input{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  width:220px;
+  font-size:16px;
+}
+.searchBox{
+  margin-bottom:18px;
+}
 </style>
 </head>
 
 <body>
-
 <header>
-<h1>Playlist</h1>
+  <h1>Weekly Playlist</h1>
+  <div class="sub">Apple Music style playlist archive</div>
 </header>
 
 <nav>
-<button onclick="show('2025')" class="active">2025</button>
-<button onclick="show('2026')">2026</button>
-<button onclick="show('rankAll')">ランキング</button>
-<button onclick="show('cards')">カード</button>
+  <button onclick="show('table2025')" class="active">2025表</button>
+  <button onclick="show('table2026')">2026表</button>
+  <button onclick="show('rank2025')">2025ランキング</button>
+  <button onclick="show('rank2026')">2026ランキング</button>
+  <button onclick="show('rankAll')">累計ランキング</button>
+  <button onclick="show('cards')">カード表示</button>
+  <button onclick="show('search')">日程検索</button>
 </nav>
 
-<div id="2025" class="section active"></div>
-<div id="2026" class="section"></div>
-<div id="rankAll" class="section"></div>
-<div id="cards" class="section"></div>
+<main>
+  <section id="table2025" class="section active"></section>
+  <section id="table2026" class="section"></section>
+  <section id="rank2025" class="section"></section>
+  <section id="rank2026" class="section"></section>
+  <section id="rankAll" class="section"></section>
+  <section id="cards" class="section"></section>
+  <section id="search" class="section">
+    <div class="searchBox">
+      <input id="dateInput" placeholder="例：2025/04/28">
+      <button onclick="searchDate()">検索</button>
+    </div>
+    <div id="searchResult" class="grid"></div>
+  </section>
+</main>
 
 <script>
-const url="https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all";
-
-let data=[];
+const csvUrl = "https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all";
+let songs = [];
 
 function show(id){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
 }
 
-function tagDetect(text){
-  let t=[];
-  if(text.includes("ア"))t.push("アニメ");
-  if(text.includes("週"))t.push("週間");
-  if(text.includes("カ"))t.push("カラオケ");
-  if(text.includes("リ"))t.push("リピート");
-  return t;
+function clean(v){return (v||"").replace(/^"|"$/g,"").trim();}
+function toDate(v){return new Date(clean(v).replaceAll("/","-"));}
+function yearOf(s){return clean(s.start).slice(0,4);}
+
+function getTags(row){
+  const text = row.join(" ");
+  const tags = [];
+  if(text.includes("ア")) tags.push("📺 アニメ");
+  if(text.includes("週")) tags.push("⭐ 週間選出楽曲");
+  if(text.includes("カ")) tags.push("🎤 カラオケ曲");
+  if(text.includes("リ")) tags.push("🔁 リピート曲");
+  return tags;
 }
 
-function makeCard(s,i){
-  let cls="";
-  if(i==0)cls="top1";
-  if(i==1)cls="top2";
-  if(i==2)cls="top3";
+function appleLink(song){
+  return "https://music.apple.com/jp/search?term=" + encodeURIComponent(song.title + " " + song.artist);
+}
 
+function card(song){
   return `
   <div class="card">
-    ${i!=null?`<div class="rank ${cls}">#${i+1}</div>`:""}
-    <div class="cover">${s.title[0]}</div>
-    <div class="title">${s.title}</div>
-    <div class="artist">${s.artist}</div>
-    <div class="days">${s.days}日</div>
-    <div>${s.tags.map(x=>`<span class="tag">${x}</span>`).join("")}</div>
-  </div>
-  `;
+    <div class="cover">${song.cover ? `<img src="${song.cover}">` : song.title[0]}</div>
+    <div class="title">${song.title}</div>
+    <div class="artist">${song.artist}</div>
+    <div class="days">${song.days}日</div>
+    <div class="tags">${song.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+    <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
+  </div>`;
 }
 
-fetch(url)
-.then(r=>r.text())
-.then(csv=>{
-  let rows=Papa.parse(csv).data;
-
-  data=rows.map(r=>({
-    title:r[0],
-    artist:r[1],
-    start:r[6],
-    end:r[7],
-    days:parseInt(r[8])||0,
-    tags:tagDetect(r.join(""))
-  })).filter(x=>x.title);
-
-  let y2025=data.filter(x=>x.start?.includes("2025"));
-  let y2026=data.filter(x=>x.start?.includes("2026"));
-
-  document.getElementById("2025").innerHTML=makeTable(y2025);
-  document.getElementById("2026").innerHTML=makeTable(y2026);
-
-  let rank=[...data].sort((a,b)=>b.days-a.days);
-  document.getElementById("rankAll").innerHTML=
-    `<div class="grid">${rank.map((s,i)=>makeCard(s,i)).join("")}</div>`;
-
-  document.getElementById("cards").innerHTML=
-    `<div class="grid">${data.map(s=>makeCard(s)).join("")}</div>`;
-});
-
-function makeTable(arr){
+function makeTable(year){
+  const data = songs.filter(s=>yearOf(s)==year);
   return `
+  <h2>${year}年 楽曲表</h2>
   <table>
-  <tr><th>曲</th><th>アーティスト</th><th>日数</th></tr>
-  ${arr.map(s=>`<tr><td>${s.title}</td><td>${s.artist}</td><td>${s.days}</td></tr>`).join("")}
-  </table>
+    <tr>
+      <th>曲名</th><th>アーティスト</th><th>追加日</th><th>抹消日</th>
+      <th>登録期間</th><th>過去登録回数</th><th>タグ</th>
+    </tr>
+    ${data.map(s=>`
+      <tr>
+        <td>${s.title}</td>
+        <td>${s.artist}</td>
+        <td>${s.start}</td>
+        <td>${s.end || "現在"}</td>
+        <td>${s.days}日</td>
+        <td>${s.pastCount}</td>
+        <td>${s.tags.join(" / ")}</td>
+      </tr>`).join("")}
+  </table>`;
+}
+
+function ranking(year=null){
+  let data = year ? songs.filter(s=>yearOf(s)==year) : songs;
+  data = [...data].sort((a,b)=>Number(b.days)-Number(a.days));
+
+  const artistMap = {};
+  data.forEach(s=>{
+    artistMap[s.artist] = (artistMap[s.artist]||0) + Number(s.days||0);
+  });
+
+  const artistRank = Object.entries(artistMap)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,20);
+
+  return `
+    <h2>${year || "累計"} 登録日数ランキング</h2>
+    <div class="grid">${data.slice(0,30).map(card).join("")}</div>
+
+    <h2>アーティスト別ランキング</h2>
+    <table>
+      <tr><th>順位</th><th>アーティスト</th><th>合計日数</th></tr>
+      ${artistRank.map((a,i)=>`
+        <tr><td>${i+1}</td><td>${a[0]}</td><td>${a[1]}日</td></tr>
+      `).join("")}
+    </table>
   `;
 }
 
-</script>
+function searchDate(){
+  const input = document.getElementById("dateInput").value.trim();
+  const target = toDate(input);
 
+  const result = songs.filter(s=>{
+    const st = toDate(s.start);
+    const en = s.end ? toDate(s.end) : new Date("2099-12-31");
+    return st <= target && target <= en;
+  });
+
+  document.getElementById("searchResult").innerHTML =
+    result.length ? result.map(card).join("") : "該当なし";
+}
+
+fetch(csvUrl)
+.then(res=>res.text())
+.then(csv=>{
+  const rows = Papa.parse(csv,{skipEmptyLines:true}).data;
+
+  songs = rows.map((row,i)=>({
+    title: clean(row[0]),
+    artist: clean(row[1]),
+    start: clean(row[6]),
+    end: clean(row[7]),
+    days: clean(row[8]) || 0,
+    note: clean(row[10]),
+    tags: getTags(row),
+    cover: row.find(c=>String(c).includes("http") && String(c).match(/\.(jpg|png|webp)/)),
+    apple: row.find(c=>String(c).includes("music.apple.com")),
+    rawIndex:i
+  })).filter(s=>s.title && s.start);
+
+  songs.forEach((s,i)=>{
+    s.pastCount = songs
+      .slice(0,i)
+      .filter(x=>x.title===s.title)
+      .length;
+  });
+
+  document.getElementById("table2025").innerHTML = makeTable("2025");
+  document.getElementById("table2026").innerHTML = makeTable("2026");
+  document.getElementById("rank2025").innerHTML = ranking("2025");
+  document.getElementById("rank2026").innerHTML = ranking("2026");
+  document.getElementById("rankAll").innerHTML = ranking();
+  document.getElementById("cards").innerHTML =
+    `<h2>カードタイプ表示</h2><div class="grid">${songs.map(card).join("")}</div>`;
+});
+</script>
 </body>
 </html>
