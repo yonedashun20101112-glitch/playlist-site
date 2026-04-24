@@ -6,6 +6,24 @@
 <title>Weekly Playlist</title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+  .rankCard{
+  position:relative;
+}
+.rankNum{
+  position:absolute;
+  top:12px;
+  right:14px;
+  font-size:32px;
+  font-weight:900;
+  color:#ff2d55;
+  background:rgba(255,255,255,.9);
+  padding:4px 10px;
+  border-radius:999px;
+}
+.rank1{font-size:44px;color:#ffcc00;}
+.rank2{font-size:40px;color:#999;}
+.rank3{font-size:36px;color:#cd7f32;}
+  
 <style>
 body{
   margin:0;
@@ -195,9 +213,15 @@ function appleLink(song){
   return "https://music.apple.com/jp/search?term=" + encodeURIComponent(song.title + " " + song.artist);
 }
 
-function card(song){
+function card(song, rank=null){
+  let rankClass = "";
+  if(rank===1) rankClass = "rank1";
+  if(rank===2) rankClass = "rank2";
+  if(rank===3) rankClass = "rank3";
+
   return `
-  <div class="card">
+  <div class="card rankCard">
+    ${rank ? `<div class="rankNum ${rankClass}">#${rank}</div>` : ""}
     <div class="cover">${song.cover ? `<img src="${song.cover}">` : song.title[0]}</div>
     <div class="title">${song.title}</div>
     <div class="artist">${song.artist}</div>
@@ -205,6 +229,7 @@ function card(song){
     <div class="tags">${song.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
     <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
   </div>`;
+}
 }
 
 function makeTable(year){
@@ -244,7 +269,7 @@ function ranking(year=null){
 
   return `
     <h2>${year || "累計"} 登録日数ランキング</h2>
-    <div class="grid">${data.slice(0,30).map(card).join("")}</div>
+    <div class="grid">${data.slice(0,30).map((s,i)=>card(s,i+1)).join("")}</div>
 
     <h2>アーティスト別ランキング</h2>
     <table>
