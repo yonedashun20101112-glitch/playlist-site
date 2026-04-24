@@ -292,7 +292,7 @@ function searchDate(){
   });
 
   document.getElementById("searchResult").innerHTML =
-    result.length ? result.map(card).join("") : "該当なし";
+    result.length ? result.map(s=>card(s)).join("") : "該当なし";
 }
 
 fetch(csvUrl)
@@ -326,7 +326,7 @@ fetch(csvUrl)
   document.getElementById("rank2026").innerHTML = ranking("2026");
   document.getElementById("rankAll").innerHTML = ranking();
   document.getElementById("cards").innerHTML =
-    `<h2>カードタイプ表示</h2><div class="grid">${songs.map(card).join("")}</div>`;
+    `<h2>カードタイプ表示</h2><div class="grid">${songs.map(s=>card(s)).join("")}</div>`;
 });
 </script>
 </body>
