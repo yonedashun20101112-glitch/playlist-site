@@ -231,7 +231,6 @@ function card(song, rank=null){
     <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
   </div>`;
 }
-}
 
 function makeTable(year){
   const data = songs.filter(s=>yearOf(s)==year);
