@@ -562,11 +562,12 @@ fetch(csvUrl)
     tags: getTags(row),
     cover: row.find(c=>String(c).includes("http") && String(c).match(/\.(jpg|png|webp)/)),
     apple: row.find(c=>String(c).includes("music.apple.com")),
-    rawIndex:i
+    rawIndex:null
   })).filter(s=>s.title && s.start);
 
   songs.forEach((s,i)=>{
-    s.pastCount = songs
+  s.rawIndex = i;
+  s.pastCount = songs
       .slice(0,i)
       .filter(x=>x.title===s.title && x.artist===s.artist)
       .length;
