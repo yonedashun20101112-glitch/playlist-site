@@ -429,11 +429,7 @@ function showSongCard(rawIndex){
   document.getElementById("detail").scrollIntoView({
     behavior:"smooth"
   });
-}
-  document.getElementById("detail").innerHTML =
-    `<h2>選択した曲</h2><div class="grid">${card(song)}</div>`;
-  document.getElementById("detail").scrollIntoView({behavior:"smooth"});
-}
+} 
 
 function makeTable(year){
   const data = songs.filter(s=>yearOf(s)==year);
