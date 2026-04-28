@@ -235,6 +235,24 @@ input{
   th,td{font-size:13px;padding:10px}
   button{font-size:13px;padding:9px 12px}
 }
+  .artistList{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:20px;
+
+  max-height:300px;
+  overflow-y:auto;
+}
+.artistBtn{
+  background:white;
+  color:#111;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+.artistBtn:hover{
+  background:#ff2d55;
+  color:white;
+}
 </style>
 </head>
 
@@ -255,6 +273,7 @@ input{
   <button onclick="show('rankAll')">累計ランキング</button>
   <button onclick="show('cards')">カード検索</button>
   <button onclick="show('search')">日程検索</button>
+  <button onclick="show('artists')">アーティスト</button>
 </nav>
 
 <main>
@@ -281,6 +300,15 @@ input{
   </section>
 
   <section id="detail"></section>
+  <section id="artists" class="section">
+  
+　<h2>アーティスト検索</h2>
+  <div class="searchBox">
+    <input id="artistSearchInput" placeholder="アーティスト名で検索" oninput="renderArtists()">
+  </div>
+  <div id="artistList"></div>
+  <div id="artistResult" class="grid"></div>
+</section>
 </main>
 
 <script>
@@ -391,8 +419,17 @@ ${song.note ? `<div class="note">${song.note}</div>` : ""}
   </div>`;
 }
 
-function showSongCard(index){
-  const song = songs[index];
+function showSongCard(rawIndex){
+  const song = songs.find(s => s.rawIndex === rawIndex);
+  if(!song) return;
+
+  document.getElementById("detail").innerHTML =
+    `<h2>選択した曲</h2><div class="grid">${card(song)}</div>`;
+
+  document.getElementById("detail").scrollIntoView({
+    behavior:"smooth"
+  });
+}
   document.getElementById("detail").innerHTML =
     `<h2>選択した曲</h2><div class="grid">${card(song)}</div>`;
   document.getElementById("detail").scrollIntoView({behavior:"smooth"});
@@ -547,6 +584,34 @@ function filterByTag(tagKey){
   document.getElementById("songSearchResult").innerHTML =
     result.length ? result.map(s=>card(s)).join("") : "該当なし";
 }
+  function kanaKey(name){
+  return name.normalize("NFKC").toLowerCase();
+}
+
+function renderArtists(){
+  const keyword = document.getElementById("artistSearchInput")?.value.trim().toLowerCase() || "";
+
+  const artists = [...new Set(songs.map(s=>s.artist).filter(Boolean))]
+    .sort((a,b)=>kanaKey(a).localeCompare(kanaKey(b), "ja"));
+
+  const filtered = artists.filter(a=>a.toLowerCase().includes(keyword));
+
+  document.getElementById("artistList").innerHTML =
+    `<div class="artistList">
+      ${filtered.map(a=>`
+        <button class="artistBtn" onclick="filterByArtist('${a.replaceAll("'", "\\'")}')">${a}</button>
+      `).join("")}
+    </div>`;
+}
+
+function filterByArtist(artist){
+  const merged = mergeSongs(songs);
+  const result = merged.filter(s=>s.artist === artist);
+
+  document.getElementById("artistResult").innerHTML =
+    `<h2>${artist}</h2>` +
+    (result.length ? result.map(s=>card(s)).join("") : "該当なし");
+}
 fetch(csvUrl)
 .then(res=>res.text())
 .then(csv=>{
@@ -578,6 +643,7 @@ fetch(csvUrl)
   document.getElementById("rank2025").innerHTML = ranking("2025");
   document.getElementById("rank2026").innerHTML = ranking("2026");
   document.getElementById("rankAll").innerHTML = ranking();
+  renderArtists();
 });
 </script>
 </body>
