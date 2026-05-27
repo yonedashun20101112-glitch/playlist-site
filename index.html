@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Playlist</title>
+<title>週間楽曲</title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <link rel="icon" href="favicon.png">
 
@@ -14,16 +14,16 @@ body{
   background:#f5f5f7;
   color:#111;
 }
+
 header{
   padding:34px 20px;
   color:white;
-
   display:flex;
   align-items:center;
   gap:12px;
-
   background:linear-gradient(135deg,#ff2d55,#ff5e3a,#ffcc00);
 }
+
 header.bg2025{
   background-image:
     linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
@@ -32,19 +32,13 @@ header.bg2025{
   background-position:center;
 }
 
-.siteHeader{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
 .logo{
   height:48px;
   width:48px;
   border-radius:12px;
   object-fit:cover;
 }
-  
+
 h1{margin:0;font-size:34px}
 .sub{opacity:.9;margin-top:6px}
 
@@ -59,6 +53,7 @@ nav{
   z-index:10;
   border-bottom:1px solid #ddd;
 }
+
 button{
   border:0;
   border-radius:999px;
@@ -68,6 +63,7 @@ button{
   cursor:pointer;
   white-space:nowrap;
 }
+
 button.active{
   background:#ff2d55;
   color:white;
@@ -78,6 +74,7 @@ main{
   margin:auto;
   padding:20px;
 }
+
 .section{display:none}
 .section.active{display:block}
 
@@ -87,18 +84,22 @@ main{
   border-radius:18px;
   box-shadow:0 8px 24px rgba(0,0,0,.06);
 }
+
 table{
   width:100%;
   min-width:780px;
   border-collapse:collapse;
 }
+
 th,td{
   padding:12px;
   border-bottom:1px solid #eee;
   text-align:left;
   font-size:14px;
 }
+
 th{background:#fafafa}
+
 .songBtn{
   background:none;
   padding:0;
@@ -113,6 +114,7 @@ th{background:#fafafa}
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
   gap:16px;
 }
+
 .card{
   background:white;
   border-radius:22px;
@@ -120,6 +122,7 @@ th{background:#fafafa}
   box-shadow:0 8px 24px rgba(0,0,0,.08);
   position:relative;
 }
+
 .rankNum{
   position:absolute;
   top:12px;
@@ -131,6 +134,7 @@ th{background:#fafafa}
   padding:4px 10px;
   border-radius:999px;
 }
+
 .rank1{font-size:44px;color:#ffcc00}
 .rank2{font-size:40px;color:#999}
 .rank3{font-size:36px;color:#cd7f32}
@@ -149,24 +153,29 @@ th{background:#fafafa}
   margin-bottom:14px;
   overflow:hidden;
 }
+
 .cover img{
   width:100%;
   height:100%;
   object-fit:cover;
 }
+
 .title{font-size:18px;font-weight:900}
 .artist{color:#666;margin-top:4px}
+
 .months{
   margin-top:8px;
   color:#555;
   font-size:14px;
   font-weight:700;
 }
+
 .days{
   margin-top:10px;
   font-weight:900;
   color:#ff2d55;
 }
+
 .tags{
   margin-top:10px;
   display:flex;
@@ -175,6 +184,7 @@ th{background:#fafafa}
   overflow-x:auto;
   white-space:nowrap;
 }
+
 .tagIcon{
   width:30px;
   height:30px;
@@ -190,11 +200,13 @@ th{background:#fafafa}
   cursor:pointer;
   padding:0;
 }
+
 .tagIcon img{
   width:100%;
   height:100%;
   object-fit:cover;
 }
+
 a.music{
   display:inline-block;
   margin-top:12px;
@@ -206,14 +218,16 @@ a.music{
   font-weight:900;
   font-size:13px;
 }
+
 input{
   padding:12px;
   border-radius:12px;
   border:1px solid #ccc;
-  width:220px;
-  max-width:70%;
+  width:260px;
+  max-width:80%;
   font-size:16px;
 }
+
 .searchBox{margin-bottom:18px}
 
 #detail{
@@ -227,71 +241,197 @@ input{
   line-height:1.5;
 }
 
-@media(max-width:600px){
-  header{padding:26px 18px}
-  h1{font-size:28px}
-  main{padding:14px}
-  .grid{grid-template-columns:1fr}
-  th,td{font-size:13px;padding:10px}
-  button{font-size:13px;padding:9px 12px}
-}
-  .artistList{
+.artistList{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
   margin-bottom:20px;
-
   max-height:300px;
   overflow-y:auto;
 }
+
 .artistBtn{
   background:white;
   color:#111;
   box-shadow:0 4px 12px rgba(0,0,0,.08);
 }
+
 .artistBtn:hover{
   background:#ff2d55;
   color:white;
+}
+
+.dashboardHero{
+  background:linear-gradient(135deg,#111,#ff2d55,#ff9500);
+  color:white;
+  border-radius:28px;
+  padding:26px;
+  margin-bottom:22px;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+
+.dashboardHero h2{
+  margin:0;
+  font-size:34px;
+}
+
+.dashboardHero p{
+  opacity:.9;
+  margin-bottom:0;
+}
+
+.dashboardStats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:14px;
+  margin:18px 0 26px;
+}
+
+.statBox{
+  background:white;
+  border-radius:20px;
+  padding:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.statLabel{
+  color:#666;
+  font-weight:800;
+  font-size:13px;
+}
+
+.statNum{
+  font-size:34px;
+  font-weight:900;
+  color:#ff2d55;
+  margin-top:6px;
+}
+
+.pageButtons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.pageButtons button{
+  background:rgba(255,255,255,.2);
+  color:white;
+  backdrop-filter:blur(8px);
+}
+
+.pageButtons button:hover{
+  background:white;
+  color:#ff2d55;
+}
+
+.miniGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
+  gap:12px;
+}
+
+.miniCard{
+  background:white;
+  border-radius:18px;
+  padding:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+.miniCover{
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:14px;
+  background:linear-gradient(135deg,#ff2d55,#ffcc00);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-weight:900;
+  font-size:26px;
+  overflow:hidden;
+}
+
+.miniCover img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.miniTitle{
+  margin-top:8px;
+  font-weight:900;
+  font-size:13px;
+}
+
+.miniArtist{
+  color:#666;
+  font-size:12px;
+  margin-top:2px;
+}
+
+.monthlyGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;
+}
+
+@media(max-width:600px){
+  header{padding:26px 18px}
+  h1{font-size:28px}
+  main{padding:14px}
+  .grid{grid-template-columns:1fr}
+  .miniGrid{grid-template-columns:repeat(2,1fr)}
+  th,td{font-size:13px;padding:10px}
+  button{font-size:13px;padding:9px 12px}
+  .dashboardHero{padding:22px}
+  .dashboardHero h2{font-size:28px}
 }
 </style>
 </head>
 
 <body>
-<header class="siteHeader" id="mainHeader">
+<header id="mainHeader">
   <img src="logo.png" class="logo" alt="logo">
   <div>
     <h1>週間楽曲</h1>
-    <div class="sub">since2025</div>
+    <div class="sub">since 2025</div>
   </div>
 </header>
 
 <nav>
-  <button onclick="show('table2025')" class="active">2025表</button>
-  <button onclick="show('table2026')">2026表</button>
-  <button onclick="show('rank2025')">2025ランキング</button>
-  <button onclick="show('rank2026')">2026ランキング</button>
-  <button onclick="show('rankAll')">累計ランキング</button>
-  <button onclick="show('cards')">カード検索</button>
-  <button onclick="show('search')">日程検索</button>
-  <button onclick="show('artists')">アーティスト</button>
+  <button data-target="dashboard" onclick="show('dashboard', this)" class="active">ダッシュボード</button>
+  <button data-target="table2025" onclick="show('table2025', this)">2025表</button>
+  <button data-target="table2026" onclick="show('table2026', this)">2026表</button>
+  <button data-target="rank2025" onclick="show('rank2025', this)">2025ランキング</button>
+  <button data-target="rank2026" onclick="show('rank2026', this)">2026ランキング</button>
+  <button data-target="rankAll" onclick="show('rankAll', this)">累計ランキング</button>
+  <button data-target="monthly" onclick="show('monthly', this)">月別集計</button>
+  <button data-target="cards" onclick="show('cards', this)">カード検索</button>
+  <button data-target="search" onclick="show('search', this)">日程検索</button>
+  <button data-target="artists" onclick="show('artists', this)">アーティスト</button>
 </nav>
 
 <main>
-  <section id="table2025" class="section active"></section>
+  <section id="dashboard" class="section active"></section>
+  <section id="table2025" class="section"></section>
   <section id="table2026" class="section"></section>
   <section id="rank2025" class="section"></section>
   <section id="rank2026" class="section"></section>
   <section id="rankAll" class="section"></section>
- <section id="cards" class="section">
-  <h2>曲検索</h2>
-  <div class="searchBox">
-    <input id="songSearchInput" placeholder="曲名・アーティストで検索">
-    <button onclick="searchSong()">検索</button>
-  </div>
-  <div id="songSearchResult" class="grid"></div>
-</section>
+  <section id="monthly" class="section"></section>
+
+  <section id="cards" class="section">
+    <h2>曲検索</h2>
+    <div class="searchBox">
+      <input id="songSearchInput" placeholder="曲名・アーティストで検索" oninput="searchSong()">
+      <button onclick="searchSong()">検索</button>
+    </div>
+    <div id="songSearchResult" class="grid"></div>
+  </section>
 
   <section id="search" class="section">
+    <h2>日程検索</h2>
     <div class="searchBox">
       <input id="dateInput" placeholder="例：2025/04/28">
       <button onclick="searchDate()">検索</button>
@@ -299,16 +439,16 @@ input{
     <div id="searchResult" class="grid"></div>
   </section>
 
-  <section id="detail"></section>
   <section id="artists" class="section">
-  
-　<h2>アーティスト検索</h2>
-  <div class="searchBox">
-    <input id="artistSearchInput" placeholder="アーティスト名で検索" oninput="renderArtists()">
-  </div>
-  <div id="artistList"></div>
-  <div id="artistResult" class="grid"></div>
-</section>
+    <h2>アーティスト検索</h2>
+    <div class="searchBox">
+      <input id="artistSearchInput" placeholder="アーティスト名で検索" oninput="renderArtists()">
+    </div>
+    <div id="artistList"></div>
+    <div id="artistResult" class="grid"></div>
+  </section>
+
+  <section id="detail"></section>
 </main>
 
 <script>
@@ -323,12 +463,13 @@ const tagIcons = {
 
 let songs = [];
 
-function show(id){
+function show(id, btn=null){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 
   document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-  event.target.classList.add("active");
+  const activeBtn = btn || document.querySelector(`nav button[data-target="${id}"]`);
+  if(activeBtn) activeBtn.classList.add("active");
 
   document.getElementById("detail").innerHTML = "";
 
@@ -344,8 +485,15 @@ function clean(v){
   return (v || "").replace(/^"|"$/g,"").trim();
 }
 
+function parseDate(v){
+  const x = clean(v).replaceAll("-","/");
+  const m = x.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if(!m) return null;
+  return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+}
+
 function toDate(v){
-  return new Date(clean(v).replaceAll("/","-"));
+  return parseDate(v) || new Date("2099-12-31");
 }
 
 function yearOf(s){
@@ -353,57 +501,31 @@ function yearOf(s){
 }
 
 function shortDate(v){
-  const x = clean(v);
-  const m = x.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-  return m ? `${m[2]}/${m[3]}` : x;
+  const x = clean(v).replaceAll("-","/");
+  const m = x.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  return m ? `${String(m[2]).padStart(2,"0")}/${String(m[3]).padStart(2,"0")}` : x;
 }
 
 function monthLabel(s){
-  const x = clean(s.start);
-  const m = x.match(/^(\d{4})\/(\d{2})\/\d{2}$/);
-  return m ? `${m[1]}/${m[2]}` : "";
+  const x = clean(s.start).replaceAll("-","/");
+  const m = x.match(/^(\d{4})\/(\d{1,2})\/\d{1,2}$/);
+  return m ? `${m[1]}/${String(m[2]).padStart(2,"0")}` : "";
+}
+
+function ym(dateStr){
+  const x = clean(dateStr).replaceAll("-","/");
+  const m = x.match(/^(\d{4})\/(\d{1,2})\/\d{1,2}$/);
+  return m ? `${m[1]}/${String(m[2]).padStart(2,"0")}` : "";
 }
 
 function getTags(row){
-
-  const anime = clean(row[2]);
-  const weekly = clean(row[3]);
-  const karaoke = clean(row[4]);
-  const repeat = clean(row[5]);
-
+  const tagCells = [row[2], row[3], row[4], row[5]].map(clean);
   const tags = [];
 
-  if(anime === "ア"){
-    tags.push({
-      key:"anime",
-      label:"アニメ",
-      fallback:"📺"
-    });
-  }
-
-  if(weekly === "週"){
-    tags.push({
-      key:"weekly",
-      label:"週間選出楽曲",
-      fallback:"⭐"
-    });
-  }
-
-  if(karaoke === "カ"){
-    tags.push({
-      key:"karaoke",
-      label:"カラオケ曲",
-      fallback:"🎤"
-    });
-  }
-
-  if(repeat === "リ"){
-    tags.push({
-      key:"repeat",
-      label:"リピート曲",
-      fallback:"🔁"
-    });
-  }
+  if(tagCells.includes("ア")) tags.push({key:"anime", label:"アニメ", fallback:"📺"});
+  if(tagCells.includes("週")) tags.push({key:"weekly", label:"週間選出楽曲", fallback:"⭐"});
+  if(tagCells.includes("カ")) tags.push({key:"karaoke", label:"カラオケ曲", fallback:"🎤"});
+  if(tagCells.includes("リ")) tags.push({key:"repeat", label:"リピート曲", fallback:"🔁"});
 
   return tags;
 }
@@ -446,11 +568,21 @@ function card(song, rank=null, showDays=false){
     <div class="title">${song.title}</div>
     <div class="artist">${song.artist}</div>
     <div class="months">${displayMonths(song)}登録</div>
-${showDays ? `<div class="days">${song.days}日</div>` : ""}
-${song.note ? `<div class="note">${song.note}</div>` : ""}
+    ${showDays ? `<div class="days">${song.days}日</div>` : ""}
+    ${song.note ? `<div class="note">${song.note}</div>` : ""}
     <div class="tags">${tagHtml(song.tags)}</div>
     <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
   </div>`;
+}
+
+function miniCard(song){
+  return `
+    <div class="miniCard">
+      <div class="miniCover">${song.cover ? `<img src="${song.cover}">` : song.title[0]}</div>
+      <div class="miniTitle">${song.title}</div>
+      <div class="miniArtist">${song.artist}</div>
+    </div>
+  `;
 }
 
 function showSongCard(rawIndex){
@@ -460,10 +592,8 @@ function showSongCard(rawIndex){
   document.getElementById("detail").innerHTML =
     `<h2>選択した曲</h2><div class="grid">${card(song)}</div>`;
 
-  document.getElementById("detail").scrollIntoView({
-    behavior:"smooth"
-  });
-} 
+  document.getElementById("detail").scrollIntoView({behavior:"smooth"});
+}
 
 function makeTable(year){
   const data = songs.filter(s=>yearOf(s)==year);
@@ -491,9 +621,8 @@ function makeTable(year){
         <td>${s.pastCount}</td>
         <td><div class="tags">${tagHtml(s.tags)}</div></td>
       </tr>`).join("")}
- </table>
-</div>
-`;
+  </table>
+  </div>`;
 }
 
 function mergeSongs(data){
@@ -508,7 +637,8 @@ function mergeSongs(data){
         days:0,
         tags:[...s.tags],
         cover:s.cover,
-        apple:s.apple
+        apple:s.apple,
+        note:s.note
       };
     }
 
@@ -516,6 +646,7 @@ function mergeSongs(data){
     map[key].tags = [...new Map([...map[key].tags, ...s.tags].map(t=>[t.key,t])).values()];
     if(!map[key].cover && s.cover) map[key].cover = s.cover;
     if(!map[key].apple && s.apple) map[key].apple = s.apple;
+    if(!map[key].note && s.note) map[key].note = s.note;
   });
 
   return Object.values(map);
@@ -562,21 +693,136 @@ function ranking(year=null){
       <table>
         <tr><th>順位</th><th>アーティスト</th><th>合計日数</th></tr>
         ${artistRank.map((a,i)=>`
-          <tr><td>${i+1}</td><td>${a[0]}</td><td>${a[1]}日</td></tr>
+          <tr>
+            <td>${i+1}</td>
+            <td><button class="songBtn" onclick="filterByArtist('${String(a[0]).replaceAll("'","\\'")}')">${a[0]}</button></td>
+            <td>${a[1]}日</td>
+          </tr>
         `).join("")}
       </table>
     </div>
   `;
 }
 
+function monthlyStats(year=null){
+  const data = year ? songs.filter(s=>yearOf(s) === year) : songs;
+  const map = {};
+
+  data.forEach(s=>{
+    const addMonth = ym(s.start);
+    const removeMonth = ym(s.end);
+
+    if(addMonth){
+      if(!map[addMonth]) map[addMonth] = {add:0, remove:0};
+      map[addMonth].add++;
+    }
+
+    if(removeMonth){
+      if(!map[removeMonth]) map[removeMonth] = {add:0, remove:0};
+      map[removeMonth].remove++;
+    }
+  });
+
+  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]));
+
+  return `
+    <div>
+    <h2>${year || "累計"} 月別追加・抹消曲数</h2>
+    <div class="tableWrap">
+      <table>
+        <tr>
+          <th>月</th>
+          <th>追加曲数</th>
+          <th>抹消曲数</th>
+        </tr>
+        ${rows.map(([month,v])=>`
+          <tr>
+            <td>${month}</td>
+            <td>${v.add}</td>
+            <td>${v.remove}</td>
+          </tr>
+        `).join("")}
+      </table>
+    </div>
+    </div>
+  `;
+}
+
+function monthlyPage(){
+  return `
+    <div class="monthlyGrid">
+      ${monthlyStats("2025")}
+      ${monthlyStats("2026")}
+      ${monthlyStats()}
+    </div>
+  `;
+}
+
+function dashboard(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const currentYM = `${y}/${m}`;
+
+  const added = songs.filter(s=>ym(s.start) === currentYM).length;
+  const removed = songs.filter(s=>ym(s.end) === currentYM).length;
+
+  const today = new Date();
+  const activeSongs = songs.filter(s=>{
+    const st = parseDate(s.start);
+    const en = s.end ? parseDate(s.end) : new Date(2099,11,31);
+    return st && st <= today && today <= en;
+  });
+
+  return `
+    <div class="dashboardHero">
+      <h2>Dashboard</h2>
+      <p>${currentYM} の登録・抹消状況</p>
+      <div class="pageButtons">
+        <button onclick="show('table2025')">2025表</button>
+        <button onclick="show('table2026')">2026表</button>
+        <button onclick="show('rankAll')">累計ランキング</button>
+        <button onclick="show('monthly')">月別集計</button>
+        <button onclick="show('cards')">曲検索</button>
+        <button onclick="show('artists')">アーティスト</button>
+      </div>
+    </div>
+
+    <div class="dashboardStats">
+      <div class="statBox">
+        <div class="statLabel">今月の登録曲数</div>
+        <div class="statNum">${added}</div>
+      </div>
+      <div class="statBox">
+        <div class="statLabel">今月の抹消曲数</div>
+        <div class="statNum">${removed}</div>
+      </div>
+      <div class="statBox">
+        <div class="statLabel">現在登録中</div>
+        <div class="statNum">${activeSongs.length}</div>
+      </div>
+    </div>
+
+    <h2>現在登録中の曲</h2>
+    <div class="miniGrid">
+      ${activeSongs.map(miniCard).join("") || "現在登録中の曲がありません"}
+    </div>
+  `;
+}
+
 function searchDate(){
   const input = document.getElementById("dateInput").value.trim();
-  const target = toDate(input);
+  const target = parseDate(input);
+
+  if(!target){
+    document.getElementById("searchResult").innerHTML = "日付を 2025/04/28 の形式で入力してください";
+    return;
+  }
 
   const result = songs.filter(s=>{
-    const st = toDate(s.start);
-    const en = s.end ? toDate(s.end) : new Date("2099-12-31");
-    return st <= target && target <= en;
+    const st = parseDate(s.start);
+    const en = s.end ? parseDate(s.end) : new Date(2099,11,31);
+    return st && st <= target && target <= en;
   });
 
   document.getElementById("searchResult").innerHTML =
@@ -614,12 +860,14 @@ function filterByTag(tagKey){
   document.getElementById("songSearchResult").innerHTML =
     result.length ? result.map(s=>card(s)).join("") : "該当なし";
 }
-  function kanaKey(name){
+
+function kanaKey(name){
   return name.normalize("NFKC").toLowerCase();
 }
 
 function renderArtists(){
-  const keyword = document.getElementById("artistSearchInput")?.value.trim().toLowerCase() || "";
+  const input = document.getElementById("artistSearchInput");
+  const keyword = input ? input.value.trim().toLowerCase() : "";
 
   const artists = [...new Set(songs.map(s=>s.artist).filter(Boolean))]
     .sort((a,b)=>kanaKey(a).localeCompare(kanaKey(b), "ja"));
@@ -629,12 +877,14 @@ function renderArtists(){
   document.getElementById("artistList").innerHTML =
     `<div class="artistList">
       ${filtered.map(a=>`
-        <button class="artistBtn" onclick="filterByArtist('${a.replaceAll("'", "\\'")}')">${a}</button>
+        <button class="artistBtn" onclick="filterByArtist('${a.replaceAll("'","\\'")}')">${a}</button>
       `).join("")}
     </div>`;
 }
 
 function filterByArtist(artist){
+  show("artists");
+
   const merged = mergeSongs(songs);
   const result = merged.filter(s=>s.artist === artist);
 
@@ -642,12 +892,13 @@ function filterByArtist(artist){
     `<h2>${artist}</h2>` +
     (result.length ? result.map(s=>card(s)).join("") : "該当なし");
 }
+
 fetch(csvUrl)
 .then(res=>res.text())
 .then(csv=>{
   const rows = Papa.parse(csv,{skipEmptyLines:true}).data;
 
-  songs = rows.map((row,i)=>({
+  songs = rows.map((row)=>({
     title: clean(row[0]),
     artist: clean(row[1]),
     start: clean(row[6]),
@@ -661,18 +912,20 @@ fetch(csvUrl)
   })).filter(s=>s.title && s.start);
 
   songs.forEach((s,i)=>{
-  s.rawIndex = i;
-  s.pastCount = songs
+    s.rawIndex = i;
+    s.pastCount = songs
       .slice(0,i)
       .filter(x=>x.title===s.title && x.artist===s.artist)
       .length;
   });
 
+  document.getElementById("dashboard").innerHTML = dashboard();
   document.getElementById("table2025").innerHTML = makeTable("2025");
   document.getElementById("table2026").innerHTML = makeTable("2026");
   document.getElementById("rank2025").innerHTML = ranking("2025");
   document.getElementById("rank2026").innerHTML = ranking("2026");
   document.getElementById("rankAll").innerHTML = ranking();
+  document.getElementById("monthly").innerHTML = monthlyPage();
   renderArtists();
 });
 </script>
