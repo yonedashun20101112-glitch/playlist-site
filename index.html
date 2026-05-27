@@ -365,12 +365,46 @@ function monthLabel(s){
 }
 
 function getTags(row){
-  const text = row.join(" ");
+
+  const anime = clean(row[2]);
+  const weekly = clean(row[3]);
+  const karaoke = clean(row[4]);
+  const repeat = clean(row[5]);
+
   const tags = [];
-  if(text.includes("ア")) tags.push({key:"anime", label:"アニメ", fallback:"📺"});
-  if(text.includes("週")) tags.push({key:"weekly", label:"週間選出楽曲", fallback:"⭐"});
-  if(text.includes("カ")) tags.push({key:"karaoke", label:"カラオケ曲", fallback:"🎤"});
-  if(text.includes("リ")) tags.push({key:"repeat", label:"リピート曲", fallback:"🔁"});
+
+  if(anime === "ア"){
+    tags.push({
+      key:"anime",
+      label:"アニメ",
+      fallback:"📺"
+    });
+  }
+
+  if(weekly === "週"){
+    tags.push({
+      key:"weekly",
+      label:"週間選出楽曲",
+      fallback:"⭐"
+    });
+  }
+
+  if(karaoke === "カ"){
+    tags.push({
+      key:"karaoke",
+      label:"カラオケ曲",
+      fallback:"🎤"
+    });
+  }
+
+  if(repeat === "リ"){
+    tags.push({
+      key:"repeat",
+      label:"リピート曲",
+      fallback:"🔁"
+    });
+  }
+
   return tags;
 }
 
