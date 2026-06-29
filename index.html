@@ -289,10 +289,13 @@
             document.body.classList.remove('mood-anxiety', 'mood-rainy', 'mood-happy');
             const scenes = ['home', 'timeline', 'table', 'ranking'];
             scenes.forEach(s => {
-                document.getElementById(`scene-${s}`).classList.add('scene-hidden');
-                document.getElementById(`tab-${s}`).className = "px-4 py-2 rounded-lg transition-all text-zinc-400 hover:text-white whitespace-nowrap";
+                const target = document.getElementById(`scene-${s}`);
+                if(target) target.classList.add('scene-hidden');
+                const tab = document.getElementById(`tab-${s}`);
+                if(tab) tab.className = "px-4 py-2 rounded-lg transition-all text-zinc-400 hover:text-white whitespace-nowrap";
             });
-            document.getElementById(`scene-${sceneId}`).classList.remove('scene-hidden');
+            const targetScene = document.getElementById(`scene-${sceneId}`);
+            if(targetScene) targetScene.classList.remove('scene-hidden');
             document.body.className = `pb-16 theme-${sceneId}`;
             
             let btnClass = "px-4 py-2 rounded-lg transition-all text-slate-900 font-bold shadow-md whitespace-nowrap ";
@@ -366,7 +369,7 @@
             const container = document.getElementById('modal-content');
             container.innerHTML = `
                 <div class="flex flex-col items-center text-center space-y-2">
-                    ${getCoverHTML(track.img).replace('w-12 h-12','w-20 h-20')}
+                    ${getCoverHTML(track.img).replace('w-10 h-10','w-20 h-20')}
                     <div>
                         <h4 class="text-white font-bold text-base">${track.title}</h4>
                         <p class="text-zinc-400 text-xs mt-0.5">${track.artist}</p>
@@ -395,7 +398,6 @@
 
         function initData(csv2025, csv2026, scheduleText) {
             try {
-                // スケジュールマップ構築
                 const schedLines = scheduleText.split(/\r\n|\n/);
                 schedLines.forEach(line => {
                     if(!line.trim()) return;
@@ -461,243 +463,186 @@
             if (eventText.match(/(テスト|模試|追試|勉強|課題|提出)/)) {
                 pressure = 85; emotion = 20; moodClass = 'mood-anxiety';
                 cardStyle = 'bg-purple-950/40 border-purple-500/40 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.15)]';
-                iconHTML = '<i class="fa-solid fa-triangle-exclamation text-purple-400"></i>'; tagText = 'HIGH PRESSURE SYSTEM';
-            } else if (eventText.match(/(雨|台風|雷|大雨|梅雨|傘)/)) {
-                humidity = 90; pressure = 15; moodClass = 'mood-rainy';
+                iconHTML = '<i class="fa-solid fa-triangle-exclamation text-purple-400"></i>';
+                tagText = 'HIGH PRESSURE LOG';
+            } else if (eventText.match(/(雨|梅雨|台風|大雨)/)) {
+                humidity = 90; refresh = 15; moodClass = 'mood-rainy';
                 cardStyle = 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.15)]';
-                iconHTML = '<i class="fa-solid fa-cloud-showers-heavy text-cyan-400"></i>'; tagText = 'RAINY SOUNDSCAPE';
-            } else if (eventText.match(/(休み|祝|ライブ|遠出|旅行|イベント|カラオケ)/)) {
+                iconHTML = '<i class="fa-solid fa-cloud-showers-heavy text-cyan-400"></i>';
+                tagText = 'RAINY ROUTE MEMORY';
+            } else if (eventText.match(/(LIVE|ライブ|遠足|旅行|休み|カラオケ|購入|届いた)/)) {
                 emotion = 95; refresh = 80; moodClass = 'mood-happy';
                 cardStyle = 'bg-pink-950/40 border-pink-500/40 text-pink-200 shadow-[0_0_15px_rgba(236,72,153,0.15)]';
-                iconHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>'; tagText = 'OPTIMISTIC FLOW';
+                iconHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>';
+                tagText = 'HIGH EMOTION STREAM';
             } else {
-                pressure = 25; humidity = 40; emotion = 50; refresh = 45;
-                cardStyle = 'bg-zinc-900/40 border-zinc-800/80 text-zinc-300';
+                pressure = 30; humidity = 40; emotion = 50; refresh = 45;
             }
 
             document.body.classList.remove('mood-anxiety', 'mood-rainy', 'mood-happy');
-            if(moodClass) document.body.classList.add(moodClass);
+            if (moodClass) document.body.classList.add(moodClass);
 
-            document.getElementById('bar-pressure').style.width = pressure + '%';
-            document.getElementById('bar-humidity').style.width = humidity + '%';
-            document.getElementById('bar-emotion').style.width = emotion + '%';
-            document.getElementById('bar-refresh').style.width = refresh + '%';
+            document.getElementById('bar-pressure').style.width = `${pressure}%`;
+            document.getElementById('bar-humidity').style.width = `${humidity}%`;
+            document.getElementById('bar-emotion').style.width = `${emotion}%`;
+            document.getElementById('bar-refresh').style.width = `${refresh}%`;
 
-            const situationCard = document.getElementById('situation-core-card');
-            situationCard.className = `p-4 rounded-xl border flex gap-3 items-center transition-all duration-500 ${cardStyle}`;
-            document.getElementById('situation-icon-box').innerHTML = iconHTML;
+            const sText = document.getElementById('situation-text');
+            sText.innerText = eventText ? eventText : '予定なし（平穏な日常の通学路）';
             document.getElementById('situation-tag').innerText = tagText;
-            document.getElementById('situation-text').innerText = eventText ? eventText : '特別な予定なし（日常の通学路）';
-
-            document.getElementById('terminal-icon').className = `fa-solid fa-circle-nodes animate-spin text-indigo-300`;
-            setTimeout(() => { document.getElementById('terminal-icon').className = `fa-solid fa-circle-nodes text-indigo-300`; }, 600);
-        }
-
-        function pickRandomDate() {
-            const keys = Object.keys(masterSchedules);
-            if(keys.length === 0) return;
-            const randomKey = keys[Math.floor(Math.random() * keys.length)];
-            const inputDate = randomKey.replace(/\//g, '-');
-            document.getElementById('history-date-input').value = inputDate;
-            searchHistoryPlaylist();
+            
+            const iconBox = document.getElementById('situation-icon-box');
+            iconBox.innerHTML = iconHTML;
+            iconBox.className = `w-10 h-10 rounded-lg flex items-center justify-center text-base flex-shrink-0 ${cardStyle}`;
+            document.getElementById('situation-core-card').className = `p-4 rounded-xl border flex gap-3 items-center transition-all duration-500 ${cardStyle}`;
         }
 
         function searchHistoryPlaylist() {
-            const dateStr = document.getElementById('history-date-input').value;
-            if(!dateStr) { alert("日付を選択してください。"); return; }
-            const targetTime = new Date(dateStr).getTime();
-            document.getElementById('stream-output-area').classList.remove('hidden');
+            const dateInput = document.getElementById('history-date-input').value;
+            if(!dateInput) return;
             applyMoodVisuals();
 
-            const matches = masterTracks.filter(t => {
-                return t.history.some(h => {
-                    if(!h.regDate || h.regDate === '--') return false;
-                    const regTime = new Date(h.regDate).getTime();
-                    let remTime = (h.removedDate === '現在登録中' || h.removedDate === '2026年へ継続') ? new Date('2026/12/31').getTime() : new Date(h.removedDate).getTime();
-                    return (targetTime >= regTime && targetTime <= remTime);
-                });
-            });
-
+            const targetDate = new Date(dateInput);
             const box = document.getElementById('history-results-box');
             box.innerHTML = '';
-            if(matches.length === 0) {
-                box.innerHTML = `<p class="text-xs text-zinc-500 font-bold text-center py-6 pl-4">この日にアクティブな楽曲ログがありませんでした。</p>`;
-                return;
-            }
 
-            matches.forEach(t => {
-                const escapeKey = (t.title + "|||" + t.artist).replace(/'/g, "\\'");
-                box.innerHTML += `
-                <div class="glass-card p-3 rounded-xl flex items-center justify-between gap-3 bg-zinc-900/40 border-zinc-800/60 cursor-pointer hover:bg-zinc-800/40 transition-all hover:translate-x-1 relative z-10" onclick="openDetailModal('${escapeKey}')">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-2 h-2 rounded-full bg-indigo-300 absolute left-[-13px] border border-zinc-900 shadow-sm"></div>
-                        ${getCoverHTML(t.img)}
-                        <div class="min-w-0">
-                            <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
-                            <p class="text-zinc-400 text-[11px] truncate mt-0.5">${t.artist}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] font-digital font-bold text-zinc-500 bg-black/30 px-1.5 py-0.5 rounded border border-zinc-800">${t.totalDays}d</span>
-                        ${getPlayButtonHTML(t.link)}
-                    </div>
-                </div>`;
-            });
-        }
-
-        async function loadAndExecute() {
-            try {
-                // ※ 本来のCSVフェッチ処理、または埋め込みデータ読み込みをここに記述します
-                // initData(csv2025, csv2026, scheduleText);
-
-                // 各種スタッツ更新
-                document.getElementById('stat-total').innerText = masterTracks.length;
-                const activeCount = rawParsedTracks.filter(t => t.removedDate === '現在登録中').length;
-                document.getElementById('stat-active').innerText = activeCount;
-                
-                let sumDays = 0;
-                masterTracks.forEach(t => sumDays += t.totalDays);
-                const avg = masterTracks.length ? Math.round(sumDays / masterTracks.length) : 0;
-                document.getElementById('stat-avg-days').innerHTML = `${avg} <span class="text-xs text-zinc-400">Days</span>`;
-
-                let longest = { totalDays: 0, title: 'なし' };
-                masterTracks.forEach(t => { if(t.totalDays > longest.totalDays) longest = t; });
-                document.getElementById('stat-longest-track').innerText = longest.title;
-                document.getElementById('stat-longest-days').innerText = longest.totalDays + ' 日間';
-                longestTrackKey = longest.title + "|||" + longest.artist;
-                document.getElementById('stat-longest-card').onclick = function() { if (longestTrackKey) openDetailModal(longestTrackKey); };
-
-                generateRecommendations();
-                generateDynamicMonthButtons();
-                renderRankings();
-                renderTimeline();
-                renderTable();
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function generateRecommendations() {
-            const unmapped = masterTracks.filter(t => t.totalDays > 0 && t.totalDays <= 6);
-            const superHits = masterTracks.filter(t => t.totalDays >= 20);
-            let pool = [];
-            if(unmapped.length > 0) { pool.push({ track: unmapped[Math.floor(Math.random() * unmapped.length)], reason: "💡 開拓の余地がある隠れたログ曲！" }); }
-            if(superHits.length > 0) { pool.push({ track: superHits[Math.floor(Math.random() * superHits.length)], reason: "🔥 当時ヘビロテされた最強ヘビーソング！" }); }
-            while(pool.length < 3 && masterTracks.length > pool.length) {
-                const randomTrack = masterTracks[Math.floor(Math.random() * masterTracks.length)];
-                if(!pool.some(p => p.track === randomTrack)) {
-                    pool.push({ track: randomTrack, reason: `🎵 滞在日数 ${randomTrack.totalDays}日！ふと今聴き返したい思い出の1曲。` });
+            const matched = rawParsedTracks.filter(t => {
+                if (t.regDate === '--') return false;
+                const reg = new Date(t.regDate);
+                let rem = null;
+                if (t.removedDate !== '現在登録中' && t.removedDate !== '2026年へ継続') {
+                    rem = new Date(t.removedDate);
                 }
-            }
-            const container = document.getElementById('recommend-container');
-            container.innerHTML = '';
-            pool.forEach(item => {
-                const t = item.track;
-                const escapeKey = (t.title + "|||" + t.artist).replace(/'/g, "\\'");
-                container.innerHTML += `
-                <div class="glass-card p-3 rounded-xl flex flex-col gap-2 bg-zinc-900/40 cursor-pointer hover:bg-zinc-800/50 transition-all" onclick="openDetailModal('${escapeKey}')">
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3 min-w-0">
-                            ${getCoverHTML(t.img)}
-                            <div class="min-w-0">
-                                <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
-                                <p class="text-zinc-400 text-[11px] truncate">${t.artist}</p>
-                            </div>
-                        </div>
-                        ${getPlayButtonHTML(t.link)}
-                    </div>
-                    <div class="text-[10px] text-indigo-200 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900/40 font-medium">
-                        ${item.reason}
-                    </div>
-                </div>`;
-            });
-        }
-
-        // --- タイムライン描画系 ---
-        function renderTimeline() { filterTimeline(); }
-
-        function filterTimeline() {
-            const query = document.getElementById('search-input').value.toLowerCase().trim();
-            const container = document.getElementById('timeline-container');
-            container.innerHTML = '';
-
-            let allTimelineEvents = [];
-            rawParsedTracks.forEach(t => {
-                if (query && !t.title.toLowerCase().includes(query) && !t.artist.toLowerCase().includes(query)) return;
-                allTimelineEvents.push(t);
+                if (rem) {
+                    return targetDate >= reg && targetDate <= rem;
+                }
+                return targetDate >= reg;
             });
 
-            // 日付で降順ソート
-            allTimelineEvents.sort((a,b) => {
-                const dA = a.regDate !== '--' ? new Date(a.regDate).getTime() : 0;
-                const dB = b.regDate !== '--' ? new Date(b.regDate).getTime() : 0;
-                return dB - dA;
-            });
+            document.getElementById('stream-output-area').classList.remove('hidden');
 
-            if(allTimelineEvents.length === 0) {
-                container.innerHTML = `<p class="text-xs text-zinc-500 font-bold text-center py-8">該当するタイムラインデータがありません。</p>`;
+            if(matched.length === 0) {
+                box.innerHTML = `<p class="text-xs text-zinc-500 text-center py-6">この日に鳴っていたログが見つかりません</p>`;
                 return;
             }
 
-            // ① 同じ曲が連続または重複して広がりすぎないように制限（1曲につき1件の予定・ログポーションに絞る）
-            const seenTracksInTimeline = new Set();
-
-            allTimelineEvents.forEach(e => {
-                const trackUniqueKey = e.title + "|||" + e.artist;
-                if (seenTracksInTimeline.has(trackUniqueKey)) return; // 既に描画済みの曲はスキップ（1曲1件制限）
-                seenTracksInTimeline.add(trackUniqueKey);
-
-                const escapeKey = trackUniqueKey.replace(/'/g, "\\'");
-                const scheduleText = masterSchedules[e.regDate] || '';
-                let eventBadge = scheduleText ? `<span class="inline-block text-[10px] bg-pink-500/10 text-pink-300 border border-pink-500/20 px-1.5 py-0.5 rounded font-medium mt-1 max-w-full truncate">${scheduleText}</span>` : '';
-
-                // ① 高さと比率（25% / 35% / 40%）を綺麗に統一したフレックス・グリッド構造の行を出力
-                container.innerHTML += `
-                <div class="flex items-center h-16 bg-zinc-900/20 hover:bg-zinc-800/30 transition-all cursor-pointer text-[11px] md:text-xs" onclick="openDetailModal('${escapeKey}')">
-                    <div class="w-[25%] px-3 border-r border-zinc-800/60 flex flex-col justify-center h-full">
-                        <span class="text-zinc-400 font-mono font-bold">${e.regDate.split('/')[1] || '--'}月${e.regDate.split('/')[2] || '--'}日</span>
-                        <p class="text-[8px] font-digital font-bold text-zinc-600 uppercase tracking-tight">${e.year} log</p>
-                    </div>
-                    <div class="w-[35%] px-3 border-r border-zinc-800/60 flex items-center gap-2 h-full min-w-0">
-                        ${getCoverHTML(e.img)}
-                        <div class="min-w-0 flex-grow">
-                            <h4 class="text-white font-bold text-xs truncate">${e.title}</h4>
-                            <p class="text-zinc-400 text-[10px] truncate">${e.artist}</p>
+            matched.forEach(track => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-2 rounded-xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer relative z-10";
+                item.onclick = () => openDetailModal(track.title + "|||" + track.artist);
+                item.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0 flex-grow mr-2">
+                        ${getCoverHTML(track.img)}
+                        <div class="min-w-0">
+                            <p class="text-zinc-200 font-bold truncate text-[11px]">${track.title}</p>
+                            <p class="text-zinc-500 text-[9px] truncate">${track.artist}</p>
                         </div>
                     </div>
-                    <div class="w-[40%] px-3 flex items-center justify-between gap-2 h-full min-w-0">
-                        <div class="min-w-0 flex-grow truncate">
-                            ${eventBadge || '<span class="text-zinc-600">— 予定なし</span>'}
-                        </div>
-                        <div class="flex items-center gap-1.5 flex-shrink-0">
-                            <span class="text-[9px] font-digital font-bold text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800/80">${e.days}日</span>
-                            ${getPlayButtonHTML(e.link)}
-                        </div>
-                    </div>
-                </div>`;
+                    ${getPlayButtonHTML(track.link)}
+                `;
+                box.appendChild(item);
             });
         }
 
-        function onSearchInput(val) {
-            const clearBtn = document.getElementById('search-clear-btn');
-            if(val) clearBtn.className = "absolute right-2.5 w-5 h-5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-all opacity-100 pointer-events-auto z-20";
-            else clearBtn.className = "absolute right-2.5 w-5 h-5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-all opacity-0 pointer-events-none z-20";
-            filterTimeline();
+        function pickRandomDate() {
+            if(rawParsedTracks.length === 0) return;
+            const validTracks = rawParsedTracks.filter(t => t.regDate !== '--');
+            if(validTracks.length === 0) return;
+            const randTrack = validTracks[Math.floor(Math.random() * validTracks.length)];
+            const baseDate = new Date(randTrack.regDate);
+            let addedDays = Math.floor(Math.random() * (randTrack.days || 10));
+            baseDate.setDate(baseDate.getDate() + addedDays);
+            
+            const y = baseDate.getFullYear();
+            const m = String(baseDate.getMonth() + 1).padStart(2, '0');
+            const d = String(baseDate.getDate()).padStart(2, '0');
+            
+            document.getElementById('history-date-input').value = `${y}-${m}-${d}`;
+            searchHistoryPlaylist();
         }
 
-        function clearSearch() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('search-clear-btn').className = "absolute right-2.5 w-5 h-5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-all opacity-0 pointer-events-none z-20";
-            filterTimeline();
+        function renderDashboard() {
+            document.getElementById('stat-total').innerText = masterTracks.length;
+            const activeCount = rawParsedTracks.filter(t => t.removedDate === '現在登録中').length;
+            document.getElementById('stat-active').innerText = activeCount;
+
+            let totalDaysSum = masterTracks.reduce((sum, t) => sum + t.totalDays, 0);
+            document.getElementById('stat-avg-days').innerHTML = masterTracks.length ? `${Math.round(totalDaysSum / masterTracks.length)} <span class="text-xs text-zinc-400">Days</span>` : '--';
+
+            let longest = null;
+            masterTracks.forEach(t => {
+                if(!longest || t.totalDays > longest.totalDays) longest = t;
+            });
+            if(longest) {
+                longestTrackKey = longest.title + "|||" + longest.artist;
+                document.getElementById('stat-longest-track').innerText = longest.title;
+                document.getElementById('stat-longest-days').innerText = `${longest.totalDays} 日間`;
+                document.getElementById('stat-longest-card').onclick = () => openDetailModal(longestTrackKey);
+            }
+
+            const recContainer = document.getElementById('recommend-container');
+            recContainer.innerHTML = '';
+            let shuffled = [...masterTracks].sort(() => 0.5 - Math.random()).slice(0, 3);
+            shuffled.forEach(track => {
+                const div = document.createElement('div');
+                div.className = "glass-card p-3 rounded-xl bg-zinc-900/40 hover:bg-zinc-800/40 transition-all flex items-center justify-between cursor-pointer border-white/5";
+                div.onclick = () => openDetailModal(track.title + "|||" + track.artist);
+                div.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0 flex-grow mr-2">
+                        ${getCoverHTML(track.img)}
+                        <div class="min-w-0">
+                            <p class="text-zinc-200 font-bold truncate text-[11px]">${track.title}</p>
+                            <p class="text-zinc-400 text-[10px] truncate mt-0.5">${track.artist}</p>
+                        </div>
+                    </div>
+                    <span class="font-digital font-bold text-indigo-300 text-[11px] bg-indigo-500/10 px-1.5 py-1 rounded-md flex-shrink-0">${track.totalDays}d</span>
+                `;
+                recContainer.appendChild(div);
+            });
+
+            const timelineBox = document.getElementById('timeline-container');
+            timelineBox.innerHTML = '';
+            let timelineData = [...rawParsedTracks].sort((a,b) => {
+                if(a.regDate === '--') return 1; if(b.regDate === '--') return -1;
+                return new Date(b.regDate) - new Date(a.regDate);
+            });
+
+            timelineData.forEach(track => {
+                const row = document.createElement('div');
+                row.className = "p-3 flex items-center justify-between bg-zinc-950/20 hover:bg-zinc-900/40 transition-all cursor-pointer text-xs group";
+                row.onclick = () => openDetailModal(track.title + "|||" + track.artist);
+                
+                let dateBadge = `<span class="text-zinc-500 font-digital text-[10px]">${track.regDate.substring(2)}</span>`;
+                if(track.removedDate === '現在登録中') {
+                    dateBadge = `<span class="text-emerald-400 font-digital text-[10px] font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>ACTIVE</span>`;
+                }
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0 flex-grow mr-2">
+                        <div class="w-16 flex-shrink-0">${dateBadge}</div>
+                        ${getCoverHTML(track.img)}
+                        <div class="min-w-0">
+                            <p class="text-zinc-200 font-bold group-hover:text-pink-300 transition-colors truncate text-[11px]">${track.title}</p>
+                            <p class="text-zinc-500 text-[10px] truncate mt-0.5">${track.artist}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-digital text-[10px] text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">${track.days}日</span>
+                        ${getPlayButtonHTML(track.link)}
+                    </div>
+                `;
+                timelineBox.appendChild(row);
+            });
+
+            setupMonthButtons();
+            renderTable();
+            renderRankings();
         }
 
-        // --- データバンク描画系 ---
-        function generateDynamicMonthButtons() {
+        function setupMonthButtons() {
             const container = document.getElementById('month-buttons-container');
-            container.innerHTML = `<button onclick="filterTableByMonth('all')" id="btn-month-all" class="px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold">ALL</button>`;
+            container.innerHTML = `<button onclick="filterTableByMonth('all')" id="btn-month-all" class="px-2 py-1 rounded bg-purple-300 text-slate-900 font-bold">全月</button>`;
             for(let i=1; i<=12; i++) {
-                const mStr = String(i).padStart(2, '0');
-                container.innerHTML += `<button onclick="filterTableByMonth('${mStr}')" id="btn-month-${mStr}" class="px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-400 border border-zinc-800 font-digital font-bold">${i}M</button>`;
+                container.innerHTML += `<button onclick="filterTableByMonth('${i}')" id="btn-month-${i}" class="px-2 py-1 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 font-bold">${i}月</button>`;
             }
         }
 
@@ -711,11 +656,9 @@
 
         function filterTableByMonth(month) {
             currentMonthFilter = month;
-            const container = document.getElementById('month-buttons-container');
-            const btns = container.getElementsByTagName('button');
-            for(let btn of btns) {
-                if(btn.id === `btn-month-${month}`) btn.className = "px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold";
-                else btn.className = "px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-400 border border-zinc-800 font-digital font-bold";
+            document.getElementById('btn-month-all').className = (month === 'all') ? "px-2 py-1 rounded bg-purple-300 text-slate-900 font-bold" : "px-2 py-1 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 font-bold";
+            for(let i=1; i<=12; i++) {
+                document.getElementById(`btn-month-${i}`).className = (month === String(i)) ? "px-2 py-1 rounded bg-purple-300 text-slate-900 font-bold" : "px-2 py-1 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 font-bold";
             }
             renderTable();
         }
@@ -723,92 +666,108 @@
         function renderTable() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            
+
             let filtered = rawParsedTracks.filter(t => {
                 if (currentYearFilter !== 'all' && t.year !== currentYearFilter) return false;
                 if (currentMonthFilter !== 'all') {
                     if (t.regDate === '--') return false;
-                    const m = t.regDate.split('/')[1];
+                    const m = String(new Date(t.regDate).getMonth() + 1);
                     if (m !== currentMonthFilter) return false;
                 }
                 return true;
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-bold">指定条件に合致するデータがありません。</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-zinc-500">条件に合致するデータがありません</td></tr>`;
                 return;
             }
 
-            filtered.forEach(t => {
-                const escapeKey = (t.title + "|||" + t.artist).replace(/'/g, "\\'");
-                let displayRemoved = t.removedDate;
-                if(displayRemoved.includes('/')) displayRemoved = displayRemoved.split('/')[1] + '/' + displayRemoved.split('/')[2];
-                let displayReg = t.regDate;
-                if(displayReg.includes('/')) displayReg = displayReg.split('/')[1] + '/' + displayReg.split('/')[2];
+            filtered.forEach(track => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-900/50 cursor-pointer transition-colors border-b border-zinc-900/60";
+                tr.onclick = () => openDetailModal(track.title + "|||" + track.artist);
+                
+                let remStr = track.removedDate;
+                if(remStr.includes('現在登録中')) remStr = '<span class="text-emerald-400 font-bold">Active</span>';
+                else if(remStr.includes('2026年へ継続')) remStr = '<span class="text-indigo-400">2026継続</span>';
+                else if(remStr !== '--') remStr = remStr.substring(2);
 
-                tbody.innerHTML += `
-                <tr class="hover:bg-zinc-900/40 cursor-pointer transition-colors" onclick="openDetailModal('${escapeKey}')">
-                    <td class="p-2.5 text-center font-mono text-zinc-400">${t.year.slice(-2)}</td>
-                    <td class="p-2.5 font-bold text-white truncate">${t.title}</td>
-                    <td class="p-2.5 text-zinc-400 truncate">${t.artist}</td>
-                    <td class="p-2.5 text-center font-digital text-zinc-300">${displayReg}</td>
-                    <td class="p-2.5 text-center font-digital text-zinc-400 truncate">${displayRemoved}</td>
-                    <td class="p-2.5 text-center font-digital text-amber-300 font-bold">${t.days}日</td>
-                </tr>`;
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center text-zinc-400 font-digital">${track.year.substring(2)}</td>
+                    <td class="p-2.5 font-bold text-zinc-100 truncate">${track.title}</td>
+                    <td class="p-2.5 text-zinc-400 truncate">${track.artist}</td>
+                    <td class="p-2.5 text-center text-zinc-400 font-digital">${track.regDate !== '--' ? track.regDate.substring(2) : '--'}</td>
+                    <td class="p-2.5 text-center text-zinc-400 font-digital">${remStr}</td>
+                    <td class="p-2.5 text-center text-purple-300 font-digital font-bold">${track.days}d</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        window.addEventListener('scroll', function() {
-            const btn = document.getElementById('back-to-filter-btn');
-            if(window.scrollY > 400 && document.getElementById('scene-table').classList.contains('scene-hidden') === false) {
-                btn.style.opacity = "1"; btn.style.pointerEvents = "auto"; btn.style.transform = "translateY(0)";
+        function onSearchInput(val) {
+            const query = val.toLowerCase().trim();
+            const clearBtn = document.getElementById('search-clear-btn');
+            if(query) {
+                clearBtn.style.opacity = "1"; clearBtn.style.pointerEvents = "auto";
             } else {
-                btn.style.opacity = "0"; btn.style.pointerEvents = "none"; btn.style.transform = "translateY(40px)";
+                clearBtn.style.opacity = "0"; clearBtn.style.pointerEvents = "none";
             }
-        });
 
-        // --- ランキング描画系 ---
+            const items = document.getElementById('timeline-container').children;
+            for(let item of items) {
+                const title = item.querySelector('p.text-zinc-200').innerText.toLowerCase();
+                const artist = item.querySelector('p.text-zinc-500').innerText.toLowerCase();
+                if(title.includes(query) || artist.includes(query)) {
+                    item.classList.remove('scene-hidden');
+                } else {
+                    item.classList.add('scene-hidden');
+                }
+            }
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('search-input');
+            input.value = '';
+            onSearchInput('');
+        }
+
+        function getTopArtists(year) {
+            const counts = {};
+            rawParsedTracks.forEach(t => {
+                if(year && t.year !== year) return;
+                counts[t.artist] = (counts[t.artist] || 0) + 1;
+            });
+            return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        }
+
+        function getTopTracks(key) {
+            return [...masterTracks].sort((a,b) => b[key] - a[key]).slice(0, 5);
+        }
+
         function renderRankings() {
-            const getTopArtists = (year) => {
-                const counts = {};
-                const seenTracks = new Set();
-                rawParsedTracks.forEach(t => {
-                    if(year && t.year !== year) return;
-                    const trackId = t.title + "|||" + t.artist;
-                    const utrackId = year ? (trackId + "|||" + year) : trackId;
-                    if(!seenTracks.has(utrackId)) {
-                        seenTracks.add(utrackId);
-                        counts[t.artist] = (counts[t.artist] || 0) + 1;
-                    }
-                });
-                return Object.entries(counts).sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 5);
-            };
-
-            const getTopTracks = (field) => {
-                return [...masterTracks].sort((a,b) => b[field] - a[field] || a.title.localeCompare(b.title)).slice(0, 5).map(t => [t, t[field]]);
-            };
-
-            const renderArtistList = (elementId, list) => {
-                const dom = document.getElementById(elementId); dom.innerHTML = '';
-                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
-                list.forEach(([artist, count], i) => {
-                    let medal = `<span class="w-4 h-4 rounded-full bg-zinc-800 text-zinc-400 text-[9px] flex items-center justify-center font-bold">${i+1}</span>`;
-                    if(i===0) medal = `<span class="w-4 h-4 rounded-full bg-amber-400 text-slate-900 text-[9px] flex items-center justify-center font-bold"><i class="fa-solid fa-crown text-[8px]"></i></span>`;
-                    dom.innerHTML += `<div class="flex justify-between items-center text-[11px] py-1 border-b border-zinc-900/40 last:border-0"><div class="flex items-center gap-1.5 min-w-0">${medal}<span class="text-zinc-200 truncate font-medium">${artist}</span></div><span class="font-digital text-indigo-300 font-bold ml-1">${count}曲</span></div>`;
+            const renderArtistList = (id, data) => {
+                const box = document.getElementById(id); box.innerHTML = '';
+                if(data.length === 0) { box.innerHTML = '<p class="text-xs text-zinc-500 py-2">データなし</p>'; return; }
+                data.forEach(([artist, count], index) => {
+                    box.innerHTML += `<div class="flex items-center justify-between text-xs py-1 border-b border-zinc-900/30">
+                        <div class="flex items-center gap-2 min-w-0 mr-2">
+                            <span class="w-4 text-center font-digital font-bold text-amber-400 text-[11px]">${index+1}</span>
+                            <span class="text-zinc-200 truncate font-bold">${artist}</span>
+                        </div>
+                        <span class="font-digital text-zinc-400 font-bold text-[10px] flex-shrink-0 bg-zinc-900 px-1.5 py-0.5 rounded">${count}曲</span>
+                    </div>`;
                 });
             };
 
-            const renderTrackList = (elementId, list) => {
-                const dom = document.getElementById(elementId); dom.innerHTML = '';
-                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
-                list.forEach(([track, days], i) => {
-                    let medal = `<span class="w-4 h-4 rounded-full bg-zinc-800 text-zinc-400 text-[9px] flex items-center justify-center font-bold">${i+1}</span>`;
-                    if(i===0) medal = `<span class="w-4 h-4 rounded-full bg-amber-400 text-slate-900 text-[9px] flex items-center justify-center font-bold"><i class="fa-solid fa-crown text-[8px]"></i></span>`;
-                    const escapeKey = (track.title + "|||" + track.artist).replace(/'/g, "\\'");
-                    dom.innerHTML += `
-                    <div class="flex justify-between items-center py-1 border-b border-zinc-900/40 last:border-0 cursor-pointer hover:bg-zinc-900/20 px-1 rounded transition-colors" onclick="openDetailModal('${escapeKey}')">
-                        <div class="flex items-center gap-2 min-w-0 w-[78%]">
-                            ${medal}
+            const renderTrackList = (id, data) => {
+                const box = document.getElementById(id); box.innerHTML = '';
+                if(data.length === 0) { box.innerHTML = '<p class="text-xs text-zinc-500 py-2">データなし</p>'; return; }
+                data.forEach((track, index) => {
+                    let days = id.includes('2025') ? track.days2025 : (id.includes('2026') ? track.days2026 : track.totalDays);
+                    box.innerHTML += `<div class="flex items-center justify-between p-1.5 rounded-lg bg-zinc-950/30 border border-zinc-900 hover:bg-zinc-900/30 cursor-pointer transition-all" onclick="openDetailModal('${track.title + "|||" + track.artist}')">
+                        <div class="flex items-center gap-2 min-w-0 mr-1.5">
+                            <span class="w-4 text-center font-digital font-bold text-amber-400 text-[11px]">${index+1}</span>
+                            ${getCoverHTML(track.img)}
                             <div class="min-w-0">
                                 <p class="text-zinc-200 font-bold truncate text-[11px]">${track.title}</p>
                                 <p class="text-zinc-500 text-[9px] truncate">${track.artist}</p>
@@ -828,10 +787,47 @@
             renderTrackList('rank-track-2026', getTopTracks('days2026'));
         }
 
-        // 初期実行処理
-        window.addEventListener('DOMContentLoaded', () => {
-            loadAndExecute();
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('back-to-filter-btn');
+            if(!btn) return;
+            if(window.scrollY > 400 && document.getElementById('scene-table').classList.contains('scene-hidden') === false) {
+                btn.style.opacity = "1"; btn.style.pointerEvents = "auto"; btn.style.transform = "translateY(0)";
+            } else {
+                btn.style.opacity = "0"; btn.style.pointerEvents = "none"; btn.style.transform = "translateY(40px)";
+            }
         });
+
+        // ==========================================
+        // ダッシュボード初期化 & サンプルデータの定義
+        // ==========================================
+        async function initDashboard() {
+            // 本来は公開URLを設定する部分（データがない時のためにダミーのCSVを設定しています）
+            const sampleCSV2025 = `"ID","タイトル","アーティスト","画像URL","リンクURL","滞在日数","登録日","抹消日"
+"1","夜に駆ける","YOASOBI","#","#","120","01/01","05/01"
+"2","怪獣の花唄","Vaundy","#","#","200","02/15",""
+"3","Pretender","Official髭男dism","#","#","90","04/10","07/10"`;
+
+            const sampleCSV2026 = `"ID","タイトル","アーティスト","画像URL","リンクURL","滞在日数","登録日","抹消日"
+"1","怪獣の花唄","Vaundy","#","#","180","01/01",""
+"4","アイドル","YOASOBI","#","#","110","01/10","05/00"`;
+
+            const sampleSchedule = `2025/07/15\t期末テスト1日目、憂鬱。
+2025/08/20\t夏休みの旅行。最高！
+2026/06/15\t大雨。通学路が水浸し。`;
+
+            // データのパースと反映
+            initData(sampleCSV2025, sampleCSV2026, sampleSchedule);
+            renderDashboard();
+            
+            // デフォルトの日付を設定
+            document.getElementById('history-date-input').value = "2025-07-15";
+            searchHistoryPlaylist();
+        }
+
+        // ページ読み込み完了時に実行
+        window.onload = () => {
+            initDashboard();
+        };
     </script>
 </body>
 </html>
