@@ -156,7 +156,6 @@
     </div>
 
     <script>
-        // CSVテキストを行、セルに正しく分解する関数 (クォーテーション対応)
         function parseCSV(text) {
             const lines = text.split(/\r\n|\n/);
             return lines.filter(line => line.trim() !== '').map(line => {
@@ -179,19 +178,19 @@
             });
         }
 
-        // メイン処理
         async function initDashboard() {
             try {
-                // 1. all.csv の読み込み
-                const allRes = await fetch('all.csv');
-                if (!allRes.ok) throw new Error('all.csv が見つかりません');
+                // 1. 正しいファイル名「週間アニメ・楽曲 - all.csv」で読み込み
+                const allRes = await fetch('週間アニメ・楽曲 - all.csv');
+                if (!allRes.ok) throw new Error('「週間アニメ・楽曲 - all.csv」が見つかりません。ファイル名を確認してください。');
                 const allText = await allRes.text();
                 const allData = parseCSV(allText);
 
-                // 2. 楽曲データのマッピング
-                // 構造: [Title, Artist, ?, ?, ?, ?, 登録日, 抹消日, 間(日数), ?, ?, カバー画像, 曲リンク]
+                // 2. あなたのCSVの列の順番に合わせて正確にマッピング
+                // [0:Title, 1:Artist, 2, 3, 4, 5, 6:登録日, 7:抹消日, 8:間, 9, 10, 11:カバー画像, 12:曲リンク]
                 const tracks = allData.map(row => {
-                    if (row.length < 2 || row[0] === 'Title' || row[0].includes('※')) return null;
+                    if (row.length < 2 || row[0] === 'Title' || row[0].startsWith('※')) return null;
+                    
                     const title = row[0];
                     const artist = row[1];
                     const regDate = row[6] || '--';
@@ -207,12 +206,12 @@
                     return { title, artist, regDate, removedDate, days, img, link };
                 }).filter(t => t !== null);
 
-                // 最新の登録順に並び替え (タイムライン用)
+                // タイムライン用に最新の登録順（逆順）にする
                 const timelineTracks = [...tracks].reverse();
 
                 // 3. 統計の計算
                 const totalTracks = tracks.length;
-                const activeTracks = tracks.filter(t => t.removedDate === 'Currently Active' || t.removedDate === '現在登録中').length;
+                const activeTracks = tracks.filter(t => t.removedDate === '現在登録中').length;
                 
                 const dayTracks = tracks.filter(t => t.days > 0);
                 const avgDays = dayTracks.length > 0 ? (dayTracks.reduce((sum, t) => sum + t.days, 0) / dayTracks.length).toFixed(1) : '--';
@@ -264,10 +263,7 @@
                     
                     const removeText = track.removedDate === '現在登録中' ? 
                         `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">Active</span>` : 
-                        `<span class="text-zinc-500">${track.regDate.split('/')[0]}/${track.removedDate} 抹消</span>`;
-
-                    // 日付のフォーマット微調整
-                    const displayReg = track.regDate.includes('/') ? track.regDate : `--/--`;
+                        `<span class="text-zinc-500">${track.removedDate} 抹消</span>`;
 
                     container.innerHTML += `
                         <div class="music-card p-3 md:p-4 rounded-2xl flex items-center justify-between gap-4">
@@ -277,7 +273,7 @@
                                     <h4 class="text-white font-bold text-sm md:text-base truncate">${track.title}</h4>
                                     <p class="text-zinc-400 text-xs md:text-sm truncate">${track.artist}</p>
                                     <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500">
-                                        <span>${displayReg} 登録</span>
+                                        <span>${track.regDate} 登録</span>
                                         <span>•</span>
                                         <span>${removeText}</span>
                                     </div>
@@ -286,7 +282,7 @@
                             <div class="flex items-center gap-4 flex-shrink-0">
                                 <div class="text-right hidden sm:block">
                                     <span class="text-[10px] text-zinc-500 block uppercase">Duration</span>
-                                    <span class="font-digital text-sm ${track.days > 0 ? 'text-indigo-400' : 'text-emerald-400'}">${track.days > 0 ? track.days + ' Days' : 'Active'}</span>
+                                    <span class="font-digital text-sm ${track.days > 0 ? 'text-indigo-400' : 'text-emerald-400'}">${track.days > 0 ? track.days + ' 日' : 'Active'}</span>
                                 </div>
                                 <a href="${track.link}" target="_blank" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-pink-600 border border-zinc-800 hover:border-transparent text-zinc-400 hover:text-white flex items-center justify-center transition-all shadow-md" title="Apple Music">
                                     <i class="fa-solid fa-play text-xs ml-0.5"></i>
@@ -296,14 +292,14 @@
                     `;
                 });
 
-                // 6. 楽曲ベスト2026.csv の読み込み（最新の1件を取得）
+                // 6. 楽曲ベスト2026の読み込み
                 try {
                     const bestRes = await fetch('週間アニメ・楽曲 - 楽曲ベスト2026.csv');
                     if(bestRes.ok) {
                         const bestText = await bestRes.text();
                         const bestData = parseCSV(bestText).filter(row => row.length >= 4 && row[0] !== 'week' && !row[0].includes('※'));
                         if(bestData.length > 0) {
-                            const latestBest = bestData[bestData.length - 1]; // 一ぜん新しい行
+                            const latestBest = bestData[bestData.length - 1]; 
                             document.getElementById('best-week').innerText = latestBest[0];
                             document.getElementById('best-title').innerText = latestBest[1];
                             document.getElementById('best-artist').innerText = latestBest[2];
@@ -326,8 +322,7 @@
             }
         }
 
-        // 起動
-        initDashboard();
+        window.onload = initDashboard;
     </script>
 </body>
 </html>
