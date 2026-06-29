@@ -180,14 +180,13 @@
 
         async function initDashboard() {
             try {
-                // 1. 正しいファイル名「週間アニメ・楽曲 - all.csv」で読み込み
-                const allRes = await fetch('週間アニメ・楽曲 - all.csv');
-                if (!allRes.ok) throw new Error('「週間アニメ・楽曲 - all.csv」が見つかりません。ファイル名を確認してください。');
+                // 1. Glitchにある「all.csv」を読み込む
+                const allRes = await fetch('all.csv');
+                if (!allRes.ok) throw new Error('all.csv が見つかりません。');
                 const allText = await allRes.text();
                 const allData = parseCSV(allText);
 
-                // 2. あなたのCSVの列の順番に合わせて正確にマッピング
-                // [0:Title, 1:Artist, 2, 3, 4, 5, 6:登録日, 7:抹消日, 8:間, 9, 10, 11:カバー画像, 12:曲リンク]
+                // 2. CSVデータをマッピング
                 const tracks = allData.map(row => {
                     if (row.length < 2 || row[0] === 'Title' || row[0].startsWith('※')) return null;
                     
@@ -206,7 +205,7 @@
                     return { title, artist, regDate, removedDate, days, img, link };
                 }).filter(t => t !== null);
 
-                // タイムライン用に最新の登録順（逆順）にする
+                // タイムライン用に最新登録順にする
                 const timelineTracks = [...tracks].reverse();
 
                 // 3. 統計の計算
@@ -230,7 +229,7 @@
                 document.getElementById('stat-longest-track').innerText = longestTrack.title;
                 document.getElementById('stat-longest-artist').innerText = longestTrack.artist + ` (${longestTrack.days}日間)`;
 
-                // 4. アーティストランキングの集計 (登場回数トップ5)
+                // 4. アーティストランキングの集計
                 const artistCounts = {};
                 tracks.forEach(t => {
                     if(t.artist) {
