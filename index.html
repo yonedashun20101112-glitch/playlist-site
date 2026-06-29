@@ -801,19 +801,22 @@
         // ダッシュボード初期化 & サンプルデータの定義
         // ==========================================
         async function initDashboard() {
-            // 本来は公開URLを設定する部分（データがない時のためにダミーのCSVを設定しています）
-            const sampleCSV2025 = `"ID","タイトル","アーティスト","画像URL","リンクURL","滞在日数","登録日","抹消日"
-"1","夜に駆ける","YOASOBI","#","#","120","01/01","05/01"
-"2","怪獣の花唄","Vaundy","#","#","200","02/15",""
-"3","Pretender","Official髭男dism","#","#","90","04/10","07/10"`;
+    try {
+        // ご自身のGoogleスプレッドシート（Webに公開＞CSV形式）のURLを設定してください
+        const url2025 = "https://docs.google.com/spreadsheets/d/e/2PACX-xxx/pub?output=csv";
+        const url2026 = "https://docs.google.com/spreadsheets/d/e/2PACX-yyy/pub?output=csv";
+        const urlSchedule = "https://docs.google.com/spreadsheets/d/e/2PACX-zzz/pub?output=csv"; // またはテキストURL
 
-            const sampleCSV2026 = `"ID","タイトル","アーティスト","画像URL","リンクURL","滞在日数","登録日","抹消日"
-"1","怪獣の花唄","Vaundy","#","#","180","01/01",""
-"4","アイドル","YOASOBI","#","#","110","01/10","05/00"`;
+        const res2025 = await fetch(url2025).then(res => res.text());
+        const res2026 = await fetch(url2026).then(res => res.text());
+        const resSched = await fetch(urlSchedule).then(res => res.text());
 
-            const sampleSchedule = `2025/07/15\t期末テスト1日目、憂鬱。
-2025/08/20\t夏休みの旅行。最高！
-2026/06/15\t大雨。通学路が水浸し。`;
+        initData(res2025, res2026, resSched);
+        renderDashboard();
+    } catch(e) {
+        console.error("データの読み込みに失敗しました:", e);
+    }
+}
 
             // データのパースと反映
             initData(sampleCSV2025, sampleCSV2026, sampleSchedule);
