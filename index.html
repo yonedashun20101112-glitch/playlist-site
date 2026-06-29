@@ -9,60 +9,13 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Noto+Sans+JP:wght@300;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: #0a0a0c;
-            color: #e2e8f0;
-            overflow-x: hidden;
-        }
-
-        /* 動く背景グラデーション */
-        .bg-glow {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(0,0,0,0) 70%);
-            top: -200px;
-            left: -200px;
-            z-index: -1;
-            animation: floating 12s infinite alternate ease-in-out;
-        }
-        .bg-glow-2 {
-            position: fixed;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, rgba(0,0,0,0) 70%);
-            bottom: -100px;
-            right: -100px;
-            z-index: -1;
-            animation: floating 15s infinite alternate-reverse ease-in-out;
-        }
-
-        @keyframes floating {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(60px, 40px) scale(1.1); }
-        }
-
-        .font-digital {
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        /* 楽曲カードのスタイリッシュなホバー効果 */
-        .music-card {
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(12px);
-            border: 1px rgba(255, 255, 255, 0.05) solid;
-        }
-        .music-card:hover {
-            transform: translateY(-4px) scale(1.01);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(236, 72, 153, 0.3);
-            box-shadow: 0 12px 30px -10px rgba(236, 72, 153, 0.2);
-        }
-
-        /* スクロールバー */
+        body { font-family: 'Noto Sans JP', sans-serif; background-color: #0a0a0c; color: #e2e8f0; overflow-x: hidden; }
+        .bg-glow { position: fixed; width: 600px; height: 600px; background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(0,0,0,0) 70%); top: -200px; left: -200px; z-index: -1; animation: floating 12s infinite alternate ease-in-out; }
+        .bg-glow-2 { position: fixed; width: 500px; height: 500px; background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, rgba(0,0,0,0) 70%); bottom: -100px; right: -100px; z-index: -1; animation: floating 15s infinite alternate-reverse ease-in-out; }
+        @keyframes floating { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(60px, 40px) scale(1.1); } }
+        .font-digital { font-family: 'Orbitron', sans-serif; }
+        .music-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px rgba(255, 255, 255, 0.05) solid; }
+        .music-card:hover { transform: translateY(-4px) scale(1.01); background: rgba(255, 255, 255, 0.06); border-color: rgba(236, 72, 153, 0.3); box-shadow: 0 12px 30px -10px rgba(236, 72, 153, 0.2); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a0c; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
@@ -75,12 +28,9 @@
     <div class="bg-glow-2"></div>
 
     <div class="max-w-6xl mx-auto px-4 py-8">
-        
         <header class="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-center border-b border-zinc-800 pb-6 gap-4">
             <div>
-                <h1 class="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-                    SOUND TRACKS OF MY LIFE
-                </h1>
+                <h1 class="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">SOUND TRACKS OF MY LIFE</h1>
                 <p class="text-zinc-400 text-sm mt-2">75分の通学路、登録と抹消のクロニクル</p>
             </div>
             <div class="bg-zinc-900/80 border border-zinc-800 px-4 py-2 rounded-full text-sm flex items-center gap-3 shadow-lg">
@@ -113,28 +63,21 @@
         </section>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <div class="lg:col-span-1 space-y-8">
                 <div class="bg-zinc-950/60 p-6 rounded-3xl border border-zinc-800/60">
-                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-crown text-amber-400"></i> Top Artists
-                    </h3>
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-crown text-amber-400"></i> Top Artists</h3>
                     <div class="space-y-3" id="artist-ranking-list">
                         <p class="text-zinc-500 text-xs text-center py-4">データ集計中...</p>
                     </div>
                 </div>
 
                 <div class="bg-gradient-to-br from-indigo-950/40 to-zinc-950 p-6 rounded-3xl border border-indigo-500/20">
-                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-star text-indigo-400"></i> 最新の週間BEST楽曲
-                    </h3>
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-star text-indigo-400"></i> 最新の週間BEST楽曲</h3>
                     <div id="weekly-best-card" class="text-center py-2">
                         <p class="text-xs text-zinc-400 font-digital" id="best-week">LOADING...</p>
                         <p class="text-xl font-bold text-white mt-2" id="best-title">--</p>
                         <p class="text-sm text-indigo-300 mt-0.5" id="best-artist">--</p>
-                        <div class="inline-block bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-digital text-indigo-300 mt-3" id="best-score">
-                            --/100 Score
-                        </div>
+                        <div class="inline-block bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-digital text-indigo-300 mt-3" id="best-score">--/100 Score</div>
                         <p class="text-xs text-zinc-400 mt-3 italic" id="best-event">--</p>
                     </div>
                 </div>
@@ -142,16 +85,12 @@
 
             <div class="lg:col-span-2">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-timeline text-pink-500"></i> 楽曲登録・抹消タイムライン
-                    </h3>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-timeline text-pink-500"></i> 楽曲登録・抹消タイムライン</h3>
                 </div>
-
                 <div class="space-y-3" id="tracks-container">
                     <div class="text-center text-zinc-500 py-12">データを読み込んでいます...</div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -159,90 +98,51 @@
         function parseCSV(text) {
             const lines = text.split(/\r\n|\n/);
             return lines.filter(line => line.trim() !== '').map(line => {
-                const result = [];
-                let current = '';
-                let inQuotes = false;
+                const result = []; let current = ''; let inQuotes = false;
                 for (let i = 0; i < line.length; i++) {
                     const char = line[i];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        result.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
+                    if (char === '"') { inQuotes = !inQuotes; } 
+                    else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; } 
+                    else { current += char; }
                 }
-                result.push(current.trim());
-                return result;
+                result.push(current.trim()); return result;
             });
         }
 
         async function initDashboard() {
             try {
-                // 1. Glitchにある「all.csv」を読み込む
+                // ファイル名を「all.csv」に統一して読み込み
                 const allRes = await fetch('all.csv');
-                if (!allRes.ok) throw new Error('all.csv が見つかりません。');
+                if (!allRes.ok) throw new Error('all.csv が見つかりません。サーバーの配置を確認してください。');
                 const allText = await allRes.text();
                 const allData = parseCSV(allText);
 
-                // 2. CSVデータをマッピング
                 const tracks = allData.map(row => {
                     if (row.length < 2 || row[0] === 'Title' || row[0].startsWith('※')) return null;
-                    
-                    const title = row[0];
-                    const artist = row[1];
-                    const regDate = row[6] || '--';
-                    let removedDate = row[7] || '';
-                    const days = parseInt(row[8]) || 0;
-                    const img = row[11] || '';
-                    const link = row[12] || '#';
-
-                    if (!removedDate || removedDate === '0' || removedDate.trim() === '') {
-                        removedDate = '現在登録中';
-                    }
-
+                    const title = row[0]; const artist = row[1]; const regDate = row[6] || '--';
+                    let removedDate = row[7] || ''; const days = parseInt(row[8]) || 0;
+                    const img = row[11] || ''; const link = row[12] || '#';
+                    if (!removedDate || removedDate === '0' || removedDate.trim() === '') { removedDate = '現在登録中'; }
                     return { title, artist, regDate, removedDate, days, img, link };
                 }).filter(t => t !== null);
 
-                // タイムライン用に最新登録順にする
                 const timelineTracks = [...tracks].reverse();
-
-                // 3. 統計の計算
-                const totalTracks = tracks.length;
-                const activeTracks = tracks.filter(t => t.removedDate === '現在登録中').length;
+                document.getElementById('stat-total').innerText = tracks.length;
+                document.getElementById('stat-active').innerText = tracks.filter(t => t.removedDate === '現在登録中').length;
                 
                 const dayTracks = tracks.filter(t => t.days > 0);
-                const avgDays = dayTracks.length > 0 ? (dayTracks.reduce((sum, t) => sum + t.days, 0) / dayTracks.length).toFixed(1) : '--';
+                document.getElementById('stat-avg-days').innerText = dayTracks.length > 0 ? (dayTracks.reduce((sum, t) => sum + t.days, 0) / dayTracks.length).toFixed(1) : '--';
                 
-                let longestTrack = { title: '--', artist: '--', days: 0 };
-                tracks.forEach(t => {
-                    if (t.days > longestTrack.days) {
-                        longestTrack = t;
-                    }
-                });
+                let longest = { title: '--', artist: '--', days: 0 };
+                tracks.forEach(t => { if (t.days > longest.days) longest = t; });
+                document.getElementById('stat-longest-track').innerText = longest.title;
+                document.getElementById('stat-longest-artist').innerText = longest.artist + ` (${longest.days}日間)`;
 
-                // ダッシュボードへの数値反映
-                document.getElementById('stat-total').innerText = totalTracks;
-                document.getElementById('stat-active').innerText = activeTracks;
-                document.getElementById('stat-avg-days').innerText = avgDays;
-                document.getElementById('stat-longest-track').innerText = longestTrack.title;
-                document.getElementById('stat-longest-artist').innerText = longestTrack.artist + ` (${longestTrack.days}日間)`;
-
-                // 4. アーティストランキングの集計
                 const artistCounts = {};
-                tracks.forEach(t => {
-                    if(t.artist) {
-                        artistCounts[t.artist] = (artistCounts[t.artist] || 0) + 1;
-                    }
-                });
-                const topArtists = Object.entries(artistCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5)
-                    .map(item => ({ name: item[0], count: item[1] }));
+                tracks.forEach(t => { if(t.artist) artistCounts[t.artist] = (artistCounts[t.artist] || 0) + 1; });
+                const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(item => ({ name: item[0], count: item[1] }));
 
-                const rankingContainer = document.getElementById('artist-ranking-list');
-                rankingContainer.innerHTML = topArtists.map((artist, index) => `
+                document.getElementById('artist-ranking-list').innerHTML = topArtists.map((artist, index) => `
                     <div class="flex justify-between items-center bg-zinc-900/30 p-2.5 rounded-xl border border-zinc-800/40 text-sm">
                         <div class="flex items-center gap-3">
                             <span class="font-digital font-bold text-xs ${index === 0 ? 'text-amber-400' : index === 1 ? 'text-zinc-400' : index === 2 ? 'text-amber-700' : 'text-zinc-600'}">0${index+1}</span>
@@ -252,17 +152,12 @@
                     </div>
                 `).join('');
 
-                // 5. タイムラインの描画
                 const container = document.getElementById('tracks-container');
                 container.innerHTML = '';
-                
                 timelineTracks.forEach(track => {
                     const defaultImg = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=120&auto=format&fit=crop';
                     const imgUrl = track.img && track.img.startsWith('http') ? track.img : defaultImg;
-                    
-                    const removeText = track.removedDate === '現在登録中' ? 
-                        `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">Active</span>` : 
-                        `<span class="text-zinc-500">${track.removedDate} 抹消</span>`;
+                    const removeText = track.removedDate === '現在登録中' ? `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">Active</span>` : `<span class="text-zinc-500">${track.removedDate} 抹消</span>`;
 
                     container.innerHTML += `
                         <div class="music-card p-3 md:p-4 rounded-2xl flex items-center justify-between gap-4">
@@ -271,53 +166,43 @@
                                 <div class="min-w-0">
                                     <h4 class="text-white font-bold text-sm md:text-base truncate">${track.title}</h4>
                                     <p class="text-zinc-400 text-xs md:text-sm truncate">${track.artist}</p>
-                                    <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500">
-                                        <span>${track.regDate} 登録</span>
-                                        <span>•</span>
-                                        <span>${removeText}</span>
-                                    </div>
+                                    <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500"><span>${track.regDate} 登録</span><span>•</span><span>${removeText}</span></div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-4 flex-shrink-0">
-                                <div class="text-right hidden sm:block">
-                                    <span class="text-[10px] text-zinc-500 block uppercase">Duration</span>
-                                    <span class="font-digital text-sm ${track.days > 0 ? 'text-indigo-400' : 'text-emerald-400'}">${track.days > 0 ? track.days + ' 日' : 'Active'}</span>
-                                </div>
-                                <a href="${track.link}" target="_blank" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-pink-600 border border-zinc-800 hover:border-transparent text-zinc-400 hover:text-white flex items-center justify-center transition-all shadow-md" title="Apple Music">
-                                    <i class="fa-solid fa-play text-xs ml-0.5"></i>
-                                </a>
+                                <div class="text-right hidden sm:block"><span class="text-[10px] text-zinc-500 block uppercase">Duration</span><span class="font-digital text-sm ${track.days > 0 ? 'text-indigo-400' : 'text-emerald-400'}">${track.days > 0 ? track.days + ' 日' : 'Active'}</span></div>
+                                <a href="${track.link}" target="_blank" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-pink-600 border border-zinc-800 hover:border-transparent text-zinc-400 hover:text-white flex items-center justify-center transition-all shadow-md"><i class="fa-solid fa-play text-xs ml-0.5"></i></a>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
 
-                // 6. 楽曲ベスト2026の読み込み
+                // ベスト曲のファイル名もシンプルに指定（もし存在しなければスキップ）
                 try {
-                    const bestRes = await fetch('週間アニメ・楽曲 - 楽曲ベスト2026.csv');
-                    if(bestRes.ok) {
-                        const bestText = await bestRes.text();
-                        const bestData = parseCSV(bestText).filter(row => row.length >= 4 && row[0] !== 'week' && !row[0].includes('※'));
-                        if(bestData.length > 0) {
-                            const latestBest = bestData[bestData.length - 1]; 
-                            document.getElementById('best-week').innerText = latestBest[0];
-                            document.getElementById('best-title').innerText = latestBest[1];
-                            document.getElementById('best-artist').innerText = latestBest[2];
-                            document.getElementById('best-score').innerText = `${latestBest[3]} Score`;
-                            document.getElementById('best-event').innerText = latestBest[4] ? `「${latestBest[4]}」` : '';
-                        }
+                    const bestRes = await fetch('best2026.csv');
+                    if(!bestRes.ok) {
+                        // バックアップとして元の名前でもトライ
+                        const altRes = await fetch('週間アニメ・楽曲 - 楽曲ベスト2026.csv');
+                        if (altRes.ok) handleBestData(await altRes.text());
+                        return;
                     }
-                } catch(e) {
-                    console.log("週間ベストの取得に失敗しました", e);
-                }
+                    handleBestData(await bestRes.text());
+                } catch(e) { console.log(e); }
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('tracks-container').innerHTML = `
-                    <div class="text-center text-red-400 py-12">
-                        <i class="fa-solid fa-circle-exclamation text-2xl block mb-2"></i>
-                        データの連動に失敗しました。<br><span class="text-xs text-zinc-500">${error.message}</span>
-                    </div>
-                `;
+                document.getElementById('tracks-container').innerHTML = `<div class="text-center text-red-400 py-12"><i class="fa-solid fa-circle-exclamation text-2xl block mb-2"></i>データの連動に失敗しました。<br><span class="text-xs text-zinc-500">${error.message}</span></div>`;
+            }
+        }
+
+        function handleBestData(text) {
+            const bestData = parseCSV(text).filter(row => row.length >= 4 && row[0] !== 'week' && !row[0].includes('※'));
+            if(bestData.length > 0) {
+                const latestBest = bestData[bestData.length - 1]; 
+                document.getElementById('best-week').innerText = latestBest[0];
+                document.getElementById('best-title').innerText = latestBest[1];
+                document.getElementById('best-artist').innerText = latestBest[2];
+                document.getElementById('best-score').innerText = `${latestBest[3]} Score`;
+                document.getElementById('best-event').innerText = latestBest[4] ? `「${latestBest[4]}」` : '';
             }
         }
 
