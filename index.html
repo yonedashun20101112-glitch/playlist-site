@@ -16,10 +16,6 @@
         .font-digital { font-family: 'Orbitron', sans-serif; }
         .music-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px rgba(255, 255, 255, 0.05) solid; }
         .music-card:hover { transform: translateY(-4px) scale(1.01); background: rgba(255, 255, 255, 0.06); border-color: rgba(236, 72, 153, 0.3); box-shadow: 0 12px 30px -10px rgba(236, 72, 153, 0.2); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0c; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
     </style>
 </head>
 <body>
@@ -33,60 +29,45 @@
                 <h1 class="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">SOUND TRACKS OF MY LIFE</h1>
                 <p class="text-zinc-400 text-sm mt-2">75分の通学路、登録と抹消のクロニクル</p>
             </div>
-            <div class="bg-zinc-900/80 border border-zinc-800 px-4 py-2 rounded-full text-sm flex items-center gap-3 shadow-lg">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <span class="text-zinc-300 font-medium">Current Playlist: <span class="font-digital text-indigo-400 text-base">~75 min</span></span>
-            </div>
         </header>
 
         <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
                 <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">総登録楽曲数</p>
                 <p class="text-3xl font-bold font-digital text-white mt-1" id="stat-total">--</p>
-                <span class="text-[10px] text-indigo-400"><i class="fa-solid fa-music mr-1"></i> 累計トラック数</span>
+                <span class="text-[10px] text-zinc-500">2025〜2026 累計</span>
             </div>
             <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
                 <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">現在聴いている曲</p>
                 <p class="text-3xl font-bold font-digital text-emerald-400 mt-1" id="stat-active">--</p>
-                <span class="text-[10px] text-zinc-500">プレイリスト内</span>
+                <span class="text-[10px] text-emerald-400">プレイリスト内</span>
             </div>
             <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
                 <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">平均滞在期間</p>
                 <p class="text-3xl font-bold font-digital text-purple-400 mt-1" id="stat-avg-days">-- <span class="text-sm text-zinc-400">Days</span></p>
-                <span class="text-[10px] text-purple-400">1曲あたりの平均期間</span>
+                <span class="text-[10px] text-zinc-500">1曲あたりの平均期間</span>
             </div>
             <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
                 <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">最長ヘビロテ曲</p>
                 <p class="text-sm font-bold text-zinc-200 mt-2 truncate" id="stat-longest-track">計算中...</p>
-                <span class="text-[10px] text-zinc-500 truncate block" id="stat-longest-artist">Artist</span>
+                <span class="text-[10px] text-zinc-500 truncate block" id="stat-longest-days">-- 日間</span>
             </div>
         </section>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1 space-y-8">
+            <div class="lg:col-span-1">
                 <div class="bg-zinc-950/60 p-6 rounded-3xl border border-zinc-800/60">
-                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-crown text-amber-400"></i> Top Artists</h3>
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-amber-400"></i> Top Artists
+                    </h3>
                     <div class="space-y-3" id="artist-ranking-list">
                         <p class="text-zinc-500 text-xs text-center py-4">データ集計中...</p>
                     </div>
                 </div>
-
-                <div class="bg-gradient-to-br from-indigo-950/40 to-zinc-950 p-6 rounded-3xl border border-indigo-500/20">
-                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-star text-indigo-400"></i> 最新の週間BEST楽曲</h3>
-                    <div id="weekly-best-card" class="text-center py-2">
-                        <p class="text-xs text-zinc-400 font-digital" id="best-week">LOADING...</p>
-                        <p class="text-xl font-bold text-white mt-2" id="best-title">--</p>
-                        <p class="text-sm text-indigo-300 mt-0.5" id="best-artist">--</p>
-                        <div class="inline-block bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-digital text-indigo-300 mt-3" id="best-score">--/100 Score</div>
-                        <p class="text-xs text-zinc-400 mt-3 italic" id="best-event">--</p>
-                    </div>
-                </div>
             </div>
-
+            
             <div class="lg:col-span-2">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-timeline text-pink-500"></i> 楽曲登録・抹消タイムライン</h3>
-                </div>
+                <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2"><i class="fa-solid fa-timeline text-pink-500"></i> 楽曲登録・抹消タイムライン</h3>
                 <div class="space-y-3" id="tracks-container">
                     <div class="text-center text-zinc-500 py-12">データを読み込んでいます...</div>
                 </div>
@@ -109,103 +90,126 @@
             });
         }
 
-        async function initDashboard() {
-            try {
-                // ファイル名を「all.csv」に統一して読み込み
-                const allRes = await fetch('all.csv');
-                if (!allRes.ok) throw new Error('all.csv が見つかりません。サーバーの配置を確認してください。');
-                const allText = await allRes.text();
-                const allData = parseCSV(allText);
-
-                const tracks = allData.map(row => {
-                    if (row.length < 2 || row[0] === 'Title' || row[0].startsWith('※')) return null;
-                    const title = row[0]; const artist = row[1]; const regDate = row[6] || '--';
-                    let removedDate = row[7] || ''; const days = parseInt(row[8]) || 0;
-                    const img = row[11] || ''; const link = row[12] || '#';
-                    if (!removedDate || removedDate === '0' || removedDate.trim() === '') { removedDate = '現在登録中'; }
-                    return { title, artist, regDate, removedDate, days, img, link };
-                }).filter(t => t !== null);
-
-                const timelineTracks = [...tracks].reverse();
-                document.getElementById('stat-total').innerText = tracks.length;
-                document.getElementById('stat-active').innerText = tracks.filter(t => t.removedDate === '現在登録中').length;
+        function processCSVData(csvData, yearPrefix) {
+            return csvData.map(row => {
+                if (row.length < 2 || row[0] === 'Title' || row[0].startsWith('※') || row[0] === '2025' || row[0] === '2026') return null;
+                if (!row[0] && !row[1]) return null;
                 
-                const dayTracks = tracks.filter(t => t.days > 0);
+                const title = row[0];
+                const artist = row[1];
+                const regDate = row[6] ? `${yearPrefix}/${row[6]}` : '--';
+                let removedDate = row[7] || '';
+                const days = parseInt(row[8]) || 0;
+                const img = row[11] || '';
+                const link = row[12] || '#';
+
+                if (!removedDate || removedDate === '0' || removedDate.trim() === '') {
+                    removedDate = (yearPrefix === '2025') ? '2026年へ継続' : '現在登録中';
+                } else {
+                    removedDate = `${yearPrefix}/${removedDate}`;
+                }
+
+                return { title, artist, regDate, removedDate, days, img, link, year: yearPrefix };
+            }).filter(t => t !== null);
+        }
+
+        async function initDashboard() {
+            let allTracks = [];
+            
+            // 提示していただいたリアルタイム公開URL
+            const url2025 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=0&single=true&output=csv";
+            const url2026 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=79005521&single=true&output=csv";
+            
+            try {
+                // 1. 2025年のデータを直接スプレッドシートから取得
+                try {
+                    const res2025 = await fetch(url2025);
+                    if (res2025.ok) {
+                        const text2025 = await res2025.text();
+                        allTracks = allTracks.concat(processCSVData(parseCSV(text2025), '2025'));
+                    }
+                } catch(e) { console.log("2025データ取得失敗", e); }
+
+                // 2. 2026年のデータを直接スプレッドシートから取得
+                const res2026 = await fetch(url2026);
+                if (!res2026.ok) throw new Error('スプレッドシート（2026）の通信に失敗しました。');
+                const text2026 = await res2026.text();
+                allTracks = allTracks.concat(processCSVData(parseCSV(text2026), '2026'));
+
+                // 3. 統計の計算
+                document.getElementById('stat-total').innerText = allTracks.length;
+                document.getElementById('stat-active').innerText = allTracks.filter(t => t.removedDate === '現在登録中').length;
+                
+                const dayTracks = allTracks.filter(t => t.days > 0);
                 document.getElementById('stat-avg-days').innerText = dayTracks.length > 0 ? (dayTracks.reduce((sum, t) => sum + t.days, 0) / dayTracks.length).toFixed(1) : '--';
                 
                 let longest = { title: '--', artist: '--', days: 0 };
-                tracks.forEach(t => { if (t.days > longest.days) longest = t; });
+                allTracks.forEach(t => { if (t.days > longest.days) longest = t; });
                 document.getElementById('stat-longest-track').innerText = longest.title;
-                document.getElementById('stat-longest-artist').innerText = longest.artist + ` (${longest.days}日間)`;
+                document.getElementById('stat-longest-days').innerText = longest.days + ' 日間';
 
+                // 4. アーティストランキング
                 const artistCounts = {};
-                tracks.forEach(t => { if(t.artist) artistCounts[t.artist] = (artistCounts[t.artist] || 0) + 1; });
-                const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(item => ({ name: item[0], count: item[1] }));
-
-                document.getElementById('artist-ranking-list').innerHTML = topArtists.map((artist, index) => `
+                allTracks.forEach(t => { if(t.artist) artistCounts[t.artist] = (artistCounts[t.artist] || 0) + 1; });
+                const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                
+                document.getElementById('artist-ranking-list').innerHTML = topArtists.map(([name, count], index) => `
                     <div class="flex justify-between items-center bg-zinc-900/30 p-2.5 rounded-xl border border-zinc-800/40 text-sm">
                         <div class="flex items-center gap-3">
-                            <span class="font-digital font-bold text-xs ${index === 0 ? 'text-amber-400' : index === 1 ? 'text-zinc-400' : index === 2 ? 'text-amber-700' : 'text-zinc-600'}">0${index+1}</span>
-                            <span class="text-zinc-200 font-medium truncate max-w-[140px]">${artist.name}</span>
+                            <span class="font-digital font-bold text-xs ${index === 0 ? 'text-amber-400' : index === 1 ? 'text-zinc-400' : 'text-zinc-600'}">0${index+1}</span>
+                            <span class="text-zinc-200 font-medium truncate max-w-[140px]">${name}</span>
                         </div>
-                        <span class="text-xs font-digital text-zinc-500">${artist.count} tracks</span>
+                        <span class="text-xs font-digital text-zinc-500">${count} tracks</span>
                     </div>
                 `).join('');
 
+                // 5. タイムライン表示
                 const container = document.getElementById('tracks-container');
                 container.innerHTML = '';
-                timelineTracks.forEach(track => {
+                
+                [...allTracks].reverse().forEach(track => {
                     const defaultImg = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=120&auto=format&fit=crop';
                     const imgUrl = track.img && track.img.startsWith('http') ? track.img : defaultImg;
-                    const removeText = track.removedDate === '現在登録中' ? `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">Active</span>` : `<span class="text-zinc-500">${track.removedDate} 抹消</span>`;
+                    
+                    let removeStatus = '';
+                    if (track.removedDate === '現在登録中') {
+                        removeStatus = `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">Active</span>`;
+                    } else if (track.removedDate === '2026年へ継続') {
+                        removeStatus = `<span class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded text-[10px]">2026継続</span>`;
+                    } else {
+                        removeStatus = `<span class="text-zinc-500">${track.removedDate} 抹消</span>`;
+                    }
 
                     container.innerHTML += `
-                        <div class="music-card p-3 md:p-4 rounded-2xl flex items-center justify-between gap-4">
+                        <div class="music-card p-4 rounded-2xl flex items-center justify-between gap-4">
                             <div class="flex items-center gap-4 min-w-0">
-                                <img src="${imgUrl}" alt="cover" class="w-12 h-12 md:w-14 md:h-14 rounded-xl object-cover shadow-md border border-zinc-800 flex-shrink-0">
+                                <img src="${imgUrl}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-zinc-800 shadow-md">
                                 <div class="min-w-0">
-                                    <h4 class="text-white font-bold text-sm md:text-base truncate">${track.title}</h4>
-                                    <p class="text-zinc-400 text-xs md:text-sm truncate">${track.artist}</p>
-                                    <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500"><span>${track.regDate} 登録</span><span>•</span><span>${removeText}</span></div>
+                                    <h4 class="text-white font-bold truncate text-sm md:text-base">${track.title}</h4>
+                                    <p class="text-zinc-400 text-xs truncate">${track.artist}</p>
+                                    <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500">
+                                        <span>${track.regDate} 登録</span>
+                                        <span>•</span>
+                                        <span>${removeStatus}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4 flex-shrink-0">
-                                <div class="text-right hidden sm:block"><span class="text-[10px] text-zinc-500 block uppercase">Duration</span><span class="font-digital text-sm ${track.days > 0 ? 'text-indigo-400' : 'text-emerald-400'}">${track.days > 0 ? track.days + ' 日' : 'Active'}</span></div>
-                                <a href="${track.link}" target="_blank" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-pink-600 border border-zinc-800 hover:border-transparent text-zinc-400 hover:text-white flex items-center justify-center transition-all shadow-md"><i class="fa-solid fa-play text-xs ml-0.5"></i></a>
+                            <div class="flex items-center gap-3 flex-shrink-0">
+                                <div class="text-right hidden sm:block">
+                                    <span class="text-[10px] text-zinc-500 block uppercase">Duration</span>
+                                    <span class="font-digital text-sm text-indigo-400 font-bold">${track.days > 0 ? track.days + ' 日' : 'Active'}</span>
+                                </div>
+                                <a href="${track.link}" target="_blank" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-pink-600 border border-zinc-800 hover:border-transparent text-zinc-400 hover:text-white flex items-center justify-center transition-all shadow-md">
+                                    <i class="fa-solid fa-play text-xs ml-0.5"></i>
+                                </a>
                             </div>
                         </div>`;
                 });
 
-                // ベスト曲のファイル名もシンプルに指定（もし存在しなければスキップ）
-                try {
-                    const bestRes = await fetch('best2026.csv');
-                    if(!bestRes.ok) {
-                        // バックアップとして元の名前でもトライ
-                        const altRes = await fetch('週間アニメ・楽曲 - 楽曲ベスト2026.csv');
-                        if (altRes.ok) handleBestData(await altRes.text());
-                        return;
-                    }
-                    handleBestData(await bestRes.text());
-                } catch(e) { console.log(e); }
-
             } catch (error) {
-                console.error(error);
-                document.getElementById('tracks-container').innerHTML = `<div class="text-center text-red-400 py-12"><i class="fa-solid fa-circle-exclamation text-2xl block mb-2"></i>データの連動に失敗しました。<br><span class="text-xs text-zinc-500">${error.message}</span></div>`;
+                document.getElementById('tracks-container').innerHTML = `<div class="text-center text-red-400 py-12">エラー: ${error.message}</div>`;
             }
         }
-
-        function handleBestData(text) {
-            const bestData = parseCSV(text).filter(row => row.length >= 4 && row[0] !== 'week' && !row[0].includes('※'));
-            if(bestData.length > 0) {
-                const latestBest = bestData[bestData.length - 1]; 
-                document.getElementById('best-week').innerText = latestBest[0];
-                document.getElementById('best-title').innerText = latestBest[1];
-                document.getElementById('best-artist').innerText = latestBest[2];
-                document.getElementById('best-score').innerText = `${latestBest[3]} Score`;
-                document.getElementById('best-event').innerText = latestBest[4] ? `「${latestBest[4]}」` : '';
-            }
-        }
-
         window.onload = initDashboard;
     </script>
 </body>
