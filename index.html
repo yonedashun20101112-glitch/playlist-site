@@ -416,6 +416,8 @@
                 const rows = parseCSV(csvText);
                 if(rows.length <= 1) return [];
                 return rows.slice(1).map((row, i) => {
+                    // 各列のマッピングをスプレッドシートの構造に完全に固定
+                    // row[0]=No, row[1]=楽曲名, row[2]=アーティスト名, row[3]=登録日, row[4]=滞在日数, row[5]=画像URL, row[6]=楽曲リンク, row[7]=抹消日
                     if (!row[1] || row[1].trim() === '' || row[1] === '楽曲名') return null;
                     const days = parseInt(row[4]) || 0;
                     return {
@@ -568,7 +570,7 @@
         }
 
         async function initDashboard() {
-            // 🛠️ 修正ポイント: いただいた公開URLをCSV出力用形式に強制コンバートしてセット
+            // 🛠️ ご提示いただいた公開用CSVのURLに完全に変更しました
             const url2025 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=0&single=true&output=csv";
             const url2026 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=79005521&single=true&output=csv";
             const urlSchedule = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=1330775074&single=true&output=csv";
@@ -586,7 +588,7 @@
                     showError("警告: スプレッドシートの読み込みは成功しましたが、有効な楽曲データが見つかりませんでした。");
                 }
                 
-                // スケジュール解析
+                // スケジュール（出来事）解析
                 const schedRows = parseCSV(csvSched);
                 if(schedRows.length > 1) {
                     schedRows.slice(1).forEach(row => {
@@ -596,7 +598,7 @@
                     });
                 }
                 
-                // 統計計算
+                // 各種統計の計算・表示
                 document.getElementById('stat-total').innerText = masterTracks.length;
                 
                 const activeCount = masterTracks.filter(t => t.history.some(h => h.removedDate === '現在登録中')).length;
@@ -627,7 +629,7 @@
                 
             } catch (e) {
                 console.error(e);
-                showError("エラー: スプレッドシートデータの取得に失敗しました。詳細: " + e.message);
+                showError("エラー: スプレッドシートデータの取得に失敗しました。公開設定やURLをご確認ください。 詳細: " + e.message);
             }
         }
 
