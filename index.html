@@ -1,933 +1,271 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>週間楽曲</title>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<link rel="icon" href="favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Music Experience Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Noto+Sans+JP:wght@300;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #0a0a0c;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
 
-<style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-  background:#f5f5f7;
-  color:#111;
-}
+        /* サイバー感のある動く背景グラデーション */
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: -200px;
+            left: -200px;
+            z-index: -1;
+            animation: floating 10s infinite alternate ease-in-out;
+        }
+        .bg-glow-2 {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, rgba(0,0,0,0) 70%);
+            bottom: -100px;
+            right: -100px;
+            z-index: -1;
+            animation: floating 12s infinite alternate-reverse ease-in-out;
+        }
 
-header{
-  padding:34px 20px;
-  color:white;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  background:linear-gradient(135deg,#ff2d55,#ff5e3a,#ffcc00);
-}
+        @keyframes floating {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
 
-header.bg2025{
-  background-image:
-    linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
-    url("header2025.jpg");
-  background-size:cover;
-  background-position:center;
-}
+        /* 近未来的な数字のフォント */
+        .font-digital {
+            font-family: 'Orbitron', sans-serif;
+        }
 
-.logo{
-  height:48px;
-  width:48px;
-  border-radius:12px;
-  object-fit:cover;
-}
+        /* カードのホバーアニメーション */
+        .music-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px rgba(255, 255, 255, 0.05) solid;
+        }
+        .music-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3);
+        }
 
-h1{margin:0;font-size:34px}
-.sub{opacity:.9;margin-top:6px}
-
-nav{
-  display:flex;
-  gap:8px;
-  overflow:auto;
-  padding:14px;
-  background:white;
-  position:sticky;
-  top:0;
-  z-index:10;
-  border-bottom:1px solid #ddd;
-}
-
-button{
-  border:0;
-  border-radius:999px;
-  padding:10px 15px;
-  background:#eee;
-  font-weight:800;
-  cursor:pointer;
-  white-space:nowrap;
-}
-
-button.active{
-  background:#ff2d55;
-  color:white;
-}
-
-main{
-  max-width:1200px;
-  margin:auto;
-  padding:20px;
-}
-
-.section{display:none}
-.section.active{display:block}
-
-.tableWrap{
-  overflow-x:auto;
-  background:white;
-  border-radius:18px;
-  box-shadow:0 8px 24px rgba(0,0,0,.06);
-}
-
-table{
-  width:100%;
-  min-width:780px;
-  border-collapse:collapse;
-}
-
-th,td{
-  padding:12px;
-  border-bottom:1px solid #eee;
-  text-align:left;
-  font-size:14px;
-}
-
-th{background:#fafafa}
-
-.songBtn{
-  background:none;
-  padding:0;
-  border-radius:0;
-  color:#ff2d55;
-  font-weight:900;
-  text-align:left;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:16px;
-}
-
-.card{
-  background:white;
-  border-radius:22px;
-  padding:16px;
-  box-shadow:0 8px 24px rgba(0,0,0,.08);
-  position:relative;
-}
-
-.rankNum{
-  position:absolute;
-  top:12px;
-  right:14px;
-  font-size:32px;
-  font-weight:900;
-  color:#ff2d55;
-  background:rgba(255,255,255,.9);
-  padding:4px 10px;
-  border-radius:999px;
-}
-
-.rank1{font-size:44px;color:#ffcc00}
-.rank2{font-size:40px;color:#999}
-.rank3{font-size:36px;color:#cd7f32}
-
-.cover{
-  width:100%;
-  aspect-ratio:1/1;
-  border-radius:18px;
-  background:linear-gradient(135deg,#ff2d55,#ffcc00);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:white;
-  font-size:42px;
-  font-weight:900;
-  margin-bottom:14px;
-  overflow:hidden;
-}
-
-.cover img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.title{font-size:18px;font-weight:900}
-.artist{color:#666;margin-top:4px}
-
-.months{
-  margin-top:8px;
-  color:#555;
-  font-size:14px;
-  font-weight:700;
-}
-
-.days{
-  margin-top:10px;
-  font-weight:900;
-  color:#ff2d55;
-}
-
-.tags{
-  margin-top:10px;
-  display:flex;
-  gap:6px;
-  flex-wrap:nowrap;
-  overflow-x:auto;
-  white-space:nowrap;
-}
-
-.tagIcon{
-  width:30px;
-  height:30px;
-  min-width:30px;
-  border-radius:50%;
-  border:0;
-  background:#f1f1f1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  font-size:16px;
-  cursor:pointer;
-  padding:0;
-}
-
-.tagIcon img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-a.music{
-  display:inline-block;
-  margin-top:12px;
-  padding:9px 12px;
-  border-radius:999px;
-  background:#ff2d55;
-  color:white;
-  text-decoration:none;
-  font-weight:900;
-  font-size:13px;
-}
-
-input{
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #ccc;
-  width:260px;
-  max-width:80%;
-  font-size:16px;
-}
-
-.searchBox{margin-bottom:18px}
-
-#detail{
-  margin-top:22px;
-}
-
-.note{
-  margin-top:10px;
-  color:#777;
-  font-size:13px;
-  line-height:1.5;
-}
-
-.artistList{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-bottom:20px;
-  max-height:300px;
-  overflow-y:auto;
-}
-
-.artistBtn{
-  background:white;
-  color:#111;
-  box-shadow:0 4px 12px rgba(0,0,0,.08);
-}
-
-.artistBtn:hover{
-  background:#ff2d55;
-  color:white;
-}
-
-.dashboardHero{
-  background:linear-gradient(135deg,#111,#ff2d55,#ff9500);
-  color:white;
-  border-radius:28px;
-  padding:26px;
-  margin-bottom:22px;
-  box-shadow:0 12px 30px rgba(0,0,0,.18);
-}
-
-.dashboardHero h2{
-  margin:0;
-  font-size:34px;
-}
-
-.dashboardHero p{
-  opacity:.9;
-  margin-bottom:0;
-}
-
-.dashboardStats{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:14px;
-  margin:18px 0 26px;
-}
-
-.statBox{
-  background:white;
-  border-radius:20px;
-  padding:18px;
-  box-shadow:0 8px 24px rgba(0,0,0,.08);
-}
-
-.statLabel{
-  color:#666;
-  font-weight:800;
-  font-size:13px;
-}
-
-.statNum{
-  font-size:34px;
-  font-weight:900;
-  color:#ff2d55;
-  margin-top:6px;
-}
-
-.pageButtons{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:18px;
-}
-
-.pageButtons button{
-  background:rgba(255,255,255,.2);
-  color:white;
-  backdrop-filter:blur(8px);
-}
-
-.pageButtons button:hover{
-  background:white;
-  color:#ff2d55;
-}
-
-.miniGrid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
-  gap:12px;
-}
-
-.miniCard{
-  background:white;
-  border-radius:18px;
-  padding:10px;
-  box-shadow:0 6px 18px rgba(0,0,0,.08);
-}
-
-.miniCover{
-  width:100%;
-  aspect-ratio:1/1;
-  border-radius:14px;
-  background:linear-gradient(135deg,#ff2d55,#ffcc00);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:white;
-  font-weight:900;
-  font-size:26px;
-  overflow:hidden;
-}
-
-.miniCover img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.miniTitle{
-  margin-top:8px;
-  font-weight:900;
-  font-size:13px;
-}
-
-.miniArtist{
-  color:#666;
-  font-size:12px;
-  margin-top:2px;
-}
-
-.monthlyGrid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:18px;
-}
-
-@media(max-width:600px){
-  header{padding:26px 18px}
-  h1{font-size:28px}
-  main{padding:14px}
-  .grid{grid-template-columns:1fr}
-  .miniGrid{grid-template-columns:repeat(2,1fr)}
-  th,td{font-size:13px;padding:10px}
-  button{font-size:13px;padding:9px 12px}
-  .dashboardHero{padding:22px}
-  .dashboardHero h2{font-size:28px}
-}
-</style>
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+    </style>
 </head>
-
 <body>
-<header id="mainHeader">
-  <img src="logo.png" class="logo" alt="logo">
-  <div>
-    <h1>週間楽曲</h1>
-    <div class="sub">since 2025</div>
-  </div>
-</header>
 
-<nav>
-  <button data-target="dashboard" onclick="show('dashboard', this)" class="active">ダッシュボード</button>
-  <button data-target="table2025" onclick="show('table2025', this)">2025表</button>
-  <button data-target="table2026" onclick="show('table2026', this)">2026表</button>
-  <button data-target="rank2025" onclick="show('rank2025', this)">2025ランキング</button>
-  <button data-target="rank2026" onclick="show('rank2026', this)">2026ランキング</button>
-  <button data-target="rankAll" onclick="show('rankAll', this)">累計ランキング</button>
-  <button data-target="monthly" onclick="show('monthly', this)">月別集計</button>
-  <button data-target="cards" onclick="show('cards', this)">カード検索</button>
-  <button data-target="search" onclick="show('search', this)">日程検索</button>
-  <button data-target="artists" onclick="show('artists', this)">アーティスト</button>
-</nav>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
 
-<main>
-  <section id="dashboard" class="section active"></section>
-  <section id="table2025" class="section"></section>
-  <section id="table2026" class="section"></section>
-  <section id="rank2025" class="section"></section>
-  <section id="rank2026" class="section"></section>
-  <section id="rankAll" class="section"></section>
-  <section id="monthly" class="section"></section>
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        
+        <header class="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-center border-b border-zinc-800 pb-6 gap-4">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                    SOUND TRACKS OF MY LIFE
+                </h1>
+                <p class="text-zinc-400 text-sm mt-2">75分の通学路、登録と抹消のクロニクル</p>
+            </div>
+            <div class="bg-zinc-900/80 border border-zinc-800 px-4 py-2 rounded-full text-sm flex items-center gap-3 shadow-lg">
+                <span class="w-2 height w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span class="text-zinc-300 font-medium">Current Playlist: <span class="font-digital text-indigo-400 text-base">~75 min</span></span>
+            </div>
+        </header>
 
-  <section id="cards" class="section">
-    <h2>曲検索</h2>
-    <div class="searchBox">
-      <input id="songSearchInput" placeholder="曲名・アーティストで検索" oninput="searchSong()">
-      <button onclick="searchSong()">検索</button>
-    </div>
-    <div id="songSearchResult" class="grid"></div>
-  </section>
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
+                <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">総登録楽曲</p>
+                <p class="text-3xl font-bold font-digital text-white mt-1" id="stat-total">--</p>
+                <span class="text-[10px] text-indigo-400"><i class="fa-solid fa-music mr-1"></i> 2025-2026 累計</span>
+            </div>
+            <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
+                <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">今月の新入曲</p>
+                <p class="text-3xl font-bold font-digital text-pink-500 mt-1" id="stat-this-month">--</p>
+                <span class="text-[10px] text-zinc-500">先月比の勢い</span>
+            </div>
+            <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
+                <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">平均滞在期間</p>
+                <p class="text-3xl font-bold font-digital text-purple-400 mt-1" id="stat-avg-days">-- <span class="text-sm text-zinc-400">Days</span></p>
+                <span class="text-[10px] text-purple-400">お気に入り度の平均</span>
+            </div>
+            <div class="bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
+                <p class="text-xs text-zinc-400 uppercase tracking-wider font-medium">最長ヘビロテ曲</p>
+                <p class="text-sm font-bold text-zinc-200 mt-2 truncate" id="stat-longest-track">読み込み中...</p>
+                <span class="text-[10px] text-zinc-500" id="stat-longest-artist">Artist</span>
+            </div>
+        </section>
 
-  <section id="search" class="section">
-    <h2>日程検索</h2>
-    <div class="searchBox">
-      <input id="dateInput" placeholder="例：2025/04/28">
-      <button onclick="searchDate()">検索</button>
-    </div>
-    <div id="searchResult" class="grid"></div>
-  </section>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 space-y-8">
+                <div class="bg-zinc-950/60 p-6 rounded-3xl border border-zinc-800/60">
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-amber-400"></i> Top Artists
+                    </h3>
+                    <div class="space-y-3" id="artist-ranking-list">
+                        <p class="text-zinc-500 text-xs text-center py-4">データ集計中...</p>
+                    </div>
+                </div>
 
-  <section id="artists" class="section">
-    <h2>アーティスト検索</h2>
-    <div class="searchBox">
-      <input id="artistSearchInput" placeholder="アーティスト名で検索" oninput="renderArtists()">
-    </div>
-    <div id="artistList"></div>
-    <div id="artistResult" class="grid"></div>
-  </section>
+                <div class="bg-gradient-to-br from-indigo-950/40 to-zinc-950 p-6 rounded-3xl border border-indigo-500/20">
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-star text-indigo-400"></i> 最近の週間BEST
+                    </h3>
+                    <div id="weekly-best-card" class="text-center py-2">
+                        <p class="text-xs text-zinc-400" id="best-week">WEEK --</p>
+                        <p class="text-xl font-bold text-white mt-1" id="best-title">曲名</p>
+                        <p class="text-sm text-indigo-300" id="best-artist">アーティスト</p>
+                        <div class="inline-block bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-digital text-indigo-300 mt-3" id="best-score">
+                            --/100 Score
+                        </div>
+                        <p class="text-xs text-zinc-400 mt-2 italic" id="best-event">「イベント情報」</p>
+                    </div>
+                </div>
+            </div>
 
-  <section id="detail"></section>
-</main>
+            <div class="lg:col-span-2">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-timeline text-pink-500"></i> 楽曲入れ替えタイムライン
+                    </h3>
+                    <div class="flex gap-2 text-xs bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+                        <button class="px-3 py-1 rounded bg-indigo-600 text-white font-medium">All</button>
+                    </div>
+                </div>
 
-<script>
-const csvUrl = "https://docs.google.com/spreadsheets/d/1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw/gviz/tq?tqx=out:csv&sheet=all";
+                <div class="space-y-3" id="tracks-container">
+                    <div class="text-center text-zinc-500 py-12">データを読み込んでいます...</div>
+                </div>
+            </div>
 
-const tagIcons = {
-  anime: "icons/anime.png",
-  weekly: "icons/weekly.png",
-  karaoke: "icons/karaoke.png",
-  repeat: "icons/repeat.png"
-};
-
-let songs = [];
-
-function show(id, btn=null){
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-
-  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-  const activeBtn = btn || document.querySelector(`nav button[data-target="${id}"]`);
-  if(activeBtn) activeBtn.classList.add("active");
-
-  document.getElementById("detail").innerHTML = "";
-
-  const header = document.getElementById("mainHeader");
-  header.classList.remove("bg2025");
-
-  if(id === "table2025" || id === "rank2025"){
-    header.classList.add("bg2025");
-  }
-}
-
-function clean(v){
-  return (v || "").replace(/^"|"$/g,"").trim();
-}
-
-function parseDate(v){
-  const x = clean(v).replaceAll("-","/");
-  const m = x.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if(!m) return null;
-  return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-}
-
-function toDate(v){
-  return parseDate(v) || new Date("2099-12-31");
-}
-
-function yearOf(s){
-  return clean(s.start).slice(0,4);
-}
-
-function shortDate(v){
-  const x = clean(v).replaceAll("-","/");
-  const m = x.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  return m ? `${String(m[2]).padStart(2,"0")}/${String(m[3]).padStart(2,"0")}` : x;
-}
-
-function monthLabel(s){
-  const x = clean(s.start).replaceAll("-","/");
-  const m = x.match(/^(\d{4})\/(\d{1,2})\/\d{1,2}$/);
-  return m ? `${m[1]}/${String(m[2]).padStart(2,"0")}` : "";
-}
-
-function ym(dateStr){
-  const x = clean(dateStr).replaceAll("-","/");
-  const m = x.match(/^(\d{4})\/(\d{1,2})\/\d{1,2}$/);
-  return m ? `${m[1]}/${String(m[2]).padStart(2,"0")}` : "";
-}
-
-function getTags(row){
-  const tagCells = [row[2], row[3], row[4], row[5]].map(clean);
-  const tags = [];
-
-  if(tagCells.includes("ア")) tags.push({key:"anime", label:"アニメ", fallback:"📺"});
-  if(tagCells.includes("週")) tags.push({key:"weekly", label:"週間選出楽曲", fallback:"⭐"});
-  if(tagCells.includes("カ")) tags.push({key:"karaoke", label:"カラオケ曲", fallback:"🎤"});
-  if(tagCells.includes("リ")) tags.push({key:"repeat", label:"リピート曲", fallback:"🔁"});
-
-  return tags;
-}
-
-function tagHtml(tags){
-  return tags.map(t=>{
-    const src = tagIcons[t.key];
-    return `
-      <button class="tagIcon" title="${t.label}" onclick="filterByTag('${t.key}')">
-        ${src ? `<img src="${src}" alt="${t.label}" onerror="this.replaceWith(document.createTextNode('${t.fallback}'))">` : t.fallback}
-      </button>
-    `;
-  }).join("");
-}
-
-function appleLink(song){
-  return "https://music.apple.com/jp/search?term=" + encodeURIComponent(song.title + " " + song.artist);
-}
-
-function displayMonths(song){
-  const same = songs.filter(s=>s.title === song.title && s.artist === song.artist);
-  const months = [...new Set(same.map(monthLabel).filter(Boolean))];
-
-  if(months.length >= 4){
-    return `${months[0]}, ${months[1]}, ${months[2]}他`;
-  }
-  return months.join(", ");
-}
-
-function card(song, rank=null, showDays=false){
-  let rankClass = "";
-  if(rank===1) rankClass = "rank1";
-  if(rank===2) rankClass = "rank2";
-  if(rank===3) rankClass = "rank3";
-
-  return `
-  <div class="card">
-    ${rank ? `<div class="rankNum ${rankClass}">#${rank}</div>` : ""}
-    <div class="cover">${song.cover ? `<img src="${song.cover}">` : song.title[0]}</div>
-    <div class="title">${song.title}</div>
-    <div class="artist">${song.artist}</div>
-    <div class="months">${displayMonths(song)}登録</div>
-    ${showDays ? `<div class="days">${song.days}日</div>` : ""}
-    ${song.note ? `<div class="note">${song.note}</div>` : ""}
-    <div class="tags">${tagHtml(song.tags)}</div>
-    <a class="music" href="${song.apple || appleLink(song)}" target="_blank">Apple Musicで開く</a>
-  </div>`;
-}
-
-function miniCard(song){
-  return `
-    <div class="miniCard">
-      <div class="miniCover">${song.cover ? `<img src="${song.cover}">` : song.title[0]}</div>
-      <div class="miniTitle">${song.title}</div>
-      <div class="miniArtist">${song.artist}</div>
-    </div>
-  `;
-}
-
-function showSongCard(rawIndex){
-  const song = songs.find(s => s.rawIndex === rawIndex);
-  if(!song) return;
-
-  document.getElementById("detail").innerHTML =
-    `<h2>選択した曲</h2><div class="grid">${card(song)}</div>`;
-
-  document.getElementById("detail").scrollIntoView({behavior:"smooth"});
-}
-
-function makeTable(year){
-  const data = songs.filter(s=>yearOf(s)==year);
-
-  return `
-  <h2>${year}年 登録・抹消表</h2>
-  <div class="tableWrap">
-  <table>
-    <tr>
-      <th>曲名</th>
-      <th>アーティスト</th>
-      <th>追加日</th>
-      <th>抹消日</th>
-      <th>登録期間</th>
-      <th>過去登録回数</th>
-      <th>タグ</th>
-    </tr>
-    ${data.map(s=>`
-      <tr>
-        <td><button class="songBtn" onclick="showSongCard(${s.rawIndex})">${s.title}</button></td>
-        <td>${s.artist}</td>
-        <td>${shortDate(s.start)}</td>
-        <td>${s.end ? shortDate(s.end) : "現在"}</td>
-        <td>${s.days}日</td>
-        <td>${s.pastCount}</td>
-        <td><div class="tags">${tagHtml(s.tags)}</div></td>
-      </tr>`).join("")}
-  </table>
-  </div>`;
-}
-
-function mergeSongs(data){
-  const map = {};
-
-  data.forEach(s=>{
-    const key = `${s.title}__${s.artist}`;
-
-    if(!map[key]){
-      map[key] = {
-        ...s,
-        days:0,
-        tags:[...s.tags],
-        cover:s.cover,
-        apple:s.apple,
-        note:s.note
-      };
-    }
-
-    map[key].days += Number(s.days || 0);
-    map[key].tags = [...new Map([...map[key].tags, ...s.tags].map(t=>[t.key,t])).values()];
-    if(!map[key].cover && s.cover) map[key].cover = s.cover;
-    if(!map[key].apple && s.apple) map[key].apple = s.apple;
-    if(!map[key].note && s.note) map[key].note = s.note;
-  });
-
-  return Object.values(map);
-}
-
-function ranking(year=null){
-  let data = year ? songs.filter(s=>yearOf(s)==year) : mergeSongs(songs);
-
-  data = [...data].sort((a,b)=>Number(b.days)-Number(a.days));
-
-  const top5 = data.slice(0,5);
-  const rest25 = data.slice(5,30);
-
-  const artistMap = {};
-  data.forEach(s=>{
-    artistMap[s.artist] = (artistMap[s.artist]||0) + Number(s.days||0);
-  });
-
-  const artistRank = Object.entries(artistMap)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,20);
-
-  return `
-    <h2>${year || "累計"} 登録日数ランキング TOP5</h2>
-    <div class="grid">${top5.map((s,i)=>card(s,i+1,true)).join("")}</div>
-
-    <h2>6位〜30位</h2>
-    <div class="tableWrap">
-      <table>
-        <tr><th>順位</th><th>曲名</th><th>アーティスト</th><th>日数</th></tr>
-        ${rest25.map((s,i)=>`
-          <tr>
-            <td>${i+6}</td>
-            <td>${s.title}</td>
-            <td>${s.artist}</td>
-            <td>${s.days}日</td>
-          </tr>
-        `).join("")}
-      </table>
+        </div>
     </div>
 
-    <h2>アーティスト別ランキング</h2>
-    <div class="tableWrap">
-      <table>
-        <tr><th>順位</th><th>アーティスト</th><th>合計日数</th></tr>
-        ${artistRank.map((a,i)=>`
-          <tr>
-            <td>${i+1}</td>
-            <td><button class="songBtn" onclick="filterByArtist('${String(a[0]).replaceAll("'","\\'")}')">${a[0]}</button></td>
-            <td>${a[1]}日</td>
-          </tr>
-        `).join("")}
-      </table>
-    </div>
-  `;
-}
+    <script>
+        // あなたのスプレッドシート（CSV）のURL、またはデータをここに連動させます。
+        // 今回は動作確認用に、添付していただいたデータをベースにしたサンプルを埋め込んでいます。
+        const sampleTracks = [
+            {
+                title: "カーテンコール",
+                artist: "優里",
+                regDate: "2026/01/01",
+                removedDate: "2026/01/30",
+                days: 29,
+                img: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4a/db/34/4adb34dd-5c2a-7fd8-1d48-1c57b066b002/4547366694093.jpg/120x120bb.webp",
+                link: "https://music.apple.com/jp/album/%E3%82%AB%E3%83%BC%E3%83%86%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%AB/1754899923?i=1754899924"
+            },
+            {
+                title: "シトラス",
+                artist: "Kiwano",
+                regDate: "2025/04/04",
+                removedDate: "2025/04/13",
+                days: 9,
+                img: "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/a4/05/06/a4050604-a670-4182-402d-8d1e1133d0e2/4525853447896.jpg/120x120bb.webp",
+                link: "https://music.apple.com/jp/album/%E3%82%B7%E3%83%88%E3%83%A9%E3%82%B9/1698271562?i=1698271563"
+            },
+            {
+                title: "青にほどける",
+                artist: "KESUKE",
+                regDate: "2026/06/16",
+                removedDate: "現在登録中",
+                days: "-",
+                img: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/69/bf/e2/69bfe23e-88d1-1b5f-375e-e9b8cc87b230/artwork.jpg/120x120bb.webp",
+                link: "https://music.apple.com/jp/album/%E9%9D%92%E3%81%AB%E3%81%BB%E3%81%A9%E3%81%91%E3%82%8B/6771702822?i=6771702823"
+            }
+        ];
 
-function monthlyStats(year=null){
-  const data = year ? songs.filter(s=>yearOf(s) === year) : songs;
-  const map = {};
+        // 画面に曲の一覧を描画する関数
+        function renderTracks(tracks) {
+            const container = document.getElementById('tracks-container');
+            container.innerHTML = '';
 
-  data.forEach(s=>{
-    const addMonth = ym(s.start);
-    const removeMonth = ym(s.end);
+            tracks.forEach(track => {
+                // カバー画像がない場合のダミー画像
+                const imgUrl = track.img || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=120&auto=format&fit=crop';
+                const removeText = track.removedDate === "現在登録中" || !track.removedDate ? 
+                    `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">Active</span>` : 
+                    `<span class="text-zinc-500">${track.removedDate} 抹消</span>`;
 
-    if(addMonth){
-      if(!map[addMonth]) map[addMonth] = {add:0, remove:0};
-      map[addMonth].add++;
-    }
+                container.innerHTML += `
+                    <div class="music-card p-4 rounded-2xl flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <img src="${imgUrl}" alt="cover" class="w-14 h-14 rounded-xl object-cover shadow-md border border-zinc-800 flex-shrink-0">
+                            <div class="min-w-0">
+                                <h4 class="text-white font-bold text-sm md:text-base truncate">${track.title}</h4>
+                                <p class="text-zinc-400 text-xs md:text-sm truncate">${track.artist}</p>
+                                <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500">
+                                    <span>${track.regDate} 登録</span>
+                                    <span>•</span>
+                                    <span>${removeText}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 flex-shrink-0">
+                            <div class="text-right hidden sm:block">
+                                <span class="text-xs text-zinc-500 block">滞在</span>
+                                <span class="font-digital text-sm ${track.days !== '-' ? 'text-indigo-400' : 'text-emerald-400'}">${track.days} ${track.days !== '-' ? '日' : ''}</span>
+                            </div>
+                            <a href="${track.link}" target="_blank" class="w-9 h-9 rounded-full bg-zinc-800 hover:bg-pink-600 text-zinc-300 hover:text-white flex items-center justify-center transition-colors shadow-md" title="Apple Musicで聴く">
+                                <i class="fa-solid fa-play text-xs ml-0.5"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-    if(removeMonth){
-      if(!map[removeMonth]) map[removeMonth] = {add:0, remove:0};
-      map[removeMonth].remove++;
-    }
-  });
+        // ダッシュボードの統計数値をセットする（仮）
+        document.getElementById('stat-total').innerText = "142";
+        document.getElementById('stat-this-month').innerText = "+12";
+        document.getElementById('stat-avg-days').innerText = "14.5";
+        document.getElementById('stat-longest-track').innerText = "名もなき詩";
+        document.getElementById('stat-longest-artist').innerText = "Mr.Children";
 
-  const rows = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]));
+        // 週間ベストをセットする（仮）
+        document.getElementById('best-week').innerText = "01/01~01/04";
+        document.getElementById('best-title').innerText = "パーフェクトデイ";
+        document.getElementById('best-artist').innerText = "３１０";
+        document.getElementById('best-score').innerText = "98/100 Score";
+        document.getElementById('best-event').innerText = "「正月、梅田観光」より";
 
-  return `
-    <div>
-    <h2>${year || "累計"} 月別追加・抹消曲数</h2>
-    <div class="tableWrap">
-      <table>
-        <tr>
-          <th>月</th>
-          <th>追加曲数</th>
-          <th>抹消曲数</th>
-        </tr>
-        ${rows.map(([month,v])=>`
-          <tr>
-            <td>${month}</td>
-            <td>${v.add}</td>
-            <td>${v.remove}</td>
-          </tr>
-        `).join("")}
-      </table>
-    </div>
-    </div>
-  `;
-}
+        // アーティストランキングのセット（仮）
+        const topArtists = [
+            { name: "RADWIMPS", count: "14回登場" },
+            { name: "Official髭男dism", count: "11回登場" },
+            { name: "YOASOBI", count: "9回登場" }
+        ];
+        const rankingContainer = document.getElementById('artist-ranking-list');
+        rankingContainer.innerHTML = topArtists.map((artist, index) => `
+            <div class="flex justify-between items-center bg-zinc-900/40 p-2.5 rounded-xl border border-zinc-800/40 text-sm">
+                <div class="flex items-center gap-3">
+                    <span class="font-digital font-bold text-xs ${index === 0 ? 'text-amber-400' : index === 1 ? 'text-zinc-400' : 'text-amber-700'}">0${index+1}</span>
+                    <span class="text-zinc-200 font-medium">${artist.name}</span>
+                </div>
+                <span class="text-xs text-zinc-500">${artist.count}</span>
+            </div>
+        `).join('');
 
-function monthlyPage(){
-  return `
-    <div class="monthlyGrid">
-      ${monthlyStats("2025")}
-      ${monthlyStats("2026")}
-      ${monthlyStats()}
-    </div>
-  `;
-}
-
-function dashboard(){
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth()+1).padStart(2,"0");
-  const currentYM = `${y}/${m}`;
-
-  const added = songs.filter(s=>ym(s.start) === currentYM).length;
-  const removed = songs.filter(s=>ym(s.end) === currentYM).length;
-
-  const today = new Date();
-  const activeSongs = songs.filter(s=>{
-    const st = parseDate(s.start);
-    const en = s.end ? parseDate(s.end) : new Date(2099,11,31);
-    return st && st <= today && today <= en;
-  });
-
-  return `
-    <div class="dashboardHero">
-      <h2>Dashboard</h2>
-      <p>${currentYM} の登録・抹消状況</p>
-      <div class="pageButtons">
-        <button onclick="show('table2025')">2025表</button>
-        <button onclick="show('table2026')">2026表</button>
-        <button onclick="show('rankAll')">累計ランキング</button>
-        <button onclick="show('monthly')">月別集計</button>
-        <button onclick="show('cards')">曲検索</button>
-        <button onclick="show('artists')">アーティスト</button>
-      </div>
-    </div>
-
-    <div class="dashboardStats">
-      <div class="statBox">
-        <div class="statLabel">今月の登録曲数</div>
-        <div class="statNum">${added}</div>
-      </div>
-      <div class="statBox">
-        <div class="statLabel">今月の抹消曲数</div>
-        <div class="statNum">${removed}</div>
-      </div>
-      <div class="statBox">
-        <div class="statLabel">現在登録中</div>
-        <div class="statNum">${activeSongs.length}</div>
-      </div>
-    </div>
-
-    <h2>現在登録中の曲</h2>
-    <div class="miniGrid">
-      ${activeSongs.map(miniCard).join("") || "現在登録中の曲がありません"}
-    </div>
-  `;
-}
-
-function searchDate(){
-  const input = document.getElementById("dateInput").value.trim();
-  const target = parseDate(input);
-
-  if(!target){
-    document.getElementById("searchResult").innerHTML = "日付を 2025/04/28 の形式で入力してください";
-    return;
-  }
-
-  const result = songs.filter(s=>{
-    const st = parseDate(s.start);
-    const en = s.end ? parseDate(s.end) : new Date(2099,11,31);
-    return st && st <= target && target <= en;
-  });
-
-  document.getElementById("searchResult").innerHTML =
-    result.length ? result.map(s=>card(s)).join("") : "該当なし";
-}
-
-function searchSong(){
-  const keyword = document.getElementById("songSearchInput").value.trim().toLowerCase();
-
-  if(!keyword){
-    document.getElementById("songSearchResult").innerHTML = "";
-    return;
-  }
-
-  const merged = mergeSongs(songs);
-
-  const result = merged.filter(s=>{
-    return (
-      s.title.toLowerCase().includes(keyword) ||
-      s.artist.toLowerCase().includes(keyword)
-    );
-  });
-
-  document.getElementById("songSearchResult").innerHTML =
-    result.length ? result.map(s=>card(s)).join("") : "該当なし";
-}
-
-function filterByTag(tagKey){
-  show("cards");
-
-  const merged = mergeSongs(songs);
-  const result = merged.filter(s=>s.tags.some(t=>t.key === tagKey));
-
-  document.getElementById("songSearchInput").value = "";
-  document.getElementById("songSearchResult").innerHTML =
-    result.length ? result.map(s=>card(s)).join("") : "該当なし";
-}
-
-function kanaKey(name){
-  return name.normalize("NFKC").toLowerCase();
-}
-
-function renderArtists(){
-  const input = document.getElementById("artistSearchInput");
-  const keyword = input ? input.value.trim().toLowerCase() : "";
-
-  const artists = [...new Set(songs.map(s=>s.artist).filter(Boolean))]
-    .sort((a,b)=>kanaKey(a).localeCompare(kanaKey(b), "ja"));
-
-  const filtered = artists.filter(a=>a.toLowerCase().includes(keyword));
-
-  document.getElementById("artistList").innerHTML =
-    `<div class="artistList">
-      ${filtered.map(a=>`
-        <button class="artistBtn" onclick="filterByArtist('${a.replaceAll("'","\\'")}')">${a}</button>
-      `).join("")}
-    </div>`;
-}
-
-function filterByArtist(artist){
-  show("artists");
-
-  const merged = mergeSongs(songs);
-  const result = merged.filter(s=>s.artist === artist);
-
-  document.getElementById("artistResult").innerHTML =
-    `<h2>${artist}</h2>` +
-    (result.length ? result.map(s=>card(s)).join("") : "該当なし");
-}
-
-fetch(csvUrl)
-.then(res=>res.text())
-.then(csv=>{
-  const rows = Papa.parse(csv,{skipEmptyLines:true}).data;
-
-  songs = rows.map((row)=>({
-    title: clean(row[0]),
-    artist: clean(row[1]),
-    start: clean(row[6]),
-    end: clean(row[7]),
-    days: clean(row[8]) || 0,
-    note: clean(row[10]),
-    tags: getTags(row),
-    cover: row.find(c=>String(c).includes("http") && String(c).match(/\.(jpg|png|webp)/)),
-    apple: row.find(c=>String(c).includes("music.apple.com")),
-    rawIndex:null
-  })).filter(s=>s.title && s.start);
-
-  songs.forEach((s,i)=>{
-    s.rawIndex = i;
-    s.pastCount = songs
-      .slice(0,i)
-      .filter(x=>x.title===s.title && x.artist===s.artist)
-      .length;
-  });
-
-  document.getElementById("dashboard").innerHTML = dashboard();
-  document.getElementById("table2025").innerHTML = makeTable("2025");
-  document.getElementById("table2026").innerHTML = makeTable("2026");
-  document.getElementById("rank2025").innerHTML = ranking("2025");
-  document.getElementById("rank2026").innerHTML = ranking("2026");
-  document.getElementById("rankAll").innerHTML = ranking();
-  document.getElementById("monthly").innerHTML = monthlyPage();
-  renderArtists();
-});
-</script>
+        // 初回実行
+        renderTracks(sampleTracks);
+    </script>
 </body>
 </html>
