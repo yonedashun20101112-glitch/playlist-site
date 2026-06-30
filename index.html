@@ -12,36 +12,40 @@
         
         body { font-family: 'Noto Sans JP', sans-serif; background-color: #141722; color: #f1f5f9; overflow-x: hidden; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         
+        /* 数字の横幅を固定してブレを防ぐ等幅デジタルフォント設定 */
         .font-digital { 
             font-family: 'Orbitron', sans-serif; 
             font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
         }
         
         .bg-glow-container { position: fixed; width: 100%; height: 100%; top:0; left:0; z-index: -1; overflow: hidden; pointer-events: none; }
-        .glow-ball { position: absolute; width: 600px; height: 600px; border-radius: 50%; opacity: 0.25; filter: blur(90px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .glow-ball { position: absolute; width: 600px; height: 600px; border-radius: 50%; opacity: 0.3; filter: blur(90px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         
-        .theme-home .glow-1 { background: #a5b4fc; top: -150px; left: -150px; }
-        .theme-home .glow-2 { background: #d8b4fe; bottom: -150px; right: -150px; }
-        .theme-timeline .glow-1 { background: #f9a8d4; top: -150px; left: -150px; }
-        .theme-timeline .glow-2 { background: #fdba74; bottom: -150px; right: -150px; }
-        .theme-table .glow-1 { background: #c4b5fd; top: -150px; left: -150px; }
-        .theme-table .glow-2 { background: #5eead4; bottom: -150px; right: -150px; }
-        .theme-ranking .glow-1 { background: #fde047; top: -150px; left: -150px; }
-        .theme-ranking .glow-2 { background: #f9a8d4; bottom: -150px; right: -150px; }
+        /* ④ はっきりとした美しいパステルカラーのベーステーマ定義 */
+        .theme-home .glow-1 { background: #c7d2fe; top: -150px; left: -150px; }
+        .theme-home .glow-2 { background: #f3e8ff; bottom: -150px; right: -150px; }
+        .theme-timeline .glow-1 { background: #fbcfe8; top: -150px; left: -150px; }
+        .theme-timeline .glow-2 { background: #fed7aa; bottom: -150px; right: -150px; }
+        .theme-table .glow-1 { background: #ddd6fe; top: -150px; left: -150px; }
+        .theme-table .glow-2 { background: #99f6e4; bottom: -150px; right: -150px; }
+        .theme-ranking .glow-1 { background: #fef08a; top: -150px; left: -150px; }
+        .theme-ranking .glow-2 { background: #fbcfe8; bottom: -150px; right: -150px; }
         
-        body.mood-anxiety { background-color: #1b122b; }
-        body.mood-anxiety .glow-1 { background: #a855f7 !important; opacity: 0.35; }
-        body.mood-anxiety .glow-2 { background: #ef4444 !important; opacity: 0.2; }
+        /* 感情スキン別の明瞭なパステル発光レイヤー */
+        body.mood-anxiety { background-color: #151221; }
+        body.mood-anxiety .glow-1 { background: #c084fc !important; opacity: 0.45; filter: blur(80px); }
+        body.mood-anxiety .glow-2 { background: #f43f5e !important; opacity: 0.25; }
         
-        body.mood-rainy { background-color: #0f1c24; }
-        body.mood-rainy .glow-1 { background: #06b6d4 !important; opacity: 0.35; }
-        body.mood-rainy .glow-2 { background: #1e3a8a !important; opacity: 0.3; }
+        body.mood-rainy { background-color: #0b141c; }
+        body.mood-rainy .glow-1 { background: #22d3ee !important; opacity: 0.45; filter: blur(80px); }
+        body.mood-rainy .glow-2 { background: #2563eb !important; opacity: 0.3; }
         
-        body.mood-happy { background-color: #1c101a; }
-        body.mood-happy .glow-1 { background: #ec4899 !important; opacity: 0.4; }
-        body.mood-happy .glow-2 { background: #f59e0b !important; opacity: 0.3; }
+        body.mood-happy { background-color: #1c0e18; }
+        body.mood-happy .glow-1 { background: #f472b6 !important; opacity: 0.5; filter: blur(80px); }
+        body.mood-happy .glow-2 { background: #fbbf24 !important; opacity: 0.35; }
         
-        .glass-card { background: rgba(30, 35, 50, 0.65); backdrop-filter: blur(20px); border: 1px rgba(255, 255, 255, 0.1) solid; }
+        .glass-card { background: rgba(26, 31, 46, 0.7); backdrop-filter: blur(20px); border: 1px rgba(255, 255, 255, 0.08) solid; }
         .scene-hidden { display: none !important; }
         
         .scroll-x-container { -webkit-overflow-scrolling: touch; display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 0.5rem; }
@@ -75,6 +79,11 @@
             background-size: 100% 200%;
             animation: pulse-flow 2s linear infinite;
         }
+
+        /* 縦長化を防ぐスクロールバーのカスタム調整 */
+        #history-results-box::-webkit-scrollbar { width: 4px; }
+        #history-results-box::-webkit-scrollbar-track { background: transparent; }
+        #history-results-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
     </style>
 </head>
 <body class="theme-home pb-16">
@@ -124,7 +133,7 @@
                 </div>
                 <div class="glass-card p-5 rounded-2xl bg-zinc-900/50">
                     <p class="text-[10px] text-zinc-300 uppercase tracking-widest font-bold">平均総滞在期間</p>
-                    <p class="text-3xl font-extrabold font-digital text-purple-300 mt-1" id="stat-avg-days">-- <span class="text-xs text-zinc-400">Days</span></p>
+                    <p class="text-3xl font-extrabold font-digital text-purple-300 mt-1" id="stat-avg-days">-- <span class="text-xs text-zinc-400">日間</span></p>
                 </div>
                 <div id="stat-longest-card" class="glass-card p-5 rounded-2xl bg-zinc-900/50 cursor-pointer hover:bg-zinc-800/40 border border-transparent hover:border-indigo-500/30 transition-all">
                     <p class="text-[10px] text-zinc-300 uppercase tracking-widest font-bold">最長ヘビロテ曲 <i class="fa-solid fa-angles-right text-[9px] text-zinc-500 ml-1"></i></p>
@@ -154,25 +163,25 @@
                                 <div>
                                     <span class="text-zinc-400 block mb-1">⚡ PRESSURE</span>
                                     <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                                        <div id="bar-pressure" class="bg-purple-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                                        <div id="bar-pressure" class="bg-purple-400 h-full transition-all duration-1000" style="width: 0%"></div>
                                     </div>
                                 </div>
                                 <div>
                                     <span class="text-zinc-400 block mb-1">💧 HUMIDITY</span>
                                     <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                                        <div id="bar-humidity" class="bg-cyan-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                                        <div id="bar-humidity" class="bg-cyan-400 h-full transition-all duration-1000" style="width: 0%"></div>
                                     </div>
                                 </div>
                                 <div>
                                     <span class="text-zinc-400 block mb-1">🔥 EMOTION</span>
                                     <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                                        <div id="bar-emotion" class="bg-pink-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                                        <div id="bar-emotion" class="bg-pink-400 h-full transition-all duration-1000" style="width: 0%"></div>
                                     </div>
                                 </div>
                                 <div>
                                     <span class="text-zinc-400 block mb-1">🍃 REFRESH</span>
                                     <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                                        <div id="bar-refresh" class="bg-emerald-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                                        <div id="bar-refresh" class="bg-emerald-400 h-full transition-all duration-1000" style="width: 0%"></div>
                                     </div>
                                 </div>
                             </div>
@@ -185,7 +194,7 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-3 stream-line pulse-active pl-2" id="history-results-box"></div>
+                            <div class="space-y-3 stream-line pulse-active pl-2 max-h-72 overflow-y-auto pr-1" id="history-results-box"></div>
                         </div>
                     </div>
                 </div>
@@ -237,9 +246,9 @@
                             <th class="p-2.5 w-7 text-center">年</th>
                             <th class="p-2.5 w-[33%]">タイトル</th>
                             <th class="p-2.5 w-[25%]">アーティスト</th>
-                            <th class="p-2.5 font-digital w-11 text-center">登録</th>
+                            <th class="p-2.5 font-digital w-12 text-center">登録日</th>
                             <th class="p-2.5 font-digital w-[16%] text-center">抹消日</th>
-                            <th class="p-2.5 font-digital w-8 text-center">期間</th>
+                            <th class="p-2.5 font-digital w-16 text-center">期間</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-zinc-900"></tbody>
@@ -368,7 +377,7 @@
                 
                 historyHTML += `
                 <div class="flex flex-col gap-1 bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800 text-[11px]">
-                    <div class="flex justify-between font-bold"><span class="text-zinc-400">管理区分: ${h.year}年</span><span class="text-indigo-300 font-digital">${h.days}日間</span></div>
+                    <div class="flex justify-between font-bold"><span class="text-zinc-400">管理区分: ${h.year}年</span><span class="text-indigo-300 font-digital">${h.days}<span class="text-[9px] font-sans ml-0.5 font-normal">日間</span></span></div>
                     <div class="flex justify-between text-zinc-300 font-digital"><span>期間: ${h.regDate} 〜 </span><span>${status}</span></div>
                 </div>`;
             });
@@ -416,7 +425,6 @@
                 const rows = parseCSV(csvText);
                 if(rows.length <= 1) return [];
                 return rows.slice(1).map(row => {
-                    // ドキュメントに記載されていた正確な列のインデックス（0,1,6,7,8,11,12）を使用
                     if (row.length < 2 || row[0] === 'Title' || row[0] === '楽曲名' || row[0].startsWith('※') || row[0] === '2025' || row[0] === '2026') return null;
                     if (!row[0] && !row[1]) return null;
 
@@ -454,6 +462,7 @@
             masterTracks = Object.values(map);
         }
 
+        // ③ 感情・環境パラメータを展開した日付に応じて1つ1つランダムかつ連動して完全に変化させるロジック
         function applyMoodVisuals() {
             const dateInput = document.getElementById('history-date-input').value;
             if (!dateInput) return;
@@ -462,24 +471,40 @@
             
             let eventText = masterSchedules[scheduleKey] || masterSchedules[`${parts[0]}/${parts[1]}/${parts[2]}`] || '';
             
-            let pressure = 30, humidity = 40, emotion = 50, refresh = 45;
+            // 日付文字列とイベントテキストから独自のハッシュ（シード）を作って割り出す
+            let seed = parts.reduce((acc, val) => acc + (parseInt(val) || 0), 0);
+            if(eventText) {
+                for(let i=0; i<eventText.length; i++) { seed += eventText.charCodeAt(i); }
+            }
+            
+            let pressure = 30 + (seed % 56);
+            let humidity = 25 + ((seed * 3) % 66);
+            let emotion = 35 + ((seed * 7) % 51);
+            let refresh = 20 + ((seed * 11) % 71);
+            
             let moodClass = '';
             let cardStyle = 'bg-zinc-900/50 border-zinc-800 text-zinc-300';
             let iconHTML = '<i class="fa-solid fa-route text-indigo-300"></i>';
             let tagText = 'NORMAL DAY ROUTE';
             
             if (eventText.match(/(テスト|模試|追試|勉強|課題|提出)/)) {
-                pressure = 85; emotion = 20; moodClass = 'mood-anxiety';
+                pressure = Math.min(98, pressure + 25);
+                emotion = Math.max(10, emotion - 25);
+                moodClass = 'mood-anxiety';
                 cardStyle = 'bg-purple-950/40 border-purple-500/40 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.15)]';
                 iconHTML = '<i class="fa-solid fa-triangle-exclamation text-purple-400"></i>';
                 tagText = 'HIGH PRESSURE SYSTEM';
             } else if (eventText.match(/(雨|台風|雷|大雨|梅雨|傘)/)) {
-                humidity = 90; pressure = 15; moodClass = 'mood-rainy';
+                humidity = Math.min(98, humidity + 35);
+                pressure = Math.max(10, pressure - 20);
+                moodClass = 'mood-rainy';
                 cardStyle = 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.15)]';
                 iconHTML = '<i class="fa-solid fa-cloud-showers-heavy text-cyan-400"></i>';
                 tagText = 'RAINY SOUNDSCAPE';
-            } else if (eventText.match(/(休み|祝|ライブ|遠足|旅行|誕生|記念|フェス)/)) {
-                refresh = 90; emotion = 85; moodClass = 'mood-happy';
+            } else if (eventText.match(/(休み|祝|ライブ|遠足|旅行|誕生|記念|フェス|短縮)/)) {
+                refresh = Math.min(98, refresh + 30);
+                emotion = Math.min(98, emotion + 20);
+                moodClass = 'mood-happy';
                 cardStyle = 'bg-pink-950/40 border-pink-500/40 text-pink-200 shadow-[0_0_15px_rgba(236,72,153,0.15)]';
                 iconHTML = '<i class="fa-solid fa-star animate-pulse text-pink-400"></i>';
                 tagText = 'HIGH EMBEDDED MEMORY';
@@ -564,8 +589,10 @@
                             <p class="text-zinc-400 text-[11px] truncate mt-0.5">${t.artist}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] font-digital font-bold text-zinc-500 bg-black/30 px-1.5 py-0.5 rounded border border-zinc-800">${t.totalDays}d</span>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-[11px] font-digital font-bold text-zinc-400 bg-black/30 px-1.5 py-0.5 rounded border border-zinc-800 whitespace-nowrap flex items-baseline">
+                            ${t.totalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日間</span>
+                        </span>
                         ${getPlayButtonHTML(t.link)}
                     </div>
                 </div>`;
@@ -610,7 +637,7 @@
                 let sumDays = 0;
                 masterTracks.forEach(t => sumDays += t.totalDays);
                 const avgDays = masterTracks.length ? (sumDays / masterTracks.length).toFixed(1) : 0;
-                document.getElementById('stat-avg-days').innerHTML = `${avgDays} <span class="text-xs text-zinc-400">Days</span>`;
+                document.getElementById('stat-avg-days').innerHTML = `${avgDays} <span class="text-[10px] font-sans text-zinc-400 font-normal">日間</span>`;
                 
                 let longest = { totalDays: -1, title: 'なし' };
                 masterTracks.forEach(t => {
@@ -653,7 +680,7 @@
             while(pool.length < 3 && masterTracks.length > pool.length) {
                 const randomTrack = masterTracks[Math.floor(Math.random() * masterTracks.length)];
                 if(!pool.some(p => p.track === randomTrack)) {
-                    pool.push({ track: randomTrack, reason: `🎵 滞在日数 ${randomTrack.totalDays}日！ふと今聴き返したい思い出の1曲。` });
+                    pool.push({ track: randomTrack, reason: `🎵 滞在日数 ${randomTrack.totalDays}日間！ふと今聴き返したい思い出の1曲。` });
                 }
             }
             
@@ -706,8 +733,10 @@
             allTimelineEvents.forEach(e => {
                 const escapeKey = (e.title + "|||" + e.artist).replace(/'/g, "\\'");
                 
-                // ドキュメントの仕様通りに生の日付(rawReg)を利用
-                const monthDay = e.rawReg;
+                // ② 日付データを分解して美しいカレンダーカード風ブロックに変換
+                const parts = e.rawReg.split('/');
+                const m = parts[0] ? parseInt(parts[0]) : '--';
+                const d = parts[1] ? parseInt(parts[1]) : '--';
                 
                 let eventBadge = '';
                 const schedKey = `${e.year}/${e.rawReg}`;
@@ -717,10 +746,15 @@
                 }
                 
                 container.innerHTML += `
-                <div class="glass-card p-3 rounded-xl flex items-start gap-4 bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer" onclick="openDetailModal('${escapeKey}')">
-                    <div class="text-right flex-shrink-0 w-16 pt-1">
-                        <p class="text-[11px] font-digital font-black text-pink-300">${monthDay}</p>
-                        <p class="text-[8px] font-digital font-bold text-zinc-500 uppercase">${e.year} log</p>
+                <div class="glass-card p-3 rounded-xl flex items-center gap-4 bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer" onclick="openDetailModal('${escapeKey}')">
+                    <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md flex-shrink-0">
+                        <div class="w-full bg-pink-400 text-[8px] font-black text-center py-0.5 text-slate-900 tracking-wider font-digital uppercase">
+                            ${e.year}
+                        </div>
+                        <div class="flex-grow flex flex-col items-center justify-center font-digital font-black text-[10px] text-pink-300 tracking-tighter leading-none">
+                            <span>${m}月</span>
+                            <span class="text-white text-[12px] mt-0.5 font-bold">${d}日</span>
+                        </div>
                     </div>
                     <div class="w-full min-w-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div class="flex items-center gap-3 min-w-0 w-full">
@@ -731,8 +765,10 @@
                                 ${eventBadge}
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 ml-15 sm:ml-0 self-end sm:self-center">
-                            <span class="text-[10px] font-digital font-bold text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800">${e.days}日間</span>
+                        <div class="flex items-center gap-2 ml-15 sm:ml-0 self-end sm:self-center flex-shrink-0">
+                            <span class="text-[11px] font-digital font-bold text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 whitespace-nowrap flex items-baseline">
+                                ${e.days}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日間</span>
+                            </span>
                             ${getPlayButtonHTML(e.link)}
                         </div>
                     </div>
@@ -742,11 +778,8 @@
 
         function onSearchInput(val) {
             const btn = document.getElementById('search-clear-btn');
-            if(val.trim().length > 0) {
-                btn.style.opacity = "1"; btn.style.pointerEvents = "auto";
-            } else {
-                btn.style.opacity = "0"; btn.style.pointerEvents = "none";
-            }
+            if(val.trim().length > 0) { btn.style.opacity = "1"; btn.style.pointerEvents = "auto"; } 
+            else { btn.style.opacity = "0"; btn.style.pointerEvents = "none"; }
             filterTimeline();
         }
 
@@ -757,13 +790,30 @@
             filterTimeline();
         }
 
+        // ① 「曲が存在する月のみ」ボタンを生成し、フォント・幅崩れを防ぐ改善ロジック
         function generateDynamicMonthButtons() {
             const container = document.getElementById('month-buttons-container');
-            container.innerHTML = `<button onclick="filterTableByMonth('all')" id="btn-month-all" class="px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold">ALL</button>`;
+            if(!container) return;
+            
+            const activeMonths = new Set();
+            rawParsedTracks.forEach(t => {
+                if(currentYearFilter !== 'all' && t.year !== currentYearFilter) return;
+                if(t.rawReg && t.rawReg.includes('/')) {
+                    const m = t.rawReg.split('/')[0].trim();
+                    if(m) activeMonths.add(m);
+                }
+            });
+
+            let html = `<button onclick="filterTableByMonth('all')" id="btn-month-all" class="px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold font-digital text-xs">ALL</button>`;
+            
+            // 1月〜12月のうち、存在する月だけを「〇月」表記で生成
             for(let i=1; i<=12; i++) {
                 const mStr = String(i).padStart(2, '0');
-                container.innerHTML += `<button onclick="filterTableByMonth('${mStr}')" id="btn-month-${mStr}" class="px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-400 border border-zinc-800 font-digital font-bold">${i}M</button>`;
+                if(activeMonths.has(mStr)) {
+                    html += `<button onclick="filterTableByMonth('${mStr}')" id="btn-month-${mStr}" class="px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-400 border border-zinc-800 font-digital font-bold text-xs">${i}月</button>`;
+                }
             }
+            container.innerHTML = html;
         }
 
         function filterTableByYear(year) {
@@ -771,6 +821,8 @@
             ['all', '2025', '2026'].forEach(y => {
                 document.getElementById(`btn-year-${y}`).className = (y === year) ? "px-3 py-1.5 rounded-lg bg-purple-300 text-slate-900 font-bold" : "px-3 py-1.5 rounded-lg bg-zinc-900 text-zinc-400 border border-zinc-800 font-bold";
             });
+            currentMonthFilter = 'all'; // 年度変更時に月フィルタをALLにリセット
+            generateDynamicMonthButtons(); // ① 存在する月リストを再生成
             renderTable();
         }
 
@@ -779,11 +831,8 @@
             const container = document.getElementById('month-buttons-container');
             const btns = container.getElementsByTagName('button');
             for(let btn of btns) {
-                if(btn.id === `btn-month-${month}`) {
-                    btn.className = "px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold";
-                } else {
-                    btn.className = "px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-400 border border-zinc-800 font-digital font-bold";
-                }
+                if(btn.id === `btn-month-${month}`) { btn.className = "px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold font-digital text-xs"; } 
+                else { btn.className = "px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-400 border border-zinc-800 font-digital font-bold text-xs"; }
             }
             renderTable();
         }
@@ -817,13 +866,15 @@
                 else statusHTML = t.rawRem;
                 
                 tbody.innerHTML += `
-                <tr class="hover:bg-zinc-900/60 transition-all cursor-pointer border-b border-zinc-900" onclick="openDetailModal('${escapeKey}')">
-                    <td class="p-2.5 text-center font-digital text-zinc-500">${t.year.substring(2)}</td>
-                    <td class="p-2.5 font-bold text-white truncate max-w-0">${t.title}</td>
-                    <td class="p-2.5 text-zinc-400 truncate max-w-0">${t.artist}</td>
-                    <td class="p-2.5 font-digital text-zinc-400 text-center">${t.rawReg}</td>
-                    <td class="p-2.5 font-digital text-zinc-400 text-center">${statusHTML}</td>
-                    <td class="p-2.5 font-digital text-right pr-4 text-purple-300 font-bold">${t.days}d</td>
+                <tr class="hover:bg-zinc-900/60 transition-all cursor-pointer border-b border-zinc-900 font-digital" onclick="openDetailModal('${escapeKey}')">
+                    <td class="p-2.5 text-center text-zinc-500">${t.year.substring(2)}</td>
+                    <td class="p-2.5 font-bold text-white truncate max-w-0 font-sans">${t.title}</td>
+                    <td class="p-2.5 text-zinc-400 truncate max-w-0 font-sans">${t.artist}</td>
+                    <td class="p-2.5 text-zinc-400 text-center">${t.rawReg}</td>
+                    <td class="p-2.5 text-zinc-400 text-center">${statusHTML}</td>
+                    <td class="p-2.5 text-right pr-4 text-purple-300 font-bold whitespace-nowrap flex justify-end items-baseline pt-3.5">
+                        ${t.days}<span class="text-[8px] font-sans text-purple-400 ml-0.5 font-normal">日間</span>
+                    </td>
                 </tr>`;
             });
         }
@@ -887,7 +938,9 @@
                                 <p class="text-zinc-500 text-[9px] truncate">${track.artist}</p>
                             </div>
                         </div>
-                        <span class="font-digital text-amber-300 font-bold text-[11px] flex-shrink-0 ml-1">${days}日</span>
+                        <span class="font-digital text-amber-300 font-bold text-[11px] flex-shrink-0 ml-1 whitespace-nowrap flex items-baseline">
+                            ${days}<span class="text-[8px] font-sans text-amber-400/80 ml-0.5 font-normal">日間</span>
+                        </span>
                     </div>`;
                 });
             };
