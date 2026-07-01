@@ -1404,6 +1404,113 @@ function parseCSV(text) {
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
 });
+function closeModal() {
+  const modal = document.getElementById("detail-modal");
+  if (!modal) return;
+  modal.classList.add("opacity-0", "pointer-events-none");
+}
+
+function openDetailModal(encodedKey) {
+  const key = decodeURIComponent(encodedKey);
+  const track = masterTracks.find(t => `${t.title}|||${t.artist}` === key);
+  if (!track) return;
+
+  const modal = document.getElementById("detail-modal");
+  const content = document.getElementById("modal-content");
+  if (!modal || !content) return;
+
+  const history = track.history || [];
+
+  content.innerHTML = `
+    <div class="flex items-center gap-4">
+      ${getCoverHTML(track.img)}
+      <div class="min-w-0">
+        <h3 class="text-lg font-black text-white truncate">${track.title}</h3>
+        <p class="text-sm text-zinc-400 truncate">${track.artist}</p>
+      </div>
+      <div class="ml-auto">${getPlayButtonHTML(track.link)}</div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 text-xs">
+      <div class="bg-zinc-950/70 rounded-xl p-3 border border-zinc-800">
+        <p class="text-zinc-500 font-bold">総滞在</p>
+        <p class="font-digital text-xl text-indigo-300">${track.totalDays}<span class="text-xs ml-1">日間</span></p>
+      </div>
+      <div class="bg-zinc-950/70 rounded-xl p-3 border border-zinc-800">
+        <p class="text-zinc-500 font-bold">登録回数</p>
+        <p class="font-digital text-xl text-amber-300">${history.length}<span class="text-xs ml-1">回</span></p>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">History</p>
+      ${history.map(h => `
+        <div class="flex justify-between items-center bg-black/30 rounded-lg p-2 border border-zinc-900 text-xs">
+          <span class="text-zinc-300 font-digital">${h.regDate}</span>
+          <span class="text-zinc-500">→</span>
+          <span class="${h.removedDate === "Active" ? "text-emerald-400" : "text-zinc-300"} font-digital">${h.removedDate}</span>
+          <span class="text-purple-300 font-digital">${h.days}日間</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  modal.classList.remove("opacity-0", "pointer-events-none");
+}
+
+function searchHistoryPlaylist() {
+  const input = document.getElementById("history-date-input");
+  const area = document.getElementById("stream-output-area");
+  const box = document.getElementById("history-results-box");
+  const situation = document.getElementById("situation-text");
+
+  if (!input || !area || !box) return;
+  if (!input.value) return alert("日付を選択してください。");
+
+  const target = new Date(input.value);
+  const y = target.getFullYear();
+  const m = String(target.getMonth() + 1).padStart(2, "0");
+  const d = String(target.getDate()).padStart(2, "0");
+  const key = `${y}/${m}/${d}`;
+
+  const active = rawParsedTracks.filter(t => {
+    const start = parseYYYYMMDD(t.regDate);
+    const end = t.removedDate === "Active" ? new Date() : parseYYYYMMDD(t.removedDate);
+    return start && end && start <= target && target <= end;
+  });
+
+  area.classList.remove("hidden");
+  if (situation) situation.innerText = masterSchedules[key] || "予定なし（平穏な日常の通学路）";
+
+  box.innerHTML = active.length
+    ? active.map(t => `
+      <div class="glass-card p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:border-indigo-400/30"
+           onclick="openDetailModal('${encodeURIComponent(t.title + "|||" + t.artist)}')">
+        ${getCoverHTML(t.img)}
+        <div class="min-w-0">
+          <p class="text-white text-xs font-bold truncate">${t.title}</p>
+          <p class="text-zinc-400 text-[10px] truncate">${t.artist}</p>
+        </div>
+        <span class="ml-auto text-indigo-300 font-digital text-xs">${t.days}日間</span>
+      </div>
+    `).join("")
+    : `<p class="text-xs text-zinc-500 font-bold text-center py-6">この日にActiveだった曲は見つかりません。</p>`;
+}
+
+function pickRandomDate() {
+  const activeDates = rawParsedTracks
+    .map(t => t.regDate)
+    .filter(d => d && d !== "--");
+
+  if (activeDates.length === 0) return;
+
+  const random = activeDates[Math.floor(Math.random() * activeDates.length)];
+  const input = document.getElementById("history-date-input");
+  if (!input) return;
+
+  input.value = random.replaceAll("/", "-");
+  searchHistoryPlaylist();
+}
     </script>
 </body>
 </html>
