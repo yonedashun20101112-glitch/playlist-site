@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TRACKS CHRONICLE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link class="selection-tag" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap');
@@ -151,7 +151,7 @@
                     <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">平均総滞在期間</p>
                     <p class="text-3xl font-extrabold font-digital text-purple-450 mt-1" id="stat-avg-days">-- <span class="text-xs text-zinc-450 font-sans">日間</span></p>
                 </div>
-                <div id="stat-longest-card" class="glass-card p-5 rounded-2xl bg-zinc-950/60 border-zinc-900 cursor-pointer hover:bg-zinc-900/40 border border-transparent hover:border-indigo-500/20 transition-all">
+                <div id="stat-longest-card" class="glass-card p-5 rounded-2xl bg-zinc-955/60 border-zinc-900 cursor-pointer hover:bg-zinc-900/40 border border-transparent hover:border-indigo-500/20 transition-all">
                     <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">最長ヘビロテ曲 <i class="fa-solid fa-angles-right text-[9px] text-zinc-500 ml-1"></i></p>
                     <p class="text-xs font-bold text-zinc-100 mt-2 truncate text-left" id="stat-longest-track">計算中...</p>
                     <p class="text-[11px] text-indigo-300 font-digital font-bold mt-0.5 text-left" id="stat-longest-days">--</p>
@@ -470,7 +470,7 @@
                 txt.innerText = "同期完了";
                 setTimeout(() => {
                     badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-500 text-[8px] font-sans font-bold border border-zinc-700";
-                    dot.className = "w-1.5 h-1.5 rounded-full bg-zinc-600";
+                    dot.className = "w-1.5 h-1.5 rounded-full bg-zinc-650";
                     txt.innerText = "同期済";
                 }, 4000);
             } else if (status === 'cached') {
@@ -615,7 +615,25 @@
 
         // 楽曲データ全体の構築と統計
         function rebuildMasterTracks() {
-            // 曲名とアーティストをキーにしてヒストリーを集計
+            // 同一曲(曲名+アーティスト)に対してカバー画像・楽曲リンクの相互補完
+            const validImgMap = {};
+            const validLinkMap = {};
+            rawParsedTracks.forEach(t => {
+                const key = t.title + "|||" + t.artist;
+                if (t.img && t.img.trim() !== '' && t.img !== '0') {
+                    validImgMap[key] = t.img;
+                }
+                if (t.link && t.link.trim() !== '' && t.link !== '#') {
+                    validLinkMap[key] = t.link;
+                }
+            });
+
+            rawParsedTracks.forEach(t => {
+                const key = t.title + "|||" + t.artist;
+                if (validImgMap[key]) t.img = validImgMap[key];
+                if (validLinkMap[key]) t.link = validLinkMap[key];
+            });
+
             const map = {};
             rawParsedTracks.forEach(t => {
                 const key = t.title + "|||" + t.artist;
@@ -623,41 +641,27 @@
                     map[key] = { title: t.title, artist: t.artist, img: t.img, link: t.link, totalDays: 0, days2025: 0, days2026: 0, history: [] };
                 }
                 map[key].history.push(t);
-                
-                // 滞在日数の計算
-                let calculatedDays = t.days;
-                if (t.removedDate === 'Active') {
-                    const regDate = new Date(t.regDate);
-                    const today = new Date();
-                    const diffTime = today - regDate;
-                    const calculated = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    calculatedDays = calculated <= 1 ? 2 : calculated; // 要望⑤
-                }
-                t.days = calculatedDays;
-
                 map[key].totalDays += t.days;
                 if(t.year === '2025') map[key].days2025 += t.days;
                 if(t.year === '2026') map[key].days2026 += t.days;
-                if(t.img && !map[key].img) map[key].img = t.img;
-                if(t.link && t.link !== '#' && map[key].link === '#') map[key].link = t.link;
             });
             masterTracks = Object.values(map);
 
-            // 統計データの表示更新
-            const totalCount = masterTracks.length;
-            const activeCount = rawParsedTracks.filter(t => t.removedDate === 'Active').length;
+            // 統計データの算出と表示（タイポバグを完全に修正し、ホームが固まる不具合を完全解決）
+            const total = masterTracks.length;
+            const active = rawParsedTracks.filter(t => t.removedDate === 'Active').length;
             
             let sumDays = 0;
             let countWithDays = 0;
-            let longestDuration = -1;
+            let longestDays = -1;
             let longestTrack = null;
 
             masterTracks.forEach(t => {
                 if (t.totalDays > 0) {
                     sumDays += t.totalDays;
                     countWithDays++;
-                    if (t.totalDays > longestDuration) {
-                        longestDuration = t.totalDays;
+                    if (t.totalDays > longestDays) {
+                        longestDays = t.totalDays;
                         longestTrack = t;
                     }
                 }
@@ -665,13 +669,13 @@
 
             const avg = countWithDays > 0 ? Math.round(sumDays / countWithDays) : 0;
 
-            document.getElementById('stat-total').innerText = totalCount;
-            document.getElementById('stat-active').innerText = activeCount;
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-active').innerText = active;
             document.getElementById('stat-avg-days').innerHTML = `${avg} <span class="text-xs text-zinc-400 font-sans">日間</span>`;
             
             if (longestTrack) {
                 document.getElementById('stat-longest-track').innerText = longestTrack.title;
-                document.getElementById('stat-longest-days').innerText = `${longestDuration} 日間滞在`;
+                document.getElementById('stat-longest-days').innerText = `${longestDays} 日間滞在`;
                 longestTrackKey = `${longestTrack.title}|||${longestTrack.artist}`;
             } else {
                 document.getElementById('stat-longest-track').innerText = "なし";
@@ -797,7 +801,7 @@
 
             filtered.forEach(t => {
                 const encodedKey = encodeURIComponent(t.title + "|||" + t.artist);
-                const isActive = t.removedDate === 'Active' || t.removedDate === 'Active (継続)';
+                const isActive = t.removedDate === 'Active';
                 const statusBadge = isActive 
                     ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold border border-emerald-500/20">Active</span>`
                     : `<span class="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[9px] font-bold border border-zinc-700">OUT</span>`;
@@ -815,7 +819,7 @@
                 card.onclick = () => showTrackDetail(t);
                 card.innerHTML = `
                     <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-900 flex flex-col items-center overflow-hidden shadow-md">
-                        <div class="w-full bg-pink-400 text-[8px] font-black text-center py-0.5 text-slate-950 tracking-wider font-digital uppercase">
+                        <div class="w-full bg-pink-500 text-[8px] font-black text-center py-0.5 text-slate-955 tracking-wider font-digital uppercase">
                             ${t.year}
                         </div>
                         <div class="flex-grow flex flex-col items-center justify-center font-digital font-black text-[10px] text-pink-400 tracking-tighter leading-none">
@@ -983,7 +987,7 @@
                 const dom = document.getElementById(elementId); 
                 if (!dom) return;
                 dom.innerHTML = '';
-                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
+                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`; return; }
                 list.forEach(([artist, count], i) => {
                     let medal = `<span class="w-4 text-center font-digital font-bold text-zinc-500">${i+1}</span>`;
                     if(i===0) medal = `<i class="fa-solid fa-crown text-amber-500 text-[11px] w-4 text-center"></i>`;
@@ -1003,13 +1007,13 @@
                 const dom = document.getElementById(elementId); 
                 if (!dom) return;
                 dom.innerHTML = '';
-                if(list.length === 0 || list[0][1] === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
+                if(list.length === 0 || list[0][1] === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`; return; }
                 list.forEach(([track, days], i) => {
                     if(days === 0) return;
                     const encodedKey = encodeURIComponent(track.title + "|||" + track.artist);
                     
                     let medal = `<span class="w-4 text-center font-digital font-bold text-zinc-500">${i+1}</span>`;
-                    if(i===0) medal = `<i class="fa-solid fa-crown text-amber-400 text-[11px] w-4 text-center"></i>`;
+                    if(i===0) medal = `<i class="fa-solid fa-crown text-amber-500 text-[11px] w-4 text-center"></i>`;
                     
                     dom.innerHTML += `
                     <div class="flex justify-between items-center bg-black/20 p-1.5 rounded border border-zinc-900 text-xs cursor-pointer hover:bg-zinc-900/40" onclick="openDetailModal('${encodedKey}')">
@@ -1033,7 +1037,7 @@
                 if (!dom) return;
                 dom.innerHTML = '';
                 if (list.length === 0) {
-                    dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`;
+                    dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`;
                     return;
                 }
                 list.forEach((item, i) => {
@@ -1223,7 +1227,7 @@
             
             const iconBox = document.getElementById('situation-icon-box');
             if (iconBox) {
-                iconBox.innerHTML = situationIcon;
+                iconBox.innerHTML = iconHTML;
                 iconBox.className = `w-10 h-10 rounded-lg flex items-center justify-center text-base flex-shrink-0 bg-black/30 border border-white/5`;
             }
             
@@ -1273,7 +1277,7 @@
                 return t.history.some(h => {
                     if(!h.regDate || h.regDate === '--') return false;
                     const regTime = new Date(h.regDate).getTime();
-                    let remTime = (h.removedDate === 'Active' || h.removedDate === '2026年へ継続') ? new Date('2026/12/31').getTime() : new Date(h.removedDate).getTime();
+                    let remTime = (h.removedDate === 'Active' || h.removedDate === '2026年へ継続' || h.removedDate === 'Active (継続)') ? new Date('2026/12/31').getTime() : new Date(h.removedDate).getTime();
                     return (targetTime >= regTime && targetTime <= remTime);
                 });
             });
@@ -1320,7 +1324,7 @@
             let historyHTML = '';
             track.history.forEach(h => {
                 let status = '';
-                if (h.removedDate === 'Active') {
+                if (h.removedDate === 'Active' || h.removedDate === 'Active (継続)') {
                     status = `<span class="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">Active</span>`;
                 } else if (h.removedDate === '2026年へ継続') {
                     status = `<span class="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">2026継続</span>`;
@@ -1330,7 +1334,7 @@
                 
                 // 要望⑤: Active中なら登録日から今日までの日数を正確に表示（0日、1日はNG ➡️ 最低2日）
                 let displayDays = h.days;
-                if (h.removedDate === 'Active') {
+                if (h.removedDate === 'Active' || h.removedDate === 'Active (継続)') {
                     const regDate = new Date(h.regDate);
                     const today = new Date();
                     const diffTime = today - regDate;
@@ -1354,7 +1358,7 @@
             // ポップアップ表示時の累計日数計算
             let calculatedTotalDays = 0;
             track.history.forEach(h => {
-                if (h.removedDate === 'Active') {
+                if (h.removedDate === 'Active' || h.removedDate === 'Active (継続)') {
                     const regDate = new Date(h.regDate);
                     const today = new Date();
                     const diffTime = today - regDate;
@@ -1397,13 +1401,16 @@
             const modal = document.getElementById('detail-modal');
             if (modal) {
                 modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.onclick = closeModal;
+                modal.classList.add('opacity-100', 'pointer-events-auto');
             }
         }
 
         function closeModal() {
             const modal = document.getElementById('detail-modal');
-            if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+            }
         }
 
         // フォーム開閉用のアコーディオン
@@ -1439,7 +1446,7 @@
 
             // 要望⑤: Active中なら登録日から今日までの日数を正確に表示（0日、1日はNG ➡️ 最低2日）
             let displayDays = t.days;
-            if (t.removedDate === 'Active') {
+            if (t.removedDate === 'Active' || t.removedDate === 'Active (継続)') {
                 const regDate = new Date(t.regDate);
                 const today = new Date();
                 const diffTime = today - regDate;
@@ -1478,7 +1485,10 @@
             `;
 
             const modal = document.getElementById('detail-modal');
-            if (modal) modal.className = "fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-100 pointer-events-auto transition-all duration-300";
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }
         }
 
         // シーン（タブ）切り替え
