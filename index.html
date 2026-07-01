@@ -209,30 +209,51 @@
 
         <!-- TIMELINE SCENE -->
         <div id="scene-timeline" class="scene-hidden space-y-6">
-            <div class="glass-card p-5 rounded-2xl border border-white/10 bg-zinc-900/40 space-y-3">
+            <!-- 楽曲記録フォーム（任意項目・抹消項目拡張版） -->
+            <div class="glass-card p-5 rounded-2xl border border-white/10 bg-zinc-900/40 space-y-4">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-pink-300 flex items-center gap-1.5">
                     <i class="fa-solid fa-plus-circle"></i> 新しい楽曲をタイムラインに記録
                 </h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
-                    <select id="input-year" class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-pink-300">
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <select id="input-year" onchange="updateOutTrackDropdown()" class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-pink-300 h-9">
                         <option value="2026">2026年度</option>
                         <option value="2025">2025年度</option>
                     </select>
                     
                     <!-- 曲名：予測変換コンテナ -->
                     <div class="relative">
-                        <input type="text" id="input-title" oninput="showTitleSuggestions(this.value)" autocomplete="off" placeholder="曲名を入力..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
-                        <div id="title-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-zinc-950/95 backdrop-blur border border-zinc-800 rounded-xl max-h-48 overflow-y-auto hidden z-50 shadow-2xl divide-y divide-zinc-800/50"></div>
+                        <input type="text" id="input-title" oninput="showTitleSuggestions(this.value)" autocomplete="off" placeholder="曲名を入力..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300 h-9">
+                        <div id="title-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-zinc-950/95 backdrop-blur border border-zinc-800 rounded-xl max-h-48 overflow-y-auto hidden z-50 shadow-2xl divide-y divide-zinc-800/50 text-left"></div>
                     </div>
                     
                     <!-- アーティスト名：予測変換コンテナ -->
                     <div class="relative">
-                        <input type="text" id="input-artist" oninput="showArtistSuggestions(this.value)" autocomplete="off" placeholder="アーティスト名..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
-                        <div id="artist-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-zinc-950/95 backdrop-blur border border-zinc-800 rounded-xl max-h-48 overflow-y-auto hidden z-50 shadow-2xl divide-y divide-zinc-800/50"></div>
+                        <input type="text" id="input-artist" oninput="showArtistSuggestions(this.value)" autocomplete="off" placeholder="アーティスト名..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300 h-9">
+                        <div id="artist-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-zinc-950/95 backdrop-blur border border-zinc-800 rounded-xl max-h-48 overflow-y-auto hidden z-50 shadow-2xl divide-y divide-zinc-800/50 text-left"></div>
                     </div>
-                    
-                    <button onclick="handleFormSubmit()" class="bg-pink-300 hover:bg-pink-200 text-slate-900 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-paper-plane"></i> クロニクルに登録
+
+                    <!-- 抹消（OUT）曲の選択ドロップダウン -->
+                    <select id="input-out-track" class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-zinc-400 focus:outline-none focus:border-pink-300 h-9">
+                        <option value="">抹消（OUT）する曲なし</option>
+                    </select>
+                </div>
+
+                <!-- 任意追加項目（カバー画像・楽曲リンク） -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-zinc-800/50">
+                    <div>
+                        <label class="text-[10px] text-zinc-400 font-bold block mb-1">カバー画像URL (任意)</label>
+                        <input type="text" id="input-img" placeholder="https://is1-ssl.mzstatic.com/image/... (L列に保存されます)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-zinc-400 font-bold block mb-1">楽曲リンク / Apple Music等 (任意)</label>
+                        <input type="text" id="input-link" placeholder="https://music.apple.com/jp/... (M列に保存されます)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                    <button onclick="handleFormSubmit()" class="w-full md:w-auto bg-pink-300 hover:bg-pink-200 text-slate-900 font-bold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> 新曲をクロニクルに登録
                     </button>
                 </div>
             </div>
@@ -353,8 +374,10 @@
 
         function showError(msg) {
             const banner = document.getElementById('error-banner');
-            banner.innerText = msg;
-            banner.classList.remove('hidden');
+            if (banner) {
+                banner.innerText = msg;
+                banner.classList.remove('hidden');
+            }
         }
 
         function switchScene(sceneId) {
@@ -382,6 +405,7 @@
                 const tabTimeline = document.getElementById('tab-timeline');
                 if (tabTimeline) tabTimeline.className = btnClass + "bg-pink-200"; 
                 if (logo) logo.className = "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-pink-300 text-slate-900"; 
+                updateOutTrackDropdown(); // タイムライン遷移時にプルダウンリストを最新化
             }
             else if (sceneId === 'table') { 
                 const tabTable = document.getElementById('tab-table');
@@ -393,6 +417,25 @@
                 if (tabRanking) tabRanking.className = btnClass + "bg-amber-200"; 
                 if (logo) logo.className = "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-amber-300 text-slate-900"; 
             }
+        }
+
+        // 抹消（OUT）可能曲ドロップダウンの更新ロジック
+        function updateOutTrackDropdown() {
+            const outDropdown = document.getElementById('input-out-track');
+            if (!outDropdown) return;
+            
+            const selectedYear = document.getElementById('input-year').value;
+            
+            // 選択した年度のアクティブな（removedDateが現在登録中、または2026年へ継続の）曲だけをフィルタ
+            const activeTracks = masterTracks.filter(t => {
+                return t.history.some(h => h.year === selectedYear && (h.removedDate === '現在登録中' || h.removedDate === '2026年へ継続'));
+            });
+            
+            let html = '<option value="">抹消（OUT）する曲なし</option>';
+            activeTracks.forEach(t => {
+                html += `<option value="${t.title}|||${t.artist}">OUT: ${t.title} / ${t.artist}</option>`;
+            });
+            outDropdown.innerHTML = html;
         }
 
         // Web検索用の新規タブ建設機能
@@ -442,12 +485,18 @@
                 else if (h.removedDate === '2026年へ継続') status = `<span class="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">2026継続</span>`;
                 else status = `<span class="text-zinc-400">${h.removedDate} 抹消</span>`;
                 
+                // 【追加要望】表示用の日数を取得（最低1日）
+                const displayDays = h.days <= 0 ? 1 : h.days;
+                
                 historyHTML += `
                 <div class="flex flex-col gap-1 bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800 text-[11px]">
-                    <div class="flex justify-between font-bold"><span class="text-zinc-400">管理区分: ${h.year}年</span><span class="text-indigo-300 font-digital">${h.days}<span class="text-[9px] font-sans ml-0.5 font-normal">日間</span></span></div>
+                    <div class="flex justify-between font-bold"><span class="text-zinc-400">管理区分: ${h.year}年</span><span class="text-indigo-300 font-digital">${displayDays}<span class="text-[9px] font-sans ml-0.5 font-normal">日間</span></span></div>
                     <div class="flex justify-between text-zinc-300 font-digital"><span>期間: ${h.regDate} 〜 </span><span>${status}</span></div>
                 </div>`;
             });
+            
+            // ポップアップ表示時の累計日数が0日にならないように補正（最低1日）
+            const displayTotalDays = track.totalDays <= 0 ? 1 : track.totalDays;
             
             const container = document.getElementById('modal-content');
             container.innerHTML = `
@@ -465,7 +514,7 @@
                 </div>
             </div>
             <div class="bg-zinc-950/40 p-2 rounded-lg border border-zinc-800 text-[11px] flex justify-between">
-                <span class="text-zinc-400">累計愛聴日数</span><span class="text-amber-300 font-digital font-bold">${track.totalDays} 日間</span>
+                <span class="text-zinc-400">累計愛聴日数</span><span class="text-amber-300 font-digital font-bold">${displayTotalDays(track.totalDays)}</span>
             </div>
             <div class="flex justify-center pt-1 gap-2">
                 ${track.link && track.link !== '#' && track.link !== '0' ? `<a href="${track.link}" target="_blank" class="flex-1 py-2 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs text-center shadow-lg flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> 楽曲リンク</a>` : ''}
@@ -479,6 +528,12 @@
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.onclick = closeModal;
             }
+        }
+
+        // 表示用日数のフォーマットヘルパー（0日を排除し、登録されていれば最低1日とする）
+        function displayTotalDays(days) {
+            const safeDays = days <= 0 ? 1 : days;
+            return safeDays + " 日間";
         }
 
         function closeModal() {
@@ -524,18 +579,25 @@
         function rebuildMasterTracks() {
             // 同一曲(曲名+アーティスト)に対してカバー画像の相互保管・補完を実施
             const validImgMap = {};
+            const validLinkMap = {};
             rawParsedTracks.forEach(t => {
                 const key = t.title + "|||" + t.artist;
                 if (t.img && t.img.trim() !== '' && !t.img.includes('※sample') && t.img !== '0') {
                     validImgMap[key] = t.img;
                 }
+                if (t.link && t.link.trim() !== '' && t.link !== '#' && t.link !== '0') {
+                    validLinkMap[key] = t.link;
+                }
             });
 
-            // 見つかった有効画像を、すべての履歴データに一括補完適用する
+            // 見つかった有効画像やリンクを、すべての履歴データに一括補完適用する
             rawParsedTracks.forEach(t => {
                 const key = t.title + "|||" + t.artist;
                 if (validImgMap[key]) {
                     t.img = validImgMap[key];
+                }
+                if (validLinkMap[key]) {
+                    t.link = validLinkMap[key];
                 }
             });
 
@@ -567,7 +629,7 @@
             const statAvgDays = document.getElementById('stat-avg-days');
             if (statAvgDays) {
                 let sumDays = 0;
-                masterTracks.forEach(t => sumDays += t.totalDays);
+                masterTracks.forEach(t => sumDays += t.totalDays <= 0 ? 1 : t.totalDays); // 0日を最低1日に補正して平均を出す
                 const avgDays = masterTracks.length ? (sumDays / masterTracks.length).toFixed(1) : 0;
                 statAvgDays.innerHTML = `${avgDays} <span class="text-[10px] font-sans text-zinc-400 font-normal">日間</span>`;
             }
@@ -578,15 +640,19 @@
             if (statLongestTrack && statLongestDays) {
                 let longest = { totalDays: -1, title: 'なし' };
                 masterTracks.forEach(t => {
-                    if(t.totalDays > longest.totalDays) longest = t;
+                    const daysVal = t.totalDays <= 0 ? 1 : t.totalDays;
+                    if(daysVal > longest.totalDays) {
+                        longest = t;
+                        longest.totalDaysVal = daysVal;
+                    }
                 });
                 statLongestTrack.innerText = longest.title;
-                statLongestDays.innerText = (longest.totalDays > -1 ? longest.totalDays : 0) + ' 日間';
+                statLongestDays.innerText = (longest.totalDaysVal > -1 ? longest.totalDaysVal : 1) + ' 日間';
                 longestTrackKey = longest.title + "|||" + longest.artist;
                 
                 if (statLongestCard) {
                     statLongestCard.onclick = function() {
-                        if (longestTrackKey && longest.totalDays > -1) openDetailModal(longestTrackKey);
+                        if (longestTrackKey && longest.totalDaysVal > -1) openDetailModal(longestTrackKey);
                     };
                 }
             }
@@ -602,7 +668,6 @@
             }
             
             const query = val.toLowerCase().trim();
-            // タイトルに部分一致するユニークなマスター楽曲群を検索
             const matches = masterTracks.filter(t => t.title.toLowerCase().includes(query));
             
             if (matches.length === 0) {
@@ -613,7 +678,6 @@
             dropdown.innerHTML = '';
             dropdown.classList.remove('hidden');
             
-            // 最大5つまで予測変換候補を一覧表示
             matches.slice(0, 5).forEach(t => {
                 const item = document.createElement('div');
                 item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs flex items-center justify-between";
@@ -627,6 +691,8 @@
                 item.onclick = () => {
                     document.getElementById('input-title').value = t.title;
                     document.getElementById('input-artist').value = t.artist;
+                    if (t.img && t.img !== '0') document.getElementById('input-img').value = t.img;
+                    if (t.link && t.link !== '#') document.getElementById('input-link').value = t.link;
                     dropdown.classList.add('hidden');
                     const artDropdown = document.getElementById('artist-suggestions');
                     if (artDropdown) artDropdown.classList.add('hidden');
@@ -644,7 +710,6 @@
             }
             
             const query = val.toLowerCase().trim();
-            // アーティストのユニーク一覧から部分一致検索
             const uniqueArtists = Array.from(new Set(masterTracks.map(t => t.artist)))
                 .filter(artist => artist.toLowerCase().includes(query));
             
@@ -668,7 +733,7 @@
             });
         }
 
-        // 予測変換dropdownの外側をクリックしたときに自動で閉じる
+        // 予測候補ウィンドウの外をクリックしたら候補ウィンドウを閉じる
         document.addEventListener('click', function(e) {
             const titleBox = document.getElementById('input-title');
             const titleDropdown = document.getElementById('title-suggestions');
@@ -812,6 +877,10 @@
             
             matches.forEach(t => {
                 const escapeKey = (t.title + "|||" + t.artist).replace(/'/g, "\\'");
+                
+                // 表示用の総愛聴日数（0日を排除し最低1日とする）
+                const displayDays = t.totalDays <= 0 ? 1 : t.totalDays;
+                
                 box.innerHTML += `
                 <div class="glass-card p-3 rounded-xl flex items-center justify-between gap-3 bg-zinc-900/40 border-zinc-800/60 cursor-pointer hover:bg-zinc-800/40 transition-all hover:translate-x-1 relative z-10" onclick="openDetailModal('${escapeKey}')">
                     <div class="flex items-center gap-3 min-w-0">
@@ -824,7 +893,7 @@
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="text-[11px] font-digital font-bold text-zinc-400 bg-black/30 px-1.5 py-0.5 rounded border border-zinc-800 whitespace-nowrap flex items-baseline">
-                            ${t.totalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日間</span>
+                            ${displayDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日間</span>
                         </span>
                         ${getPlayButtonHTML(t.link)}
                     </div>
@@ -890,7 +959,9 @@
             while(pool.length < 3 && masterTracks.length > pool.length) {
                 const randomTrack = masterTracks[Math.floor(Math.random() * masterTracks.length)];
                 if(!pool.some(p => p.track === randomTrack)) {
-                    pool.push({ track: randomTrack, reason: `🎵 累計日数 ${randomTrack.totalDays}日間！思い出のサルベージ楽曲。` });
+                    // 0日表示を回避
+                    const finalDays = randomTrack.totalDays <= 0 ? 1 : randomTrack.totalDays;
+                    pool.push({ track: randomTrack, reason: `🎵 累計日数 ${finalDays}日間！思い出のサルベージ楽曲。` });
                 }
             }
             
@@ -975,6 +1046,9 @@
                     eventBadge = `<div class="text-[10px] text-zinc-400 mt-1 bg-black/20 p-1.5 rounded border border-zinc-800/80"><i class="fa-solid fa-calendar-day text-zinc-500 mr-1"></i>${schedText}</div>`;
                 }
                 
+                // 登録期間が0日を指す場合は最低1日間とカウント
+                const displayTotalDays = t.totalDays <= 0 ? 1 : t.totalDays;
+                
                 container.innerHTML += `
                 <div class="glass-card p-3 rounded-xl flex items-center gap-4 bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer" onclick="openDetailModal('${escapeKey}')">
                     <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md flex-shrink-0">
@@ -997,7 +1071,7 @@
                         </div>
                         <div class="flex items-center gap-2 ml-15 sm:ml-0 self-end sm:self-center flex-shrink-0">
                             <span class="text-[11px] font-digital font-bold text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 whitespace-nowrap flex items-baseline">
-                                ${t.totalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">累計日数</span>
+                                ${displayTotalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">累計日数</span>
                             </span>
                             ${getPlayButtonHTML(t.link)}
                         </div>
@@ -1101,6 +1175,9 @@
                 else if(t.removedDate === '2026年へ継続') statusHTML = `<span class="text-indigo-400 font-bold">2026継続</span>`;
                 else statusHTML = t.rawRem;
                 
+                // テーブル表示用の愛聴日数（0日は1日に補正）
+                const displayDays = t.days <= 0 ? 1 : t.days;
+                
                 tbody.innerHTML += `
                 <tr class="hover:bg-zinc-900/60 transition-all cursor-pointer border-b border-zinc-900 font-digital" onclick="openDetailModal('${escapeKey}')">
                     <td class="p-2.5 text-center text-zinc-500">${t.year.substring(2)}</td>
@@ -1109,7 +1186,7 @@
                     <td class="p-2.5 text-zinc-400 text-center">${t.rawReg}</td>
                     <td class="p-2.5 text-zinc-400 text-center">${statusHTML}</td>
                     <td class="p-2.5 text-right pr-4 text-purple-300 font-bold whitespace-nowrap flex justify-end items-baseline pt-3.5">
-                        ${t.days}<span class="text-[8px] font-sans text-purple-400 ml-0.5 font-normal">日間</span>
+                        ${displayDays}<span class="text-[8px] font-sans text-purple-400 ml-0.5 font-normal">日間</span>
                     </td>
                 </tr>`;
             });
@@ -1134,7 +1211,14 @@
             };
             
             const getTopTracks = (field) => {
-                return [...masterTracks].sort((a,b) => b[field] - a[field] || a.title.localeCompare(b.title)).slice(0, 5).map(t => [t, t[field]]);
+                // ランキング用に0日を1日として扱って正しく並び替える
+                return [...masterTracks].map(t => {
+                    let score = t[field];
+                    if (field === 'totalDays' && score <= 0) score = 1;
+                    if (field === 'days2025' && score <= 0 && t.history.some(h => h.year === '2025')) score = 1;
+                    if (field === 'days2026' && score <= 0 && t.history.some(h => h.year === '2026')) score = 1;
+                    return [t, score];
+                }).sort((a, b) => b[1] - a[1] || a[0].title.localeCompare(b[0])).slice(0, 5);
             };
             
             const renderArtistList = (elementId, list) => {
@@ -1208,99 +1292,14 @@
 
         window.addEventListener('DOMContentLoaded', initDashboard);
 
-        // 曲追加の時に予測変換候補一覧を表示するシステム
-        function showTitleSuggestions(val) {
-            const dropdown = document.getElementById('title-suggestions');
-            if (!dropdown) return;
-            if (!val.trim()) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            
-            const query = val.toLowerCase().trim();
-            const matches = masterTracks.filter(t => t.title.toLowerCase().includes(query));
-            
-            if (matches.length === 0) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            
-            dropdown.innerHTML = '';
-            dropdown.classList.remove('hidden');
-            
-            matches.slice(0, 5).forEach(t => {
-                const item = document.createElement('div');
-                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs flex items-center justify-between";
-                item.innerHTML = `
-                    <div class="truncate pr-2 text-left">
-                        <span class="text-white font-bold block">${t.title}</span>
-                        <span class="text-zinc-400 text-[10px] block mt-0.5">${t.artist}</span>
-                    </div>
-                    <i class="fa-solid fa-angles-right text-[9px] text-zinc-500"></i>
-                `;
-                item.onclick = () => {
-                    document.getElementById('input-title').value = t.title;
-                    document.getElementById('input-artist').value = t.artist;
-                    dropdown.classList.add('hidden');
-                    const artDropdown = document.getElementById('artist-suggestions');
-                    if (artDropdown) artDropdown.classList.add('hidden');
-                };
-                dropdown.appendChild(item);
-            });
-        }
-
-        function showArtistSuggestions(val) {
-            const dropdown = document.getElementById('artist-suggestions');
-            if (!dropdown) return;
-            if (!val.trim()) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            
-            const query = val.toLowerCase().trim();
-            const uniqueArtists = Array.from(new Set(masterTracks.map(t => t.artist)))
-                .filter(artist => artist.toLowerCase().includes(query));
-            
-            if (uniqueArtists.length === 0) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-            
-            dropdown.innerHTML = '';
-            dropdown.classList.remove('hidden');
-            
-            uniqueArtists.slice(0, 5).forEach(artist => {
-                const item = document.createElement('div');
-                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs text-white text-left truncate";
-                item.innerText = artist;
-                item.onclick = () => {
-                    document.getElementById('input-artist').value = artist;
-                    dropdown.classList.add('hidden');
-                };
-                dropdown.appendChild(item);
-            });
-        }
-
-        // 予測候補ウィンドウの外をクリックしたら候補ウィンドウを閉じる
-        document.addEventListener('click', function(e) {
-            const titleBox = document.getElementById('input-title');
-            const titleDropdown = document.getElementById('title-suggestions');
-            if (titleDropdown && titleBox && !titleBox.contains(e.target) && !titleDropdown.contains(e.target)) {
-                titleDropdown.classList.add('hidden');
-            }
-            
-            const artistBox = document.getElementById('input-artist');
-            const artistDropdown = document.getElementById('artist-suggestions');
-            if (artistDropdown && artistBox && !artistBox.contains(e.target) && !artistDropdown.contains(e.target)) {
-                artistDropdown.classList.add('hidden');
-            }
-        });
-
         // フォームのボタンが押されたときに動く処理
         function handleFormSubmit() {
             const year = document.getElementById('input-year').value;
             const title = document.getElementById('input-title').value.trim();
             const artist = document.getElementById('input-artist').value.trim();
+            const img = document.getElementById('input-img').value.trim();
+            const link = document.getElementById('input-link').value.trim();
+            const outTrack = document.getElementById('input-out-track').value;
 
             if (!title || !artist) {
                 alert("曲名とアーティスト名は両方入力してください！");
@@ -1308,63 +1307,108 @@
             }
 
             // スプレッドシート（GAS）へデータを送信
-            submitSongToSpreadsheet(year, title, artist);
+            submitSongToSpreadsheet(year, title, artist, img, link, outTrack);
         }
 
-        // GASにデータを非同期で送信し、画面に即時反映させる関数
-        function submitSongToSpreadsheet(year, title, artist) {
-            const data = {
+        // GASにデータをGETパラメータ経由で確実に送信し、エラーもしっかり検知する関数
+        function submitSongToSpreadsheet(year, title, artist, img, link, outTrack) {
+            // パラメータをURLに埋め込み、安全にGETリクエストで送信します (CORSプリフライトの自動回避)
+            const params = new URLSearchParams({
                 year: year,
                 title: title,
-                artist: artist
-            };
+                artist: artist,
+                img: img,
+                link: link,
+                outTrack: outTrack
+            });
+            const url = `${GAS_URL}?${params.toString()}`;
 
-            fetch(GAS_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "text/plain" // CORSのプリフライト検証を回避して送信要求を貫通させる
-                },
-                body: JSON.stringify(data),
-                mode: "no-cors" // コネクション切断による送信失敗を回避するモード
+            // ボタンのローディング状態化
+            const btn = document.querySelector("#scene-timeline button");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> 送信中...`;
+            btn.disabled = true;
+
+            fetch(url, {
+                method: "GET",
+                mode: "cors" // CORSを有効にして、GASが返すエラーメッセージを読み取れるようにします
             })
-            .then(() => {
-                alert("スプレッドシートへ登録要求を送信しました！");
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTPエラーが発生しました。ステータス: " + response.status);
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.status === 'success') {
+                    alert('スプレッドシートへの登録に成功しました！(書き込み行: ' + result.row + '行目)');
 
-                // 【リロードなしで即時反映】現在の表示データ群に登録曲を追加
-                const today = new Date();
-                const mStr = String(today.getMonth() + 1).padStart(2, '0');
-                const dStr = String(today.getDate()).padStart(2, '0');
-                
-                const newTrack = {
-                    year: year,
-                    title: title,
-                    artist: artist,
-                    days: 1,
-                    img: '',
-                    link: '#',
-                    rawReg: `${mStr}/${dStr}`,
-                    regDate: `${year}/${mStr}/${dStr}`,
-                    removedDate: '現在登録中',
-                    rawRem: '現在登録中'
-                };
+                    // 【リロードなしで即時反映】現在の表示データ群に登録曲を追加
+                    const today = new Date();
+                    const mStr = String(today.getMonth() + 1).padStart(2, '0');
+                    const dStr = String(today.getDate()).padStart(2, '0');
+                    const rawDateStr = `${mStr}/${dStr}`;
+                    
+                    // 新規追加した曲
+                    const newTrack = {
+                        year: year,
+                        title: title,
+                        artist: artist,
+                        days: 1, // 最低1日間
+                        img: img,
+                        link: link ? link : '#',
+                        rawReg: rawDateStr,
+                        regDate: `${year}/${mStr}/${dStr}`,
+                        removedDate: '現在登録中',
+                        rawRem: '現在登録中'
+                    };
 
-                // 配列の先頭に即座に追加して、全体を再レンダリングする
-                rawParsedTracks.unshift(newTrack);
-                rebuildMasterTracks();
-                
-                generateRecommendations();
-                generateDynamicMonthButtons();
-                renderRankings();
-                renderTimeline();
-                renderTable();
+                    // 抹消(OUT)された楽曲がある場合、ローカル配列内の状態も連動して上書き変更する
+                    if (outTrack) {
+                        const parts = outTrack.split("|||");
+                        const outT = parts[0].trim().toLowerCase();
+                        const outA = parts[1].trim().toLowerCase();
+                        
+                        rawParsedTracks.forEach(t => {
+                            if (t.year === year && t.title.toLowerCase() === outT && t.artist.toLowerCase() === outA && (t.removedDate === '現在登録中' || t.removedDate === '2026年へ継続')) {
+                                t.removedDate = `${year}/${rawDateStr}`;
+                                t.rawRem = rawDateStr;
+                                // 滞在日数を登録日から今日までの差分で算出（最低1日間）
+                                const start = new Date(t.regDate);
+                                const end = new Date();
+                                const diffTime = Math.abs(end - start);
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                t.days = diffDays <= 0 ? 1 : diffDays;
+                            }
+                        });
+                    }
 
-                // 入力欄をきれいに空っぽにする
-                document.getElementById('input-title').value = '';
-                document.getElementById('input-artist').value = '';
+                    rawParsedTracks.unshift(newTrack);
+                    rebuildMasterTracks();
+                    
+                    generateRecommendations();
+                    generateDynamicMonthButtons();
+                    renderRankings();
+                    renderTimeline();
+                    renderTable();
+                    updateOutTrackDropdown(); // ドロップダウンリストも新しくなった状態で同期更新
+
+                    // 入力欄をクリア
+                    document.getElementById('input-title').value = '';
+                    document.getElementById('input-artist').value = '';
+                    document.getElementById('input-img').value = '';
+                    document.getElementById('input-link').value = '';
+                } else {
+                    alert('スプレッドシート側でエラーが発生しました:\n' + result.message);
+                }
             })
             .catch(error => {
                 console.error("送信エラー:", error);
-                alert("送信中にエラーが発生しました。");
+                alert("送信に失敗しました。\n\n詳細: " + error.message);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             });
         }
     </script>
