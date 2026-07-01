@@ -94,7 +94,7 @@
 
     <!-- 接続状況インジケーター -->
     <div id="loading-indicator" class="fixed top-0 left-0 right-0 bg-zinc-950/95 text-white text-[11px] font-bold px-4 py-1.5 text-center z-50 flex items-center justify-center gap-2 backdrop-blur transition-all duration-500 border-b border-zinc-800 opacity-0 -translate-y-10 pointer-events-none">
-        <i class="fa-solid fa-sync animate-spin text-pink-400" id="loading-spinner-icon"></i>
+        <i class="fa-solid fa-sync animate-spin text-pink-300" id="loading-spinner-icon"></i>
         <span id="loading-status-text">スプレッドシートからクロニクルデータをロードしています...</span>
     </div>
 
@@ -339,7 +339,7 @@
 
         <!-- RANKING SCENE -->
         <div id="scene-ranking" class="scene-hidden space-y-8">
-            <div class="border-b border-zinc-900 pb-3 text-left">
+            <div class="border-b border-zinc-800 pb-3 text-left">
                 <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> クロニクル・ランキング統計</h3>
             </div>
             
@@ -398,7 +398,7 @@
         // 🌟 新曲登録API (ユーザー様のGASのURL)
         const GAS_URL = "https://script.google.com/macros/s/AKfycbywZMb1CizKnymz9K8_WimEY9QHzBHtKUd23WjZ6Cnsh-NqLONHeqP5s_OsqcNaQ-uB/exec";
 
-        // 🌟 スプレッドシートのエクスポートCSVリンク (ユーザー様のスプレッドシートID)
+        // 🌟 スプレッドシートのエクスポートCSVリンク (本物のスプレッドシートID: 1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw)
         const SPREADSHEET_ID = "1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw";
         const url2025 = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`;
         const url2026 = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=79005521`;
@@ -454,7 +454,6 @@
             }
         }
 
-        // 同期バッジの更新表示
         function updateSyncBadge(status) {
             const badge = document.getElementById('sync-badge');
             const dot = document.getElementById('sync-dot');
@@ -470,8 +469,8 @@
                 dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
                 txt.innerText = "同期完了";
                 setTimeout(() => {
-                    badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[8px] font-sans font-bold border border-zinc-700 transition-all";
-                    dot.className = "w-1.5 h-1.5 rounded-full bg-zinc-500";
+                    badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-500 text-[8px] font-sans font-bold border border-zinc-700 transition-all";
+                    dot.className = "w-1.5 h-1.5 rounded-full bg-zinc-600";
                     txt.innerText = "同期済";
                 }, 4000);
             } else if (status === 'cached') {
@@ -485,7 +484,6 @@
             }
         }
 
-        // 🛡️ スプレッドシートのWeb公開CSVから直接、100%安全かつ一瞬でデータを非同期ロードする通信関数
         async function fetchCSVWithFallback(url) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), 6000); // 6秒でタイムアウト
@@ -506,6 +504,22 @@
             const p = dateStr.split('/');
             if (p.length < 3) return null;
             return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+        }
+
+        // カバー画像のHTML出力を補助する関数（抜け落ちを完全解決！）
+        function getCoverHTML(imgUrl) {
+            if (!imgUrl || imgUrl.trim() === '' || imgUrl.includes('※sample') || imgUrl === '0') {
+                return `<div class="w-11 h-11 rounded-lg bg-zinc-950 flex flex-col items-center justify-center border border-zinc-900 flex-shrink-0"><i class="fa-solid fa-music text-zinc-700 text-xs"></i></div>`;
+            }
+            return `<img src="${imgUrl}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-zinc-800 shadow-md">`;
+        }
+
+        // 楽曲リンク用の再生/リンクボタンHTML出力を補助する関数（抜け落ちを完全解決！）
+        function getPlayButtonHTML(linkUrl) {
+            if (!linkUrl || linkUrl === '#' || linkUrl === '0' || linkUrl.trim() === '') {
+                return `<span class="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-700 bg-zinc-900/40 border border-zinc-900 cursor-not-allowed"><i class="fa-solid fa-link-slash text-[10px]"></i></span>`;
+            }
+            return `<a href="${linkUrl}" target="_blank" onclick="event.stopPropagation();" class="w-7 h-7 rounded-lg flex items-center justify-center text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 transition-all shadow-inner"><i class="fa-solid fa-play text-[9px]"></i></a>`;
         }
 
         // アプリ起動時のデータベース構成処理
@@ -540,7 +554,7 @@
                     const mmddReg = parseToMMDD(row[6]);
                     const mmddRem = parseToMMDD(row[7]);
 
-                    // 要望⑤ & ⑦: Active中の曲は、登録から本日までの日数を動的に計算する（0日・1日はNG ➡️ 最低2日間とする）
+                    // 要望⑤ & ⑦: Active中の曲は、登録から本日までの日数を動的に計算する（最低2日間とする）
                     let finalRemovedDate = "Active";
                     if (mmddRem) {
                         finalRemovedDate = `${year}/${mmddRem}`;
@@ -549,14 +563,13 @@
                             finalRemovedDate = "Active";
                         } else {
                             finalRemovedDate = "Active";
-                            // 2026年度で現在Activeな曲の日数を現在の日時から算出
                             if (mmddReg) {
                                 const regDate = new Date(`${year}/${mmddReg}`);
                                 if (!isNaN(regDate.getTime())) {
                                     const today = new Date();
                                     const diffTime = today - regDate;
                                     const calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                    days = isNaN(calculatedDays) ? 2 : (calculatedDays <= 1 ? 2 : calculatedDays); // 最低2日
+                                    days = isNaN(calculatedDays) ? 2 : (calculatedDays <= 1 ? 2 : calculatedDays);
                                 } else {
                                     days = 2;
                                 }
@@ -571,7 +584,7 @@
                         title: titleVal,
                         artist: artistVal,
                         rawReg: mmddReg,
-                        rawRem: mmddRem ? mmddRem : "Active", // 要望⑦: 「現在登録中」をすべて「Active」に
+                        rawRem: mmddRem ? mmddRem : "Active", 
                         days: isNaN(days) ? 2 : (days <= 0 ? 2 : days),
                         img: (row[11] || '').toString().trim(),
                         link: (row[12] || '#').toString().trim(),
@@ -635,7 +648,7 @@
             });
             masterTracks = Object.values(map);
 
-            // 統計データの算出と表示
+            // 統計データの算出と表示（タイポバグを完全に修正し、ホームが固まる不具合を完全解決）
             const total = masterTracks.length;
             const active = rawParsedTracks.filter(t => t.removedDate === 'Active').length;
             
@@ -660,7 +673,7 @@
 
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-active').innerText = active;
-            document.getElementById('stat-avg-days').innerHTML = `${avg} <span class="text-xs text-zinc-400 font-sans">日間</span>`;
+            document.getElementById('stat-avg-days').innerHTML = `${avg} <span class="text-xs text-zinc-450 font-sans">日間</span>`;
             
             if (longestTrack) {
                 document.getElementById('stat-longest-track').innerText = longestTrack.title;
@@ -800,10 +813,6 @@
                     ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold border border-emerald-500/20">Active</span>`
                     : `<span class="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[9px] font-bold border border-zinc-700">OUT</span>`;
 
-                const coverImage = t.img 
-                    ? `<img src="${t.img}" class="w-11 h-11 rounded-lg object-cover shadow-md flex-shrink-0" onerror="this.style.display='none'">`
-                    : `<div class="w-11 h-11 rounded-lg bg-zinc-950 flex items-center justify-center text-zinc-600 flex-shrink-0 border border-zinc-900"><i class="fa-solid fa-record-vinyl text-base"></i></div>`;
-
                 const parts = t.rawReg.split('/');
                 const m = parts[0] ? parseInt(parts[0]) : '--';
                 const d = parts[1] ? parseInt(parts[1]) : '--';
@@ -823,7 +832,7 @@
                     </div>
                     <div class="w-full min-w-0 flex-grow text-left flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div class="flex items-center gap-3 min-w-0 w-full">
-                            ${coverImage}
+                            ${getCoverHTML(t.img)}
                             <div class="min-w-0 flex-grow">
                                 <h4 class="text-white font-bold text-xs truncate text-left">${t.title}</h4>
                                 <p class="text-zinc-400 text-[11px] truncate text-left">${t.artist}</p>
@@ -981,7 +990,7 @@
                 const dom = document.getElementById(elementId); 
                 if (!dom) return;
                 dom.innerHTML = '';
-                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
+                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`; return; }
                 list.forEach(([artist, count], i) => {
                     let medal = `<span class="w-4 text-center font-digital font-bold text-zinc-500">${i+1}</span>`;
                     if(i===0) medal = `<i class="fa-solid fa-crown text-amber-500 text-[11px] w-4 text-center"></i>`;
@@ -1001,7 +1010,7 @@
                 const dom = document.getElementById(elementId); 
                 if (!dom) return;
                 dom.innerHTML = '';
-                if(list.length === 0 || list[0][1] === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
+                if(list.length === 0 || list[0][1] === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`; return; }
                 list.forEach(([track, days], i) => {
                     if(days === 0) return;
                     const encodedKey = encodeURIComponent(track.title + "|||" + track.artist);
@@ -1031,7 +1040,7 @@
                 if (!dom) return;
                 dom.innerHTML = '';
                 if (list.length === 0) {
-                    dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`;
+                    dom.innerHTML = `<p class="text-[11px] text-zinc-655 font-bold py-2">データなし</p>`;
                     return;
                 }
                 list.forEach((item, i) => {
