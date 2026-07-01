@@ -93,9 +93,9 @@
         <div class="glow-ball glow-2"></div>
     </div>
 
-    <!-- 接続状況インジケーター（ロード失敗を防止） -->
-    <div id="loading-indicator" class="fixed top-0 left-0 right-0 bg-indigo-600/90 text-white text-[11px] font-bold px-4 py-1.5 text-center z-50 flex items-center justify-center gap-2 backdrop-blur transition-all duration-300">
-        <i class="fa-solid fa-sync animate-spin"></i>
+    <!-- 接続状況インジケーター（ロード失敗を防止 & バックグラウンド同期状態をオシャレに表現） -->
+    <div id="loading-indicator" class="fixed top-0 left-0 right-0 bg-slate-900/90 text-white text-[11px] font-bold px-4 py-1.5 text-center z-50 flex items-center justify-center gap-2 backdrop-blur transition-all duration-500 border-b border-white/5 opacity-0 -translate-y-10 pointer-events-none">
+        <i class="fa-solid fa-sync animate-spin text-pink-300" id="loading-spinner-icon"></i>
         <span id="loading-status-text">スプレッドシートからクロニクルデータをロードしています...</span>
     </div>
 
@@ -118,7 +118,13 @@
                 <div id="brand-logo" class="w-10 h-10 rounded-xl bg-indigo-300 flex items-center justify-center shadow-lg text-slate-900"><i class="fa-solid fa-music text-lg"></i></div>
                 <div>
                     <h1 class="text-xl font-black tracking-wider font-digital text-white">TRACKS CHRONICLE</h1>
-                    <p class="text-[10px] text-zinc-300 font-bold uppercase tracking-widest">75min School Road Logs</p>
+                    <p class="text-[10px] text-zinc-300 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                        75min School Road Logs
+                        <span id="sync-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[8px] font-sans font-bold border border-zinc-700 transition-all">
+                            <span class="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse" id="sync-dot"></span>
+                            <span id="sync-text">準備中</span>
+                        </span>
+                    </p>
                 </div>
             </div>
             
@@ -421,6 +427,7 @@
                 txtEl.innerText = text;
                 el.style.opacity = "1";
                 el.style.transform = "translateY(0)";
+                el.style.pointerEvents = "auto";
             }
         }
 
@@ -430,6 +437,37 @@
                 el.style.opacity = "0";
                 el.style.transform = "translateY(-40px)";
                 setTimeout(() => el.style.pointerEvents = "none", 300);
+            }
+        }
+
+        // 同期バッジの更新表示
+        function updateSyncBadge(status) {
+            const badge = document.getElementById('sync-badge');
+            const dot = document.getElementById('sync-dot');
+            const txt = document.getElementById('sync-text');
+            if (!badge || !dot || !txt) return;
+
+            if (status === 'syncing') {
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-pink-500/10 text-pink-300 text-[8px] font-sans font-bold border border-pink-500/20";
+                dot.className = "w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping";
+                txt.innerText = "同期中...";
+            } else if (status === 'synced') {
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 text-[8px] font-sans font-bold border border-emerald-500/20";
+                dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
+                txt.innerText = "最新同期済";
+                setTimeout(() => {
+                    badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[8px] font-sans font-bold border border-zinc-700 transition-all";
+                    dot.className = "w-1.5 h-1.5 rounded-full bg-zinc-500";
+                    txt.innerText = "同期済";
+                }, 4000);
+            } else if (status === 'cached') {
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 text-[8px] font-sans font-bold border border-indigo-500/20";
+                dot.className = "w-1.5 h-1.5 rounded-full bg-indigo-400";
+                txt.innerText = "保存データ起動";
+            } else if (status === 'demo') {
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-[8px] font-sans font-bold border border-amber-500/20";
+                dot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
+                txt.innerText = "デモモード";
             }
         }
 
@@ -599,7 +637,7 @@
 
         // タイムアウト設定付きでfetchを実行する頑丈なラッパー関数（Load failed防止）
         async function fetchWithTimeout(resource, options = {}) {
-            const { timeout = 8000 } = options;
+            const { timeout = 6000 } = options; // 同期速度向上のためタイムアウトを6秒に微調整
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
             try {
@@ -960,7 +998,7 @@
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="w-2 h-2 rounded-full bg-indigo-300 absolute left-[-13px] border border-zinc-900 shadow-sm"></div>
                         ${getCoverHTML(t.img)}
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-grow text-left">
                             <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
                             <p class="text-zinc-400 text-[11px] truncate mt-0.5">${t.artist}</p>
                         </div>
@@ -981,21 +1019,42 @@
             initDashboard();
         }
 
+        // 【大改良】Stale-While-Revalidate (SWR) パターンの高速ロード処理
         async function initDashboard() {
-            showLoading("スプレッドシートからクロニクルデータをロードしています...");
+            const cachedTracks = localStorage.getItem('cached_parsed_tracks');
+            const cachedSchedules = localStorage.getItem('cached_master_schedules');
+            const cacheTime = localStorage.getItem('cached_last_loaded');
+
+            // 1. キャッシュが存在すれば、まず「一瞬」で画面を構築してローディングを回避する
+            if (cachedTracks && cachedSchedules) {
+                rawParsedTracks = JSON.parse(cachedTracks);
+                masterSchedules = JSON.parse(cachedSchedules);
+                rebuildMasterTracks();
+                renderAllData();
+                updateSyncBadge('cached');
+                hideLoading(); // 即座にロード画面を閉じる
+            } else {
+                // キャッシュが1件も無い最初の起動時のみ、全画面ローディングを表示
+                showLoading("スプレッドシートからクロニクルデータをロードしています...");
+                updateSyncBadge('syncing');
+            }
+
+            // 2. バックグラウンド（裏側）でGoogleスプレッドシートから最新データをダウンロード開始
             const url2025 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=0&single=true&output=csv";
             const url2026 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=79005521&single=true&output=csv";
             const urlSchedule = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=1330775074&single=true&output=csv";
-            
+
             try {
-                // スプレッドシートデータ of 非同期取得をタイムアウト付きで並列実行
+                // ダウンロード中のバッジ変更
+                updateSyncBadge('syncing');
+
                 const [csv2025, csv2026, csvSched] = await Promise.all([
                     fetchCSV(url2025),
                     fetchCSV(url2026),
                     fetchCSV(urlSchedule)
                 ]);
                 
-                // データ読み込み成功：パースしてローカルストレージへセーブ
+                // 最新データのダウンロードに成功：パースしてローカルにキャッシュ
                 buildMasterDatabase(csv2025, csv2026);
                 
                 // スケジュール解析
@@ -1010,33 +1069,24 @@
                     });
                 }
 
-                // 成功した直近 of データをキャッシュ保存する
+                // キャッシュを最新化
                 localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
                 localStorage.setItem('cached_master_schedules', JSON.stringify(masterSchedules));
                 localStorage.setItem('cached_last_loaded', new Date().toLocaleString());
 
+                // 画面データを最新情報へ再構成（シームレスに上書き）
                 renderAllData();
+                updateSyncBadge('synced');
                 hideLoading();
+                hideError();
                 
             } catch (e) {
-                console.error("ロード失敗:", e);
-                // 通信エラー発生：ローカルストレージ of 直近キャッシュを復元して起動させる
-                const cachedTracks = localStorage.getItem('cached_parsed_tracks');
-                const cachedSchedules = localStorage.getItem('cached_master_schedules');
-                const cacheTime = localStorage.getItem('cached_last_loaded');
-
+                console.error("バックグラウンド同期失敗:", e);
+                // キャッシュが既に読み込まれていれば、エラーバナーは出さずに「オフライン動作」をバッジで通知
                 if (cachedTracks && cachedSchedules) {
-                    rawParsedTracks = JSON.parse(cachedTracks);
-                    masterSchedules = JSON.parse(cachedSchedules);
-                    rebuildMasterTracks();
-                    
-                    renderAllData();
-                    hideLoading();
-                    
-                    // キャッシュ起動を伝えるバナーを表示
-                    showError(`オフラインモード: スプレッドシート of ロードに失敗したため、直近 of 保存データから起動しました。 (バックアップ日時: ${cacheTime})`);
+                    updateSyncBadge('cached');
                 } else {
-                    // キャッシュも無い初の起動トラブル時：デモデータをロードしてアプリが「Load failed」で落ちるのを完璧に防ぐ
+                    // キャッシュもなく完全初回ロードに失敗した場合はデモモードで仮起動
                     rawParsedTracks = fallbackDummyTracks.map(t => {
                         return {
                             ...t,
@@ -1046,11 +1096,10 @@
                     });
                     masterSchedules = fallbackDummySchedules;
                     rebuildMasterTracks();
-
                     renderAllData();
+                    updateSyncBadge('demo');
                     hideLoading();
-
-                    showError("デモモード: スプレッドシート of Web公開（CSV） of 読み込みに失敗しました。公開設定やURL、インターネット接続を確認してください。現在はサンプルデータで仮起動しています。");
+                    showError("デモ起動: スプレッドシートの読み込みに失敗しました。接続状態やURLの公開設定を確認してください。");
                 }
             }
         }
@@ -1099,7 +1148,7 @@
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3 min-w-0">
                             ${getCoverHTML(t.img)}
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-grow text-left">
                                 <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
                                 <p class="text-zinc-400 text-[11px] truncate">${t.artist}</p>
                             </div>
@@ -1473,13 +1522,16 @@
                     rawReg: `${mStr}/${dStr}`,
                     regDate: `${year}/${mStr}/${dStr}`,
                     removedDate: '現在登録中',
-                    rawRem: '現在登録中'
+                    rawRem: 'current'
                 };
 
                 // 配列の先頭に即座に追加して、全体を再レンダリングする
                 rawParsedTracks.unshift(newTrack);
                 rebuildMasterTracks();
                 
+                // 最新状態をローカルキャッシュに保存
+                localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
+
                 generateRecommendations();
                 generateDynamicMonthButtons();
                 renderRankings();
