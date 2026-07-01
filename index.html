@@ -207,6 +207,23 @@
         </div>
 
         <div id="scene-timeline" class="scene-hidden space-y-6">
+            <div class="glass-card p-5 rounded-2xl border border-white/10 bg-zinc-900/40 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-widest text-pink-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle"></i> 新しい楽曲をタイムラインに記録
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <select id="input-year" class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-pink-300">
+                        <option value="2026">2026年度</option>
+                        <option value="2025">2025年度</option>
+                    </select>
+                    <input type="text" id="input-title" placeholder="曲名を入力..." class="bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
+                    <input type="text" id="input-artist" placeholder="アーティスト名..." class="bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
+                    <button onclick="handleFormSubmit()" class="bg-pink-300 hover:bg-pink-200 text-slate-900 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-paper-plane"></i> クロニクルに登録
+                    </button>
+                </div>
+            </div>
+
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-800 pb-4">
                 <div>
                     <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-timeline text-pink-300"></i> クロニクル・タイムライン</h3>
@@ -219,12 +236,6 @@
             </div>
             <div class="space-y-2.5" id="timeline-container"></div>
         </div>
-
-        <div id="scene-table" class="scene-hidden space-y-6 relative">
-            <div id="databank-top-anchor"></div>
-            <div class="space-y-1">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-database text-purple-300"></i> マスター・データバンク</h3>
-            </div>
             
             <div class="glass-card p-4 rounded-2xl space-y-3 border-white/10 bg-zinc-900/40">
                 <div class="flex flex-wrap gap-2 items-center text-xs">
@@ -964,6 +975,75 @@
         });
 
         window.addEventListener('DOMContentLoaded', initDashboard);
+
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxWCjeTjiWQ59KIvdVRRuSfHURVxTiBwYDDJ_8B0g3TTohzcpBLzm1MQjOG75bIJnI0/exec"; 
+
+        // フォームのボタンが押されたときに動く処理
+        function handleFormSubmit() {
+            const year = document.getElementById('input-year').value;
+            const title = document.getElementById('input-title').value.trim();
+            const artist = document.getElementById('input-artist').value.trim();
+
+            if (!title || !artist) {
+                alert("曲名とアーティスト名は両方入力してください！");
+                return;
+            }
+
+            // スプレッドシート（GAS）へデータを送信
+            submitSongToSpreadsheet(year, title, artist);
+        }
+
+        // GASにデータを非同期で送信し、画面に即時反映させる関数
+        function submitSongToSpreadsheet(year, title, artist) {
+            const data = {
+                year: year,
+                title: title,
+                artist: artist
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(data),
+                mode: "no-cors" // CORSエラー（通信遮断）を回避するモード
+            })
+            .then(() => {
+                alert("スプレッドシートへ登録要求を送信しました！");
+
+                // --- 【リロードなしで即時反映するための処理】 ---
+                const timelineContainer = document.getElementById('timeline-container');
+                if (timelineContainer) {
+                    // パステルピンクを基調にした新しい曲カードのHTMLを生成
+                    const newTrackHTML = `
+                        <div class="glass-card p-4 rounded-xl flex items-center justify-between border-l-4 border-pink-400 bg-zinc-900/60 transition-all duration-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-b from-zinc-700 to-zinc-900 flex flex-col items-center justify-center border border-zinc-700 flex-shrink-0 shadow-inner z-10">
+                                    <i class="fa-solid fa-music text-zinc-500 text-xs"></i>
+                                    <span class="text-[6px] text-zinc-400 font-bold mt-0.5">NEW LOG</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm">${title}</h4>
+                                    <p class="text-zinc-400 text-xs">${artist}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[9px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-md font-bold font-digital">JUST NOW</span>
+                            </div>
+                        </div>
+                    `;
+                    // タイムラインの「一番上」に即座に差し込む
+                    timelineContainer.insertAdjacentHTML('afterbegin', newTrackHTML);
+                }
+
+                // 入力欄をきれいに空っぽにする
+                document.getElementById('input-title').value = '';
+                document.getElementById('input-artist').value = '';
+            })
+            .catch(error => {
+                console.error("送信エラー:", error);
+                alert("送信中にエラーが発生しました。");
+            });
+        }
+    
     </script>
 </body>
 </html>
