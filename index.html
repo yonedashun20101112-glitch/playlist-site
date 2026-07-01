@@ -394,7 +394,7 @@
             { year: "2026", title: "366日", artist: "HY", rawReg: "06/30", rawRem: "", days: 2, img: "", link: "#" },
             { year: "2026", title: "とくべちゅ、して", artist: "=LOVE", rawReg: "06/21", rawRem: "", days: 11, img: "", link: "#" },
             { year: "2026", title: "夢灯籠", artist: "RADWIMPS", rawReg: "06/21", rawRem: "", days: 11, img: "", link: "#" },
-            { year: "2026", title: "ツンデレ", artist: "セカンドバッカー", rawReg: "06/17", rawReg: "06/17", rawRem: "", days: 15, img: "", link: "#" },
+            { year: "2026", title: "ツンデレ", artist: "セカンドバッカー", rawReg: "06/17", rawRem: "", days: 15, img: "", link: "#" },
             { year: "2026", title: "青にほどける", artist: "KESUKE", rawReg: "06/16", rawRem: "", days: 16, img: "", link: "#" },
             { year: "2026", title: "怪盗", artist: "back number", rawReg: "06/13", rawRem: "", days: 19, img: "", link: "#" },
             { year: "2026", title: "失恋ソング沢山聴いて 泣いてばかりの私はもう卒業するの", artist: "りりあ。", rawReg: "06/13", rawRem: "", days: 19, img: "", link: "#" }
@@ -436,7 +436,7 @@
             }
         }
 
-        // 同期バッジの更新表示関数を新規に定義（「ずっと準備中」を解決）
+        // 同期バッジの更新表示
         function updateSyncBadge(status) {
             const badge = document.getElementById('sync-badge');
             const dot = document.getElementById('sync-dot');
@@ -464,6 +464,188 @@
                 badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-[8px] font-sans font-bold border border-amber-500/20 transition-all";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
                 txt.innerText = "デモモード";
+            }
+        }
+
+        function switchScene(sceneId) {
+            document.body.classList.remove('mood-anxiety', 'mood-rainy', 'mood-happy');
+            const scenes = ['home', 'timeline', 'table', 'ranking'];
+            scenes.forEach(s => {
+                const el = document.getElementById(`scene-${s}`);
+                if (el) el.classList.add('scene-hidden');
+                const tab = document.getElementById(`tab-${s}`);
+                if (tab) tab.className = "px-4 py-2 rounded-lg transition-all text-zinc-400 hover:text-white whitespace-nowrap";
+            });
+            const currentScene = document.getElementById(`scene-${sceneId}`);
+            if (currentScene) currentScene.classList.remove('scene-hidden');
+            document.body.className = `pb-16 theme-${sceneId}`;
+            
+            let btnClass = "px-4 py-2 rounded-lg transition-all text-slate-900 font-bold shadow-md whitespace-nowrap ";
+            let logo = document.getElementById('brand-logo');
+            if (sceneId === 'home') {
+                const tabHome = document.getElementById('tab-home');
+                if (tabHome) tabHome.className = btnClass + "bg-indigo-200";
+                if (logo) logo.className = "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-indigo-300 text-slate-900";
+                applyMoodVisuals();
+            }
+            else if (sceneId === 'timeline') { 
+                const tabTimeline = document.getElementById('tab-timeline');
+                if (tabTimeline) tabTimeline.className = btnClass + "bg-pink-200"; 
+                if (logo) logo.className = "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-pink-300 text-slate-900"; 
+                updateOutTrackDropdown(); // タイムライン遷移時にプルダウンリストを最新化
+            }
+            else if (sceneId === 'table') { 
+                const tabTable = document.getElementById('tab-table');
+                if (tabTable) tabTable.className = btnClass + "bg-purple-200"; 
+                if (logo) logo.className = "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-purple-300 text-slate-900"; 
+            }
+            else if (sceneId === 'ranking') { 
+                const tabRanking = document.getElementById('tab-ranking');
+                if (tabRanking) tabRanking.className = btnClass + "bg-amber-200"; 
+                if (logo) logo.className = "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-amber-300 text-slate-900"; 
+            }
+        }
+
+        // 抹消（OUT）可能曲ドロップダウン of 更新ロジック
+        function updateOutTrackDropdown() {
+            const outDropdown = document.getElementById('input-out-track');
+            if (!outDropdown) return;
+            
+            const selectedYear = document.getElementById('input-year').value;
+            
+            // 選択した年度 of アクティブな曲だけをフィルタ
+            const activeTracks = masterTracks.filter(t => {
+                return t.history.some(h => h.year === selectedYear && (h.removedDate === '現在登録中' || h.removedDate === '2026年へ継続'));
+            });
+            
+            let html = '<option value="">抹消（OUT）する曲なし</option>';
+            activeTracks.forEach(t => {
+                html += `<option value="${t.title}|||${t.artist}">OUT: ${t.title} / ${t.artist}</option>`;
+            });
+            outDropdown.innerHTML = html;
+        }
+
+        // Web検索用の新規タブ建設機能
+        function performWebSearch(query) {
+            let cleanQuery = query;
+            try {
+                cleanQuery = decodeURIComponent(query);
+            } catch(e) {}
+            if (!cleanQuery || !cleanQuery.trim()) {
+                alert("検索キーワードを入力してください。");
+                return;
+            }
+            const url = "https://www.google.com/search?q=" + encodeURIComponent(cleanQuery.trim() + " 曲");
+            window.open(url, '_blank');
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r\n|\n/);
+            return lines.filter(line => line.trim() !== '').map(line => {
+                const result = []; let current = ''; let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') { inQuotes = !inQuotes; }
+                    else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+                    else { current += char; }
+                }
+                result.push(current.trim()); return result;
+            });
+        }
+
+        function getCoverHTML(imgUrl) {
+            if (!imgUrl || imgUrl.trim() === '' || imgUrl.includes('※sample') || imgUrl === '0') {
+                return `<div class="w-12 h-12 rounded-xl bg-gradient-to-b from-zinc-700 to-zinc-900 flex flex-col items-center justify-center border border-zinc-700 flex-shrink-0 shadow-inner z-10"><i class="fa-solid fa-music text-zinc-500 text-xs"></i><span class="text-[6px] text-zinc-400 font-bold mt-0.5">NO IMAGE</span></div>`;
+            }
+            return `<img src="${imgUrl}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-zinc-700 shadow-md z-10">`;
+        }
+
+        function openDetailModal(encodedKey) {
+            const trackKey = decodeURIComponent(encodedKey);
+            const track = masterTracks.find(t => (t.title + "|||" + t.artist) === trackKey);
+            if(!track) return;
+            
+            let historyHTML = '';
+            track.history.forEach(h => {
+                let status = '';
+                if (h.removedDate === '現在登録中') status = `<span class="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">Active</span>`;
+                else if (h.removedDate === '2026年へ継続') status = `<span class="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">2026継続</span>`;
+                else status = `<span class="text-zinc-400">${h.removedDate} 抹消</span>`;
+                
+                // 表示用の日数を取得（最低1日）
+                const displayDays = h.days <= 0 ? 1 : h.days;
+                
+                historyHTML += `
+                <div class="flex flex-col gap-1 bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800 text-[11px]">
+                    <div class="flex justify-between font-bold"><span class="text-zinc-400">管理区分: ${h.year}年</span><span class="text-indigo-300 font-digital">${displayDays}<span class="text-[9px] font-sans ml-0.5 font-normal">日間</span></span></div>
+                    <div class="flex justify-between text-zinc-300 font-digital"><span>期間: ${h.regDate} 〜 </span><span>${status}</span></div>
+                </div>`;
+            });
+            
+            // ポップアップ表示時 of 累計日数が0日にならないように補正（最低1日）
+            const calculatedTotalDays = track.totalDays <= 0 ? 1 : track.totalDays;
+            const formattedTotalDays = formatDaysText(calculatedTotalDays);
+            
+            const container = document.getElementById('modal-content');
+            if (container) {
+                container.innerHTML = `
+                <div class="flex flex-col items-center text-center space-y-2">
+                    ${getCoverHTML(track.img).replace('w-12 h-12','w-20 h-20')}
+                    <div>
+                        <h4 class="text-white font-bold text-base">${track.title}</h4>
+                        <p class="text-zinc-400 text-[11px] mt-0.5">${track.artist}</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-[10px] text-zinc-400 font-bold tracking-widest uppercase"><i class="fa-solid fa-history"></i> 登録・抹廃履歴 (${track.history.length}件)</p>
+                    <div class="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
+                        ${historyHTML}
+                    </div>
+                </div>
+                <div class="bg-zinc-950/40 p-2 rounded-lg border border-zinc-800 text-[11px] flex justify-between">
+                    <span class="text-zinc-400">累計愛聴日数</span><span class="text-amber-300 font-digital font-bold">${formattedTotalDays}</span>
+                </div>
+                <div class="flex justify-center pt-1 gap-2">
+                    ${track.link && track.link !== '#' && track.link !== '0' ? `<a href="${track.link}" target="_blank" class="flex-1 py-2 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs text-center shadow-lg flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> 楽曲リンク</a>` : ''}
+                    <button onclick="performWebSearch('${encodeURIComponent(track.title + " " + track.artist)}')" class="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs text-center shadow-md flex items-center justify-center gap-1.5 border border-zinc-700">
+                        <i class="fa-solid fa-globe"></i> Web検索
+                    </button>
+                </div>`;
+            }
+            
+            const modal = document.getElementById('detail-modal');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.onclick = closeModal;
+            }
+        }
+
+        // 表示用日数 of フォーマットヘルパー（0日を排除し、登録されていれば最低1日とする）
+        function formatDaysText(days) {
+            const safeDays = days <= 0 ? 1 : days;
+            return safeDays + " 日間";
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detail-modal');
+            if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // タイムアウト設定付きでfetchを実行する頑丈なラッパー関数（Load failed防止）
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 6000 } = options; // 同期速度向上のためタイムアウトを6秒に微調整
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(resource, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(id);
+                return response;
+            } catch (err) {
+                clearTimeout(id);
+                throw err;
             }
         }
 
