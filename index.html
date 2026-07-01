@@ -618,7 +618,7 @@
                 const item = document.createElement('div');
                 item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs flex items-center justify-between";
                 item.innerHTML = `
-                    <div class="truncate pr-2">
+                    <div class="truncate pr-2 text-left">
                         <span class="text-white font-bold block">${t.title}</span>
                         <span class="text-zinc-400 text-[10px] block mt-0.5">${t.artist}</span>
                     </div>
@@ -658,7 +658,7 @@
             
             uniqueArtists.slice(0, 5).forEach(artist => {
                 const item = document.createElement('div');
-                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs text-white truncate";
+                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs text-white text-left truncate";
                 item.innerText = artist;
                 item.onclick = () => {
                     document.getElementById('input-artist').value = artist;
