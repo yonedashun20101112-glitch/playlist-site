@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TRACKS CHRONICLE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link class="selection-tag" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+JP:wght@300;500;700&display=swap');
@@ -92,9 +92,9 @@
         <div class="glow-ball glow-2"></div>
     </div>
 
-    <!-- 接続状況インジケーター（同期状況をリアルタイムかつ控えめに通知） -->
-    <div id="loading-indicator" class="fixed top-0 left-0 right-0 bg-slate-900/90 text-white text-[11px] font-bold px-4 py-1.5 text-center z-50 flex items-center justify-center gap-2 backdrop-blur transition-all duration-500 border-b border-white/5 opacity-0 -translate-y-10 pointer-events-none">
-        <i class="fa-solid fa-sync animate-spin text-pink-300" id="loading-spinner-icon"></i>
+    <!-- 接続状況インジケーター -->
+    <div id="loading-indicator" class="fixed top-0 left-0 right-0 bg-zinc-950/95 text-white text-[11px] font-bold px-4 py-1.5 text-center z-50 flex items-center justify-center gap-2 backdrop-blur transition-all duration-500 border-b border-zinc-800 opacity-0 -translate-y-10 pointer-events-none">
+        <i class="fa-solid fa-sync animate-spin text-pink-400" id="loading-spinner-icon"></i>
         <span id="loading-status-text">スプレッドシートからクロニクルデータをロードしています...</span>
     </div>
 
@@ -120,7 +120,7 @@
                     <h1 class="text-xl font-black tracking-wider font-digital text-white">TRACKS CHRONICLE</h1>
                     <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
                         75min School Road Logs
-                        <span id="sync-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-500 text-[8px] font-sans font-bold border border-zinc-800 transition-all">
+                        <span id="sync-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-500 text-[8px] font-sans font-bold border border-zinc-800 transition-all">
                             <span class="w-1.5 h-1.5 rounded-full bg-zinc-600 animate-pulse" id="sync-dot"></span>
                             <span id="sync-text">準備中</span>
                         </span>
@@ -139,15 +139,15 @@
         <!-- HOME SCENE -->
         <div id="scene-home" class="space-y-8">
             <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="glass-card p-5 rounded-2xl bg-zinc-950/60 border-zinc-900">
+                <div class="glass-card p-5 rounded-2xl bg-zinc-955/60 border-zinc-900">
                     <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">総登録楽曲種類</p>
                     <p class="text-3xl font-extrabold font-digital text-white mt-1" id="stat-total">--</p>
                 </div>
-                <div class="glass-card p-5 rounded-2xl bg-zinc-950/60 border-zinc-900">
+                <div class="glass-card p-5 rounded-2xl bg-zinc-955/60 border-zinc-900">
                     <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">現在アクティブ</p>
                     <p class="text-3xl font-extrabold font-digital text-emerald-400 mt-1" id="stat-active">--</p>
                 </div>
-                <div class="glass-card p-5 rounded-2xl bg-zinc-950/60 border-zinc-900">
+                <div class="glass-card p-5 rounded-2xl bg-zinc-955/60 border-zinc-900">
                     <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">平均総滞在期間</p>
                     <p class="text-3xl font-extrabold font-digital text-purple-450 mt-1" id="stat-avg-days">-- <span class="text-xs text-zinc-450 font-sans">日間</span></p>
                 </div>
@@ -160,7 +160,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-4">
-                    <div id="stream-terminal-card" class="glass-card p-6 rounded-3xl border border-white/5 transition-all duration-500 shadow-xl bg-gradient-to-br from-zinc-950/80 to-slate-950/80">
+                    <div id="stream-terminal-card" class="glass-card p-6 rounded-3xl border border-white/5 transition-all duration-500 shadow-xl bg-gradient-to-br from-zinc-955/80 to-slate-955/80">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-zinc-900 pb-3 mb-4">
                             <div>
                                 <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-circle-nodes text-indigo-400" id="terminal-icon"></i> CHRONICLE STREAM</h3>
@@ -288,7 +288,7 @@
                     <div class="relative w-full md:w-72 overflow-hidden h-9 bg-zinc-950 border border-zinc-850 rounded-xl flex items-center">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 text-zinc-400 text-xs z-10"></i>
                         <input type="text" id="search-input" oninput="onSearchInput(this.value)" onkeydown="if(event.key === 'Enter') performWebSearch(this.value)" placeholder="曲名・アーティスト名で検索..." class="no-zoom-input absolute left-0 top-0 h-full pl-10 pr-12 focus:outline-none focus:border-pink-500 bg-transparent text-white">
-                        <button id="search-clear-btn" onclick="clearSearch()" class="absolute right-3.5 w-5 h-5 rounded-full bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-white flex items-center justify-center transition-all opacity-0 pointer-events-none z-20"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                        <button id="search-clear-btn" onclick="clearSearch()" class="absolute right-3.5 w-5 h-5 rounded-full bg-zinc-800 hover:bg-zinc-850 text-zinc-400 hover:text-white flex items-center justify-center transition-all opacity-0 pointer-events-none z-20"><i class="fa-solid fa-xmark text-[10px]"></i></button>
                     </div>
                     <button onclick="performWebSearch(document.getElementById('search-input').value)" class="h-9 px-3 bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-globe"></i> Web検索
@@ -339,11 +339,10 @@
 
         <!-- RANKING SCENE -->
         <div id="scene-ranking" class="scene-hidden space-y-8">
-            <div class="border-b border-zinc-800 pb-3 text-left">
+            <div class="border-b border-zinc-900 pb-3 text-left">
                 <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> クロニクル・ランキング統計</h3>
             </div>
             
-            <!-- ランキングの並び替え (要望③: 総合 -> 2025 -> 2026 の年度順へ完全再配置) -->
             <div class="space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5"><i class="fa-solid fa-user-astronaut"></i> アーティスト登録楽曲数 TOP 5</h4>
                 <div class="scroll-x-container md:grid md:grid-cols-3 gap-4">
@@ -380,7 +379,6 @@
                 </div>
             </div>
 
-            <!-- 要望④: 累計リピート登録回数 TOP 5 -->
             <div class="space-y-3 pt-4">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5"><i class="fa-solid fa-rotate-right"></i> 累計リピート登録回数 TOP 5</h4>
                 <div class="scroll-x-container md:grid md:grid-cols-3 gap-4">
@@ -398,7 +396,7 @@
         // 🌟 新曲登録API (ユーザー様のGASのURL)
         const GAS_URL = "https://script.google.com/macros/s/AKfycbywZMb1CizKnymz9K8_WimEY9QHzBHtKUd23WjZ6Cnsh-NqLONHeqP5s_OsqcNaQ-uB/exec";
 
-        // 🌟 スプレッドシートのエクスポートCSVリンク (本物のスプレッドシートID: 1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw)
+        // 🌟 スプレッドシートのエクスポートCSVリンク (ユーザー様のスプレッドシートID)
         const SPREADSHEET_ID = "1xGzpQzVBjp40YdD1y5tkdy3AR6XwJNypWOUQkEgzRTw";
         const url2025 = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`;
         const url2026 = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=79005521`;
@@ -586,10 +584,16 @@
                             // 2026年度で現在Activeな曲の日数を現在の日時から算出
                             if (mmddReg) {
                                 const regDate = new Date(`${year}/${mmddReg}`);
-                                const today = new Date();
-                                const diffTime = today - regDate;
-                                const calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                days = calculatedDays <= 1 ? 2 : calculatedDays; // 0日や1日はNGのため、最低2日
+                                if (!isNaN(regDate.getTime())) {
+                                    const today = new Date();
+                                    const diffTime = today - regDate;
+                                    const calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    days = isNaN(calculatedDays) ? 2 : (calculatedDays <= 1 ? 2 : calculatedDays); // 0日や1日はNGのため、最低2日
+                                } else {
+                                    days = 2;
+                                }
+                            } else {
+                                days = 2;
                             }
                         }
                     }
@@ -600,7 +604,7 @@
                         artist: artistVal,
                         rawReg: mmddReg,
                         rawRem: mmddRem ? mmddRem : "Active", // 要望⑦: 「現在登録中」をすべて「Active」に
-                        days: days,
+                        days: isNaN(days) ? 2 : (days <= 0 ? 2 : days),
                         img: (row[11] || '').toString().trim(),
                         link: (row[12] || '#').toString().trim(),
                         regDate: mmddReg ? `${year}/${mmddReg}` : '--',
@@ -641,6 +645,22 @@
                     map[key] = { title: t.title, artist: t.artist, img: t.img, link: t.link, totalDays: 0, days2025: 0, days2026: 0, history: [] };
                 }
                 map[key].history.push(t);
+                
+                // 滞在日数の計算
+                let calculatedDays = t.days;
+                if (t.removedDate === 'Active') {
+                    const regDate = new Date(t.regDate);
+                    if (!isNaN(regDate.getTime())) {
+                        const today = new Date();
+                        const diffTime = today - regDate;
+                        const calculated = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        calculatedDays = isNaN(calculated) ? 2 : (calculated <= 1 ? 2 : calculated); // 要望⑤
+                    } else {
+                        calculatedDays = 2;
+                    }
+                }
+                t.days = calculatedDays;
+
                 map[key].totalDays += t.days;
                 if(t.year === '2025') map[key].days2025 += t.days;
                 if(t.year === '2026') map[key].days2026 += t.days;
@@ -657,11 +677,12 @@
             let longestTrack = null;
 
             masterTracks.forEach(t => {
-                if (t.totalDays > 0) {
-                    sumDays += t.totalDays;
+                const safeTotalDays = isNaN(t.totalDays) ? 2 : t.totalDays;
+                if (safeTotalDays > 0) {
+                    sumDays += safeTotalDays;
                     countWithDays++;
-                    if (t.totalDays > longestDays) {
-                        longestDays = t.totalDays;
+                    if (safeTotalDays > longestDays) {
+                        longestDays = safeTotalDays;
                         longestTrack = t;
                     }
                 }
@@ -689,6 +710,7 @@
             const cachedTracks = localStorage.getItem('cached_parsed_tracks');
             const cachedSchedules = localStorage.getItem('cached_master_schedules');
 
+            // 1. キャッシュが存在すれば、まず「一瞬」で画面を構築
             if (cachedTracks && cachedSchedules) {
                 try {
                     rawParsedTracks = JSON.parse(cachedTracks);
@@ -696,15 +718,16 @@
                     rebuildMasterTracks();
                     renderAllData();
                     updateSyncBadge('cached');
-                    hideLoading();
+                    hideLoading(); 
                 } catch(e) {
-                    console.error("キャッシュパース失敗", e);
+                    console.error("キャッシュパース失敗:", e);
                 }
             } else {
                 showLoading("スプレッドシートからクロニクルデータをロードしています...");
                 updateSyncBadge('syncing');
             }
 
+            // 2. 最も安全でCORSエラーを起こさない「スプレッドシートのウェブ公開CSV」から直接取得
             try {
                 updateSyncBadge('syncing');
                 const [csv2025, csv2026, csvSched] = await Promise.all([
@@ -816,7 +839,7 @@
 
                 const card = document.createElement('div');
                 card.className = "glass-card p-4 rounded-xl flex items-center gap-4 hover:border-white/20 transition-all duration-300 cursor-pointer text-left";
-                card.onclick = () => showTrackDetail(t);
+                card.onclick = () => openDetailModal(encodedKey);
                 card.innerHTML = `
                     <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-900 flex flex-col items-center overflow-hidden shadow-md">
                         <div class="w-full bg-pink-500 text-[8px] font-black text-center py-0.5 text-slate-955 tracking-wider font-digital uppercase">
@@ -853,7 +876,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            let filtered = rawParsedTracks;
+            let filtered = [...rawParsedTracks];
             if (currentYearFilter !== 'all') {
                 filtered = filtered.filter(t => t.year === currentYearFilter);
             }
@@ -987,7 +1010,7 @@
                 const dom = document.getElementById(elementId); 
                 if (!dom) return;
                 dom.innerHTML = '';
-                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`; return; }
+                if(list.length === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
                 list.forEach(([artist, count], i) => {
                     let medal = `<span class="w-4 text-center font-digital font-bold text-zinc-500">${i+1}</span>`;
                     if(i===0) medal = `<i class="fa-solid fa-crown text-amber-500 text-[11px] w-4 text-center"></i>`;
@@ -1007,7 +1030,7 @@
                 const dom = document.getElementById(elementId); 
                 if (!dom) return;
                 dom.innerHTML = '';
-                if(list.length === 0 || list[0][1] === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-650 font-bold py-2">データなし</p>`; return; }
+                if(list.length === 0 || list[0][1] === 0) { dom.innerHTML = `<p class="text-[11px] text-zinc-600 font-bold py-2">データなし</p>`; return; }
                 list.forEach(([track, days], i) => {
                     if(days === 0) return;
                     const encodedKey = encodeURIComponent(track.title + "|||" + track.artist);
@@ -1268,17 +1291,28 @@
             const dateStr = document.getElementById('history-date-input').value;
             if(!dateStr) { alert("日付を選択してください。"); return; }
             const targetTime = new Date(dateStr).getTime();
+            const targetDate = new Date(dateStr);
             
             const streamOut = document.getElementById('stream-output-area');
             if (streamOut) streamOut.classList.remove('hidden');
             applyMoodVisuals();
             
+            // 🌟【大バグ修正】個別曲の history 配列をループして指定した日付がアクティブか正確に探索
             const matches = masterTracks.filter(t => {
                 return t.history.some(h => {
                     if(!h.regDate || h.regDate === '--') return false;
-                    const regTime = new Date(h.regDate).getTime();
-                    let remTime = (h.removedDate === 'Active' || h.removedDate === '2026年へ継続' || h.removedDate === 'Active (継続)') ? new Date('2026/12/31').getTime() : new Date(h.removedDate).getTime();
-                    return (targetTime >= regTime && targetTime <= remTime);
+                    const reg = new Date(h.regDate);
+                    if (isNaN(reg.getTime())) return false;
+                    
+                    let rem;
+                    if (h.removedDate === 'Active' || h.removedDate === 'Active (継続)') {
+                        rem = new Date(); // 今日までActive
+                    } else {
+                        rem = new Date(h.removedDate);
+                    }
+                    if (isNaN(rem.getTime())) return false;
+
+                    return reg <= targetDate && targetDate <= rem;
                 });
             });
             
@@ -1291,26 +1325,19 @@
                 return;
             }
             
-            matches.forEach(t => {
+            matches.forEach((t, index) => {
                 const encodedKey = encodeURIComponent(t.title + "|||" + t.artist);
                 const displayDays = t.totalDays <= 0 ? 1 : t.totalDays;
                 
                 box.innerHTML += `
-                <div class="glass-card p-3 rounded-xl flex items-center justify-between gap-3 bg-zinc-900/40 border-zinc-800/60 cursor-pointer hover:bg-zinc-800/40 transition-all hover:translate-x-1 relative z-10" onclick="openDetailModal('${encodedKey}')">
-                    <div class="flex items-center gap-3 min-w-0 text-left">
-                        <div class="w-2 h-2 rounded-full bg-indigo-300 absolute left-[-13px] border border-zinc-900 shadow-sm"></div>
+                <div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs py-2 hover:bg-white/5 px-2 rounded-lg transition-all cursor-pointer text-left" onclick="openDetailModal('${encodedKey}')">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="font-digital text-zinc-500 w-5 text-right flex-shrink-0">${index + 1}</span>
                         ${getCoverHTML(t.img)}
-                        <div class="min-w-0">
-                            <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
-                            <p class="text-zinc-400 text-[11px] truncate mt-0.5">${t.artist}</p>
-                        </div>
+                        <span class="text-zinc-200 truncate pr-1 font-bold">${t.title}</span>
+                        <span class="text-[10px] text-zinc-400 truncate">/ ${t.artist}</span>
                     </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="text-[11px] font-digital font-bold text-zinc-400 bg-black/30 px-1.5 py-0.5 rounded border border-zinc-800 whitespace-nowrap flex items-baseline">
-                            ${displayDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日間</span>
-                        </span>
-                        ${getPlayButtonHTML(t.link)}
-                    </div>
+                    <span class="font-digital font-bold text-zinc-300 bg-black/40 px-1.5 py-0.5 rounded-full border border-zinc-800 whitespace-nowrap flex-shrink-0 ml-1">${displayDays}日滞在</span>
                 </div>`;
             });
         }
@@ -1391,7 +1418,7 @@
                     <span class="text-amber-300 font-digital font-bold">${calculatedTotalDays} 日間</span>
                 </div>
                 <div class="flex justify-center pt-1 gap-2">
-                    ${track.link && track.link !== '#' && track.link !== '0' ? `<a href="${track.link}" target="_blank" class="flex-1 py-2 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs text-center shadow-lg flex items-center justify-center gap-1.5"> 楽曲リンク</a>` : ''}
+                    ${track.link && track.link !== '#' && track.link !== '0' ? `<a href="${track.link}" target="_blank" class="flex-1 py-2 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs text-center shadow-lg flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> 楽曲リンク</a>` : ''}
                     <button onclick="performWebSearch('${encodeURIComponent(track.title + " " + track.artist)}')" class="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs text-center shadow-md flex items-center justify-center gap-1.5 border border-zinc-700">
                         Web検索
                     </button>
@@ -1431,66 +1458,6 @@
             initDashboard();
         });
 
-        // 詳細モーダル表示
-        function showTrackDetail(t) {
-            const content = document.getElementById('modal-content');
-            if (!content) return;
-
-            const cover = t.img 
-                ? `<img src="${t.img}" class="w-24 h-24 mx-auto rounded-xl object-cover shadow-2xl border border-white/15" onerror="this.style.display='none'">`
-                : `<div class="w-24 h-24 mx-auto rounded-xl bg-zinc-950 flex items-center justify-center text-zinc-600 border border-zinc-800 shadow-xl"><i class="fa-solid fa-record-vinyl text-4xl"></i></div>`;
-
-            const linkBtn = (t.link && t.link !== '#')
-                ? `<a href="${t.link}" target="_blank" class="w-full text-center bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-bold py-2.5 rounded-xl transition-all block text-xs shadow-md"><i class="fa-solid fa-up-right-from-square mr-1.5"></i> 楽曲配信リンクを開く</a>`
-                : `<button disabled class="w-full text-center bg-zinc-800 text-zinc-500 font-bold py-2.5 rounded-xl text-xs border border-zinc-700 cursor-not-allowed"><i class="fa-solid fa-link-slash mr-1.5"></i> 配信リンクなし</button>`;
-
-            // 要望⑤: Active中なら登録日から今日までの日数を正確に表示（0日、1日はNG ➡️ 最低2日）
-            let displayDays = t.days;
-            if (t.removedDate === 'Active' || t.removedDate === 'Active (継続)') {
-                const regDate = new Date(t.regDate);
-                const today = new Date();
-                const diffTime = today - regDate;
-                const calculated = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                displayDays = calculated <= 1 ? 2 : calculated;
-            }
-
-            content.innerHTML = `
-                <div class="text-center space-y-4">
-                    ${cover}
-                    <div class="space-y-1 text-center">
-                        <h4 class="text-base font-black text-white px-2">${t.title}</h4>
-                        <p class="text-xs text-zinc-400 font-bold">${t.artist}</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-2 bg-black/40 p-3 rounded-xl border border-zinc-800/80 text-[11px] font-digital font-bold tracking-wide">
-                        <div class="text-left border-r border-zinc-800/80 pr-2">
-                            <span class="text-[9px] text-zinc-500 font-sans block mb-0.5">🗓️ REGISTRATION</span>
-                            <span class="text-zinc-200">${t.regDate}</span>
-                        </div>
-                        <div class="text-left pl-2">
-                            <span class="text-[9px] text-zinc-500 font-sans block mb-0.5">👋 REMOVAL (OUT)</span>
-                            <span class="text-zinc-200 truncate block">${t.removedDate}</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3 text-center">
-                        <span class="text-[9px] text-indigo-300 font-bold uppercase tracking-widest block mb-0.5">HEAVY ROTATION DURATION</span>
-                        <span class="text-2xl font-black font-digital text-indigo-200">${displayDays} <span class="text-xs font-sans font-bold text-zinc-400">日間</span></span>
-                    </div>
-
-                    <div class="pt-2">
-                        ${linkBtn}
-                    </div>
-                </div>
-            `;
-
-            const modal = document.getElementById('detail-modal');
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100', 'pointer-events-auto');
-            }
-        }
-
         // シーン（タブ）切り替え
         function switchScene(sceneId) {
             ['home', 'timeline', 'table', 'ranking'].forEach(s => {
@@ -1525,6 +1492,133 @@
                     terminalCard.className = "glass-card p-6 rounded-3xl border border-white/10 transition-all duration-500 shadow-xl bg-gradient-to-br from-zinc-900/60 to-slate-900/60";
                 }
             }
+        }
+
+        function recommendationsClick(encodedKey) {
+            openDetailModal(encodedKey);
+        }
+
+        // 入力フォームクリアの処理（カバー画像・曲リンクも完全クリアにするよう補強）
+        function clearInputForm() {
+            document.getElementById('input-title').value = '';
+            document.getElementById('input-artist').value = '';
+            document.getElementById('input-img').value = '';
+            document.getElementById('input-link').value = '';
+            document.getElementById('input-out-track').value = '';
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            const btn = document.getElementById('search-clear-btn');
+            if (btn) { btn.style.opacity = "0"; btn.style.pointerEvents = "none"; }
+            filterTimeline();
+        }
+
+        // フォーム送信
+        function handleFormSubmit() {
+            const year = document.getElementById('input-year').value;
+            const title = document.getElementById('input-title').value.trim();
+            const artist = document.getElementById('input-artist').value.trim();
+            const img = document.getElementById('input-img').value.trim();
+            const link = document.getElementById('input-link').value.trim();
+            const outTrack = document.getElementById('input-out-track').value;
+
+            if (!title || !artist) {
+                alert("曲名とアーティスト名は両方入力してください！");
+                return;
+            }
+
+            submitSongToSpreadsheet(year, title, artist, img, link, outTrack);
+        }
+
+        // GASにデータを送信
+        function submitSongToSpreadsheet(year, title, artist, img, link, outTrack) {
+            const params = new URLSearchParams({
+                year: year,
+                title: title,
+                artist: artist,
+                img: img,
+                link: link,
+                outTrack: outTrack
+            });
+            const url = `${GAS_URL}?${params.toString()}`;
+
+            const btn = document.querySelector("#scene-timeline button");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> 送信中...`;
+            btn.disabled = true;
+
+            fetch(url, {
+                method: "GET",
+                mode: "cors" 
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTPエラーが発生しました。");
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.status === 'success') {
+                    alert('スプレッドシートへの登録に成功しました！');
+
+                    const today = new Date();
+                    const mStr = String(today.getMonth() + 1).padStart(2, '0');
+                    const dStr = String(today.getDate()).padStart(2, '0');
+                    const rawDateStr = `${mStr}/${dStr}`;
+                    
+                    const newTrack = {
+                        year: year,
+                        title: title,
+                        artist: artist,
+                        days: 2, // 新規追加時のActive曲は2日間スタート
+                        img: img,
+                        link: link ? link : '#',
+                        rawReg: rawDateStr,
+                        regDate: `${year}/${mStr}/${dStr}`,
+                        removedDate: 'Active',
+                        rawRem: 'Active'
+                    };
+
+                    if (outTrack) {
+                        const parts = outTrack.split("|||");
+                        const outT = parts[0].trim().toLowerCase();
+                        const outA = parts[1].trim().toLowerCase();
+                        
+                        rawParsedTracks.forEach(t => {
+                            if (t.year === year && t.title.toLowerCase() === outT && t.artist.toLowerCase() === outA && (t.removedDate === 'Active' || t.removedDate === 'Active (継続)')) {
+                                t.removedDate = `${year}/${rawDateStr}`;
+                                t.rawRem = rawDateStr;
+                                const start = new Date(t.regDate);
+                                const end = new Date();
+                                const diffTime = Math.abs(end - start);
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                t.days = diffDays <= 0 ? 1 : diffDays;
+                            }
+                        });
+                    }
+
+                    rawParsedTracks.unshift(newTrack);
+                    rebuildMasterTracks();
+                    
+                    localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
+
+                    renderAllData();
+                    hideLoading();
+                    clearInputForm();
+                } else {
+                    alert('エラー: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error("送信エラー:", error);
+                alert("送信に失敗しました。\n\n詳細: " + error.message);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
         }
     </script>
 </body>
