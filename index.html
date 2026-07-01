@@ -455,7 +455,7 @@
                 ${getCoverHTML(track.img).replace('w-12 h-12','w-20 h-20')}
                 <div>
                     <h4 class="text-white font-bold text-base">${track.title}</h4>
-                    <p class="text-zinc-400 text-xs mt-0.5">${track.artist}</p>
+                    <p class="text-zinc-400 text-[11px] mt-0.5">${track.artist}</p>
                 </div>
             </div>
             <div class="space-y-2">
@@ -977,7 +977,7 @@
                 
                 container.innerHTML += `
                 <div class="glass-card p-3 rounded-xl flex items-center gap-4 bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer" onclick="openDetailModal('${escapeKey}')">
-                    <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md">
+                    <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md flex-shrink-0">
                         <div class="w-full bg-pink-400 text-[8px] font-black text-center py-0.5 text-slate-900 tracking-wider font-digital uppercase">
                             ${latestHistory.year}
                         </div>
