@@ -1333,6 +1333,40 @@
                 btn.disabled = false;
             });
         }
+
+    function switchScene(scene) {
+  const scenes = ['home', 'timeline', 'table', 'ranking'];
+  const colors = {
+    home: 'bg-indigo-200',
+    timeline: 'bg-rose-200',
+    table: 'bg-purple-200',
+    ranking: 'bg-amber-200'
+  };
+
+  scenes.forEach(name => {
+    const panel = document.getElementById(`scene-${name}`);
+    if (panel) panel.classList.toggle('scene-hidden', name !== scene);
+
+    const tab = document.getElementById(`tab-${name}`);
+    if (tab) {
+      tab.className = 'px-4 py-2 rounded-lg transition-all text-zinc-400 hover:text-white whitespace-nowrap';
+    }
+  });
+
+  document.body.className = `theme-${scene} pb-16`;
+
+  const activeTab = document.getElementById(`tab-${scene}`);
+  if (activeTab) {
+    activeTab.className = `px-4 py-2 rounded-lg transition-all text-slate-900 ${colors[scene]} shadow-sm whitespace-nowrap`;
+  }
+
+  if (scene === 'table') {
+    try { renderTable(); } catch (e) {}
+  }
+  if (scene === 'ranking') {
+    try { renderRankings(); } catch (e) {}
+  }
+}
     </script>
 </body>
 </html>
