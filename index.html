@@ -425,22 +425,18 @@
             const txtEl = document.getElementById('loading-status-text');
             if (el && txtEl) {
                 txtEl.innerText = text;
-                el.style.opacity = "1";
-                el.style.transform = "translateY(0)";
-                el.style.pointerEvents = "auto";
+                el.classList.remove('opacity-0', '-translate-y-10', 'pointer-events-none');
             }
         }
 
         function hideLoading() {
             const el = document.getElementById('loading-indicator');
             if (el) {
-                el.style.opacity = "0";
-                el.style.transform = "translateY(-40px)";
-                setTimeout(() => el.style.pointerEvents = "none", 300);
+                el.classList.add('opacity-0', '-translate-y-10', 'pointer-events-none');
             }
         }
 
-        // 同期バッジの更新表示
+        // 同期バッジの更新表示関数を新規に定義（「ずっと準備中」を解決）
         function updateSyncBadge(status) {
             const badge = document.getElementById('sync-badge');
             const dot = document.getElementById('sync-dot');
@@ -448,11 +444,11 @@
             if (!badge || !dot || !txt) return;
 
             if (status === 'syncing') {
-                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-pink-500/10 text-pink-300 text-[8px] font-sans font-bold border border-pink-500/20";
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-pink-500/10 text-pink-300 text-[8px] font-sans font-bold border border-pink-500/20 transition-all";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-pink-400 animate-ping";
                 txt.innerText = "同期中...";
             } else if (status === 'synced') {
-                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 text-[8px] font-sans font-bold border border-emerald-500/20";
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 text-[8px] font-sans font-bold border border-emerald-500/20 transition-all";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
                 txt.innerText = "最新同期済";
                 setTimeout(() => {
@@ -461,11 +457,11 @@
                     txt.innerText = "同期済";
                 }, 4000);
             } else if (status === 'cached') {
-                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 text-[8px] font-sans font-bold border border-indigo-500/20";
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 text-[8px] font-sans font-bold border border-indigo-500/20 transition-all";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-indigo-400";
-                txt.innerText = "保存データ起動";
+                txt.innerText = "キャッシュ起動";
             } else if (status === 'demo') {
-                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-[8px] font-sans font-bold border border-amber-500/20";
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-[8px] font-sans font-bold border border-amber-500/20 transition-all";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
                 txt.innerText = "デモモード";
             }
@@ -1019,13 +1015,13 @@
             initDashboard();
         }
 
-        // 【大改良】Stale-While-Revalidate (SWR) パターンの高速ロード処理
+        // 【大大改良】Stale-While-Revalidate (SWR) パターンの高速ロード & 同期表示システム
         async function initDashboard() {
             const cachedTracks = localStorage.getItem('cached_parsed_tracks');
             const cachedSchedules = localStorage.getItem('cached_master_schedules');
             const cacheTime = localStorage.getItem('cached_last_loaded');
 
-            // 1. キャッシュが存在すれば、まず「一瞬」で画面を構築してローディングを回避する
+            // 1. キャッシュが存在すれば、まず「一瞬」で画面を構築してローディングを完全に回避
             if (cachedTracks && cachedSchedules) {
                 rawParsedTracks = JSON.parse(cachedTracks);
                 masterSchedules = JSON.parse(cachedSchedules);
@@ -1146,9 +1142,9 @@
                 container.innerHTML += `
                 <div class="glass-card p-3 rounded-xl flex flex-col gap-2 bg-zinc-900/40 cursor-pointer hover:bg-zinc-800/50 transition-all" onclick="openDetailModal('${encodedKey}')">
                     <div class="flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex items-center gap-3 min-w-0 text-left">
                             ${getCoverHTML(t.img)}
-                            <div class="min-w-0 flex-grow text-left">
+                            <div class="min-w-0 flex-grow">
                                 <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
                                 <p class="text-zinc-400 text-[11px] truncate">${t.artist}</p>
                             </div>
@@ -1233,11 +1229,11 @@
                         </div>
                     </div>
                     <div class="w-full min-w-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div class="flex items-center gap-3 min-w-0 w-full">
+                        <div class="flex items-center gap-3 min-w-0 w-full text-left">
                             ${getCoverHTML(t.img)}
                             <div class="min-w-0 flex-grow">
-                                <h4 class="text-white font-bold text-xs truncate text-left">${t.title}</h4>
-                                <p class="text-zinc-400 text-[11px] truncate text-left">${t.artist}</p>
+                                <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
+                                <p class="text-zinc-400 text-[11px] truncate">${t.artist}</p>
                                 ${eventBadge}
                             </div>
                         </div>
@@ -1415,7 +1411,7 @@
                     <div class="flex justify-between items-center bg-black/20 p-1.5 rounded border border-zinc-900 text-xs">
                         <div class="flex items-center gap-1.5 min-w-0">
                             ${medal}
-                            <span class="text-zinc-200 font-bold truncate">${artist}</span>
+                            <span class="text-zinc-200 font-bold truncate text-left">${artist}</span>
                         </div>
                         <span class="font-digital text-indigo-300 font-bold text-[11px] flex-shrink-0">${count}曲</span>
                     </div>`;
