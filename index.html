@@ -93,7 +93,16 @@
         <div class="glow-ball glow-2"></div>
     </div>
 
-    <div id="error-banner" class="bg-red-600 text-white text-xs font-bold px-4 py-2 text-center hidden sticky top-0 z-50 shadow-lg"></div>
+    <!-- 接続状況インジケーター（ロード失敗を防止） -->
+    <div id="loading-indicator" class="fixed top-0 left-0 right-0 bg-indigo-600/90 text-white text-[11px] font-bold px-4 py-1.5 text-center z-50 flex items-center justify-center gap-2 backdrop-blur transition-all duration-300">
+        <i class="fa-solid fa-sync animate-spin"></i>
+        <span id="loading-status-text">スプレッドシートからクロニクルデータをロードしています...</span>
+    </div>
+
+    <div id="error-banner" class="bg-red-600 text-white text-xs font-bold px-4 py-3 text-center hidden sticky top-0 z-50 shadow-lg flex flex-col items-center gap-2">
+        <span id="error-message"></span>
+        <button onclick="retryDashboardInit()" class="px-3 py-1 bg-white text-red-600 rounded-lg hover:bg-zinc-100 font-bold text-[10px] transition-all">手動で再接続を試す</button>
+    </div>
 
     <div id="detail-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
         <div class="glass-card max-w-md w-full rounded-2xl p-5 relative border-white/20 shadow-2xl space-y-4" onclick="event.stopPropagation()">
@@ -215,7 +224,7 @@
                     <i class="fa-solid fa-plus-circle"></i> 新しい楽曲をタイムラインに記録
                 </h4>
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
                     <select id="input-year" onchange="updateOutTrackDropdown()" class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-pink-300 h-9">
                         <option value="2026">2026年度</option>
                         <option value="2025">2025年度</option>
@@ -240,7 +249,7 @@
                 </div>
 
                 <!-- 任意追加項目（カバー画像・楽曲リンク） -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-zinc-800/50">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-zinc-800/50 text-left">
                     <div>
                         <label class="text-[10px] text-zinc-400 font-bold block mb-1">カバー画像URL (任意)</label>
                         <input type="text" id="input-img" placeholder="https://is1-ssl.mzstatic.com/image/... (L列に保存されます)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
@@ -280,11 +289,11 @@
         <!-- DATABANK SCENE -->
         <div id="scene-table" class="scene-hidden space-y-6 relative">
             <div id="databank-top-anchor"></div>
-            <div class="space-y-1">
+            <div class="space-y-1 text-left">
                 <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-database text-purple-300"></i> マスター・データバンク</h3>
             </div>
             
-            <div class="glass-card p-4 rounded-2xl space-y-3 border-white/10 bg-zinc-900/40">
+            <div class="glass-card p-4 rounded-2xl space-y-3 border-white/10 bg-zinc-900/40 text-left">
                 <div class="flex flex-wrap gap-2 items-center text-xs">
                     <span class="text-zinc-300 font-bold w-14">年度別:</span>
                     <button onclick="filterTableByYear('all')" id="btn-year-all" class="px-3 py-1.5 rounded-lg bg-purple-300 text-slate-900 font-bold">すべて</button>
@@ -318,7 +327,7 @@
 
         <!-- RANKING SCENE -->
         <div id="scene-ranking" class="scene-hidden space-y-8">
-            <div class="border-b border-zinc-800 pb-3">
+            <div class="border-b border-zinc-800 pb-3 text-left">
                 <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-crown text-amber-300"></i> クロニクル・ランキング統計</h3>
             </div>
             
@@ -372,11 +381,55 @@
         let currentMonthFilter = 'all';
         let longestTrackKey = '';
 
+        // 【新要素】オフライン＆通信トラブル時用のダミー楽曲データ（Load failed防止）
+        const fallbackDummyTracks = [
+            { year: "2026", title: "プラネタリア", artist: "フジファブリック", rawReg: "07/01", rawRem: "", days: 1, img: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/05/cf/84/05cf84c9-9f8a-4841-8e46-aad30e79b28b/artwork.jpg/100x100bb.jpg", link: "https://music.apple.com/jp/album/1703000000" },
+            { year: "2026", title: "sara", artist: "sumika", rawReg: "06/30", rawRem: "", days: 2, img: "", link: "#" },
+            { year: "2026", title: "366日", artist: "HY", rawReg: "06/30", rawRem: "", days: 2, img: "", link: "#" },
+            { year: "2026", title: "とくべちゅ、して", artist: "=LOVE", rawReg: "06/21", rawRem: "", days: 11, img: "", link: "#" },
+            { year: "2026", title: "夢灯籠", artist: "RADWIMPS", rawReg: "06/21", rawRem: "", days: 11, img: "", link: "#" },
+            { year: "2026", title: "ツンデレ", artist: "セカンドバッカー", rawReg: "06/17", rawRem: "", days: 15, img: "", link: "#" },
+            { year: "2026", title: "青にほどける", artist: "KESUKE", rawReg: "06/16", rawRem: "", days: 16, img: "", link: "#" },
+            { year: "2026", title: "怪盗", artist: "back number", rawReg: "06/13", rawRem: "", days: 19, img: "", link: "#" },
+            { year: "2026", title: "失恋ソング沢山聴いて 泣いてばかりの私はもう卒業するの", artist: "りりあ。", rawReg: "06/13", rawRem: "", days: 19, img: "", link: "#" }
+        ];
+
+        const fallbackDummySchedules = {
+            "2026/7/1": "テスト期間終了（平穏な日常の通学路）",
+            "2026/6/30": "大雨の通学路",
+            "2026/6/21": "実力テスト対策勉強"
+        };
+
         function showError(msg) {
             const banner = document.getElementById('error-banner');
             if (banner) {
-                banner.innerText = msg;
+                const msgEl = document.getElementById('error-message');
+                if (msgEl) msgEl.innerText = msg;
                 banner.classList.remove('hidden');
+            }
+        }
+
+        function hideError() {
+            const banner = document.getElementById('error-banner');
+            if (banner) banner.classList.add('hidden');
+        }
+
+        function showLoading(text) {
+            const el = document.getElementById('loading-indicator');
+            const txtEl = document.getElementById('loading-status-text');
+            if (el && txtEl) {
+                txtEl.innerText = text;
+                el.style.opacity = "1";
+                el.style.transform = "translateY(0)";
+            }
+        }
+
+        function hideLoading() {
+            const el = document.getElementById('loading-indicator');
+            if (el) {
+                el.style.opacity = "0";
+                el.style.transform = "translateY(-40px)";
+                setTimeout(() => el.style.pointerEvents = "none", 300);
             }
         }
 
@@ -485,7 +538,7 @@
                 else if (h.removedDate === '2026年へ継続') status = `<span class="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold">2026継続</span>`;
                 else status = `<span class="text-zinc-400">${h.removedDate} 抹消</span>`;
                 
-                // 【追加要望】表示用の日数を取得（最低1日）
+                // 表示用の日数を取得（最低1日）
                 const displayDays = h.days <= 0 ? 1 : h.days;
                 
                 historyHTML += `
@@ -541,9 +594,27 @@
             if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
         }
 
+        // タイムアウト設定付きでfetchを実行する頑丈なラッパー関数（Load failed防止）
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 8000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(resource, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(id);
+                return response;
+            } catch (err) {
+                clearTimeout(id);
+                throw err;
+            }
+        }
+
         async function fetchCSV(url) {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error("Googleスプレッドシートの通信エラーが発生しました。");
+            const res = await fetchWithTimeout(url);
+            if (!res.ok) throw new Error(`Googleスプレッドシートの通信エラーが発生しました。(ステータス: ${res.status})`);
             return await res.text();
         }
 
@@ -901,25 +972,31 @@
             });
         }
 
+        // 初期ロードおよび手動リトライ用の関数
+        function retryDashboardInit() {
+            hideError();
+            initDashboard();
+        }
+
         async function initDashboard() {
+            showLoading("スプレッドシートからクロニクルデータをロードしています...");
             const url2025 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=0&single=true&output=csv";
             const url2026 = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=79005521&single=true&output=csv";
             const urlSchedule = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=1330775074&single=true&output=csv";
             
             try {
+                // スプレッドシートデータの非同期取得をタイムアウト付きで並列実行
                 const [csv2025, csv2026, csvSched] = await Promise.all([
                     fetchCSV(url2025),
                     fetchCSV(url2026),
                     fetchCSV(urlSchedule)
                 ]);
                 
+                // データ読み込み成功：パースしてローカルストレージへセーブ
                 buildMasterDatabase(csv2025, csv2026);
                 
-                if (masterTracks.length === 0) {
-                    showError("警告: スプレッドシートの読み込みは成功しましたが、有効な楽曲データが見つかりませんでした。");
-                }
-                
-                // スケジュール（出来事）解析
+                // スケジュール解析
+                masterSchedules = {};
                 const schedRows = parseCSV(csvSched);
                 if(schedRows.length > 1) {
                     schedRows.slice(1).forEach(row => {
@@ -929,17 +1006,60 @@
                         }
                     });
                 }
-                
-                generateRecommendations();
-                generateDynamicMonthButtons();
-                renderRankings();
-                renderTimeline();
-                renderTable();
+
+                // 成功した直近のデータをキャッシュ保存する
+                localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
+                localStorage.setItem('cached_master_schedules', JSON.stringify(masterSchedules));
+                localStorage.setItem('cached_last_loaded', new Date().toLocaleString());
+
+                renderAllData();
+                hideLoading();
                 
             } catch (e) {
-                console.error(e);
-                showError("エラー: スプレッドシートデータの取得に失敗しました。公開設定やURLをご確認ください。 詳細: " + e.message);
+                console.error("ロード失敗:", e);
+                // 通信エラー発生：ローカルストレージの直近キャッシュを復元して起動させる
+                const cachedTracks = localStorage.getItem('cached_parsed_tracks');
+                const cachedSchedules = localStorage.getItem('cached_master_schedules');
+                const cacheTime = localStorage.getItem('cached_last_loaded');
+
+                if (cachedTracks && cachedSchedules) {
+                    rawParsedTracks = JSON.parse(cachedTracks);
+                    masterSchedules = JSON.parse(cachedSchedules);
+                    rebuildMasterTracks();
+                    
+                    renderAllData();
+                    hideLoading();
+                    
+                    // キャッシュ起動を伝えるバナーを表示
+                    showError(`オフラインモード: スプレッドシートのロードに失敗したため、直近の保存データから起動しました。 (バックアップ日時: ${cacheTime})`);
+                } else {
+                    // キャッシュも無い初の起動トラブル時：デモデータをロードしてアプリが「Load failed」で落ちるのを完璧に防ぐ
+                    rawParsedTracks = fallbackDummyTracks.map(t => {
+                        return {
+                            ...t,
+                            regDate: `2026/${t.rawReg}`,
+                            removedDate: t.rawRem ? `2026/${t.rawRem}` : "現在登録中"
+                        };
+                    });
+                    masterSchedules = fallbackDummySchedules;
+                    rebuildMasterTracks();
+
+                    renderAllData();
+                    hideLoading();
+
+                    showError("デモモード: スプレッドシートのWeb公開（CSV）の読み込みに失敗しました。公開設定やURL、インターネット接続を確認してください。現在はサンプルデータで仮起動しています。");
+                }
             }
+        }
+
+        // 全画面データのレンダリング
+        function renderAllData() {
+            generateRecommendations();
+            generateDynamicMonthButtons();
+            renderRankings();
+            renderTimeline();
+            renderTable();
+            updateOutTrackDropdown();
         }
 
         function generateRecommendations() {
@@ -983,7 +1103,7 @@
                         </div>
                         ${getPlayButtonHTML(t.link)}
                     </div>
-                    <div class="text-[10px] text-indigo-200 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900/40 font-medium">
+                    <div class="text-[10px] text-indigo-200 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900/40 font-medium text-left">
                         ${item.reason}
                     </div>
                 </div>`;
@@ -1064,14 +1184,14 @@
                         <div class="flex items-center gap-3 min-w-0 w-full">
                             ${getCoverHTML(t.img)}
                             <div class="min-w-0 flex-grow">
-                                <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
-                                <p class="text-zinc-400 text-[11px] truncate">${t.artist}</p>
+                                <h4 class="text-white font-bold text-xs truncate text-left">${t.title}</h4>
+                                <p class="text-zinc-400 text-[11px] truncate text-left">${t.artist}</p>
                                 ${eventBadge}
                             </div>
                         </div>
                         <div class="flex items-center gap-2 ml-15 sm:ml-0 self-end sm:self-center flex-shrink-0">
                             <span class="text-[11px] font-digital font-bold text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 whitespace-nowrap flex items-baseline">
-                                ${displayTotalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">累計日数</span>
+                                ${displayTotalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日数</span>
                             </span>
                             ${getPlayButtonHTML(t.link)}
                         </div>
@@ -1211,7 +1331,7 @@
             };
             
             const getTopTracks = (field) => {
-                // ランキング用に0日を1日として扱って正しく並び替える
+                // rankings用に0日を1日として扱って正しく並び替える
                 return [...masterTracks].map(t => {
                     let score = t[field];
                     if (field === 'totalDays' && score <= 0) score = 1;
@@ -1257,7 +1377,7 @@
                     <div class="flex justify-between items-center bg-black/20 p-1.5 rounded border border-zinc-900 text-xs cursor-pointer hover:bg-zinc-900/40" onclick="openDetailModal('${escapeKey}')">
                         <div class="flex items-center gap-1.5 min-w-0">
                             ${medal}
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-grow text-left">
                                 <p class="text-zinc-200 font-bold truncate text-[11px]">${track.title}</p>
                                 <p class="text-zinc-500 text-[9px] truncate">${track.artist}</p>
                             </div>
@@ -1386,6 +1506,9 @@
                     rawParsedTracks.unshift(newTrack);
                     rebuildMasterTracks();
                     
+                    // 最新状態をローカルにキャッシュ
+                    localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
+
                     generateRecommendations();
                     generateDynamicMonthButtons();
                     renderRankings();
