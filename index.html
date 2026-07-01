@@ -121,6 +121,7 @@
             </nav>
         </header>
 
+        <!-- HOME SCENE -->
         <div id="scene-home" class="space-y-8">
             <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="glass-card p-5 rounded-2xl bg-zinc-900/50">
@@ -206,6 +207,7 @@
             </div>
         </div>
 
+        <!-- TIMELINE SCENE -->
         <div id="scene-timeline" class="scene-hidden space-y-6">
             <div class="glass-card p-5 rounded-2xl border border-white/10 bg-zinc-900/40 space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-pink-300 flex items-center gap-1.5">
@@ -236,6 +238,13 @@
             </div>
             <div class="space-y-2.5" id="timeline-container"></div>
         </div>
+
+        <!-- DATABANK SCENE (REPAIRED WRAPPER) -->
+        <div id="scene-table" class="scene-hidden space-y-6 relative">
+            <div id="databank-top-anchor"></div>
+            <div class="space-y-1">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-database text-purple-300"></i> マスター・データバンク</h3>
+            </div>
             
             <div class="glass-card p-4 rounded-2xl space-y-3 border-white/10 bg-zinc-900/40">
                 <div class="flex flex-wrap gap-2 items-center text-xs">
@@ -269,6 +278,7 @@
             <a href="#databank-top-anchor" id="back-to-filter-btn" class="fixed bottom-6 right-6 w-11 h-11 rounded-full bg-purple-300 text-slate-900 flex items-center justify-center shadow-2xl opacity-0 translate-y-10 pointer-events-none transition-all duration-300 z-40 hover:scale-110"><i class="fa-solid fa-arrow-up"></i></a>
         </div>
 
+        <!-- RANKING SCENE -->
         <div id="scene-ranking" class="scene-hidden space-y-8">
             <div class="border-b border-zinc-800 pb-3">
                 <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-crown text-amber-300"></i> クロニクル・ランキング統計</h3>
@@ -314,6 +324,9 @@
     </div>
 
     <script>
+        // 本物のGASアプリURL（引き継ぎ済み）
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWCjeTjiWQ59KIvdVRRuSfHURVxTiBwYDDJ_8B0g3TTohzcpBLzm1MQjOG75bIJnI0/exec";
+
         let rawParsedTracks = [];
         let masterTracks = [];
         let masterSchedules = {};
@@ -456,7 +469,11 @@
             };
             
             rawParsedTracks = [...parseRows(csv2025, '2025'), ...parseRows(csv2026, '2026')];
-            
+            rebuildMasterTracks();
+        }
+
+        // 内部楽曲データの再集計と統計の再計算
+        function rebuildMasterTracks() {
             const map = {};
             rawParsedTracks.forEach(t => {
                 const key = t.title + "|||" + t.artist;
@@ -471,6 +488,29 @@
                 if(t.link && t.link !== '#' && map[key].link === '#') map[key].link = t.link;
             });
             masterTracks = Object.values(map);
+
+            // 統計データの更新表示
+            document.getElementById('stat-total').innerText = masterTracks.length;
+            
+            const activeCount = masterTracks.filter(t => t.history.some(h => h.removedDate === '現在登録中')).length;
+            document.getElementById('stat-active').innerText = activeCount;
+            
+            let sumDays = 0;
+            masterTracks.forEach(t => sumDays += t.totalDays);
+            const avgDays = masterTracks.length ? (sumDays / masterTracks.length).toFixed(1) : 0;
+            document.getElementById('stat-avg-days').innerHTML = `${avgDays} <span class="text-[10px] font-sans text-zinc-400 font-normal">日間</span>`;
+            
+            let longest = { totalDays: -1, title: 'なし' };
+            masterTracks.forEach(t => {
+                if(t.totalDays > longest.totalDays) longest = t;
+            });
+            document.getElementById('stat-longest-track').innerText = longest.title;
+            document.getElementById('stat-longest-days').innerText = (longest.totalDays > -1 ? longest.totalDays : 0) + ' 日間';
+            longestTrackKey = longest.title + "|||" + longest.artist;
+            
+            document.getElementById('stat-longest-card').onclick = function() {
+                if (longestTrackKey && longest.totalDays > -1) openDetailModal(longestTrackKey);
+            };
         }
 
         // ③ 感情・環境パラメータを展開した日付に応じて1つ1つランダムかつ連動して完全に変化させるロジック
@@ -482,7 +522,6 @@
             
             let eventText = masterSchedules[scheduleKey] || masterSchedules[`${parts[0]}/${parts[1]}/${parts[2]}`] || '';
             
-            // 日付文字列とイベントテキストから独自のハッシュ（シード）を作って割り出す
             let seed = parts.reduce((acc, val) => acc + (parseInt(val) || 0), 0);
             if(eventText) {
                 for(let i=0; i<eventText.length; i++) { seed += eventText.charCodeAt(i); }
@@ -639,29 +678,6 @@
                     });
                 }
                 
-                // 各種統計の計算・表示
-                document.getElementById('stat-total').innerText = masterTracks.length;
-                
-                const activeCount = masterTracks.filter(t => t.history.some(h => h.removedDate === '現在登録中')).length;
-                document.getElementById('stat-active').innerText = activeCount;
-                
-                let sumDays = 0;
-                masterTracks.forEach(t => sumDays += t.totalDays);
-                const avgDays = masterTracks.length ? (sumDays / masterTracks.length).toFixed(1) : 0;
-                document.getElementById('stat-avg-days').innerHTML = `${avgDays} <span class="text-[10px] font-sans text-zinc-400 font-normal">日間</span>`;
-                
-                let longest = { totalDays: -1, title: 'なし' };
-                masterTracks.forEach(t => {
-                    if(t.totalDays > longest.totalDays) longest = t;
-                });
-                document.getElementById('stat-longest-track').innerText = longest.title;
-                document.getElementById('stat-longest-days').innerText = (longest.totalDays > -1 ? longest.totalDays : 0) + ' 日間';
-                longestTrackKey = longest.title + "|||" + longest.artist;
-                
-                document.getElementById('stat-longest-card').onclick = function() {
-                    if (longestTrackKey && longest.totalDays > -1) openDetailModal(longestTrackKey);
-                };
-                
                 generateRecommendations();
                 generateDynamicMonthButtons();
                 renderRankings();
@@ -758,7 +774,7 @@
                 
                 container.innerHTML += `
                 <div class="glass-card p-3 rounded-xl flex items-center gap-4 bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer" onclick="openDetailModal('${escapeKey}')">
-                    <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md flex-shrink-0">
+                    <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md">
                         <div class="w-full bg-pink-400 text-[8px] font-black text-center py-0.5 text-slate-900 tracking-wider font-digital uppercase">
                             ${e.year}
                         </div>
@@ -817,7 +833,6 @@
 
             let html = `<button onclick="filterTableByMonth('all')" id="btn-month-all" class="px-2.5 py-1 rounded-md bg-purple-300 text-slate-900 font-bold font-digital text-xs">ALL</button>`;
             
-            // 1月〜12月のうち、存在する月だけを「〇月」表記で生成
             for(let i=1; i<=12; i++) {
                 const mStr = String(i).padStart(2, '0');
                 if(activeMonths.has(mStr)) {
@@ -967,7 +982,8 @@
 
         window.addEventListener('scroll', function() {
             const btn = document.getElementById('back-to-filter-btn');
-            if(window.scrollY > 400 && document.getElementById('scene-table').classList.contains('scene-hidden') === false) {
+            const sceneTable = document.getElementById('scene-table');
+            if(window.scrollY > 400 && sceneTable && !sceneTable.classList.contains('scene-hidden')) {
                 btn.style.opacity = "1"; btn.style.pointerEvents = "auto"; btn.style.transform = "translateY(0)";
             } else {
                 btn.style.opacity = "0"; btn.style.pointerEvents = "none"; btn.style.transform = "translateY(40px)";
@@ -975,8 +991,6 @@
         });
 
         window.addEventListener('DOMContentLoaded', initDashboard);
-
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxWCjeTjiWQ59KIvdVRRuSfHURVxTiBwYDDJ_8B0g3TTohzcpBLzm1MQjOG75bIJnI0/exec"; 
 
         // フォームのボタンが押されたときに動く処理
         function handleFormSubmit() {
@@ -1009,30 +1023,33 @@
             .then(() => {
                 alert("スプレッドシートへ登録要求を送信しました！");
 
-                // --- 【リロードなしで即時反映するための処理】 ---
-                const timelineContainer = document.getElementById('timeline-container');
-                if (timelineContainer) {
-                    // パステルピンクを基調にした新しい曲カードのHTMLを生成
-                    const newTrackHTML = `
-                        <div class="glass-card p-4 rounded-xl flex items-center justify-between border-l-4 border-pink-400 bg-zinc-900/60 transition-all duration-500">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-b from-zinc-700 to-zinc-900 flex flex-col items-center justify-center border border-zinc-700 flex-shrink-0 shadow-inner z-10">
-                                    <i class="fa-solid fa-music text-zinc-500 text-xs"></i>
-                                    <span class="text-[6px] text-zinc-400 font-bold mt-0.5">NEW LOG</span>
-                                </div>
-                                <div>
-                                    <h4 class="text-white font-bold text-sm">${title}</h4>
-                                    <p class="text-zinc-400 text-xs">${artist}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-[9px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-md font-bold font-digital">JUST NOW</span>
-                            </div>
-                        </div>
-                    `;
-                    // タイムラインの「一番上」に即座に差し込む
-                    timelineContainer.insertAdjacentHTML('afterbegin', newTrackHTML);
-                }
+                // 【リロードなしで即時反映】現在の表示データ群に登録曲を追加
+                const today = new Date();
+                const mStr = String(today.getMonth() + 1).padStart(2, '0');
+                const dStr = String(today.getDate()).padStart(2, '0');
+                
+                const newTrack = {
+                    year: year,
+                    title: title,
+                    artist: artist,
+                    days: 1,
+                    img: '',
+                    link: '#',
+                    rawReg: `${mStr}/${dStr}`,
+                    regDate: `${year}/${mStr}/${dStr}`,
+                    removedDate: '現在登録中',
+                    rawRem: '現在登録中'
+                };
+
+                // 配列の先頭に即座に追加して、全体を再レンダリングする
+                rawParsedTracks.unshift(newTrack);
+                rebuildMasterTracks();
+                
+                generateRecommendations();
+                generateDynamicMonthButtons();
+                renderRankings();
+                renderTimeline();
+                renderTable();
 
                 // 入力欄をきれいに空っぽにする
                 document.getElementById('input-title').value = '';
@@ -1043,7 +1060,6 @@
                 alert("送信中にエラーが発生しました。");
             });
         }
-    
     </script>
 </body>
 </html>
