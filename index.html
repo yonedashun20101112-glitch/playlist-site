@@ -213,13 +213,24 @@
                 <h4 class="text-xs font-bold uppercase tracking-widest text-pink-300 flex items-center gap-1.5">
                     <i class="fa-solid fa-plus-circle"></i> 新しい楽曲をタイムラインに記録
                 </h4>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 relative">
                     <select id="input-year" class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-pink-300">
                         <option value="2026">2026年度</option>
                         <option value="2025">2025年度</option>
                     </select>
-                    <input type="text" id="input-title" placeholder="曲名を入力..." class="bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
-                    <input type="text" id="input-artist" placeholder="アーティスト名..." class="bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
+                    
+                    <!-- 曲名：予測変換コンテナ -->
+                    <div class="relative">
+                        <input type="text" id="input-title" oninput="showTitleSuggestions(this.value)" autocomplete="off" placeholder="曲名を入力..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
+                        <div id="title-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-zinc-950/95 backdrop-blur border border-zinc-800 rounded-xl max-h-48 overflow-y-auto hidden z-50 shadow-2xl divide-y divide-zinc-800/50"></div>
+                    </div>
+                    
+                    <!-- アーティスト名：予測変換コンテナ -->
+                    <div class="relative">
+                        <input type="text" id="input-artist" oninput="showArtistSuggestions(this.value)" autocomplete="off" placeholder="アーティスト名..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-pink-300">
+                        <div id="artist-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-zinc-950/95 backdrop-blur border border-zinc-800 rounded-xl max-h-48 overflow-y-auto hidden z-50 shadow-2xl divide-y divide-zinc-800/50"></div>
+                    </div>
+                    
                     <button onclick="handleFormSubmit()" class="bg-pink-300 hover:bg-pink-200 text-slate-900 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center justify-center gap-1">
                         <i class="fa-solid fa-paper-plane"></i> クロニクルに登録
                     </button>
@@ -331,7 +342,7 @@
 
     <script>
         // 本物のGASアプリURL（引き継ぎ済み）
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzC9ksH9m3UpqblL8xSlL9W3syieMrgvqkcDRKT0N93qeaBvFUjzBRTmPicYfvEJtys/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWCjeTjiWQ59KIvdVRRuSfHURVxTiBwYDDJ_8B0g3TTohzcpBLzm1MQjOG75bIJnI0/exec";
 
         let rawParsedTracks = [];
         let masterTracks = [];
@@ -511,6 +522,23 @@
 
         // 内部楽曲データの再集計と統計の再計算
         function rebuildMasterTracks() {
+            // 同一曲(曲名+アーティスト)に対してカバー画像の相互保管・補完を実施
+            const validImgMap = {};
+            rawParsedTracks.forEach(t => {
+                const key = t.title + "|||" + t.artist;
+                if (t.img && t.img.trim() !== '' && !t.img.includes('※sample') && t.img !== '0') {
+                    validImgMap[key] = t.img;
+                }
+            });
+
+            // 見つかった有効画像を、すべての履歴データに一括補完適用する
+            rawParsedTracks.forEach(t => {
+                const key = t.title + "|||" + t.artist;
+                if (validImgMap[key]) {
+                    t.img = validImgMap[key];
+                }
+            });
+
             const map = {};
             rawParsedTracks.forEach(t => {
                 const key = t.title + "|||" + t.artist;
@@ -564,6 +592,97 @@
             }
         }
 
+        // 曲追加の時にある程度入力したら予測変換を行なうオートコンプリート機能
+        function showTitleSuggestions(val) {
+            const dropdown = document.getElementById('title-suggestions');
+            if (!dropdown) return;
+            if (!val.trim()) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const query = val.toLowerCase().trim();
+            // タイトルに部分一致するユニークなマスター楽曲群を検索
+            const matches = masterTracks.filter(t => t.title.toLowerCase().includes(query));
+            
+            if (matches.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            dropdown.innerHTML = '';
+            dropdown.classList.remove('hidden');
+            
+            // 最大5つまで予測変換候補を一覧表示
+            matches.slice(0, 5).forEach(t => {
+                const item = document.createElement('div');
+                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs flex items-center justify-between";
+                item.innerHTML = `
+                    <div class="truncate pr-2">
+                        <span class="text-white font-bold block">${t.title}</span>
+                        <span class="text-zinc-400 text-[10px] block mt-0.5">${t.artist}</span>
+                    </div>
+                    <i class="fa-solid fa-angles-right text-[9px] text-zinc-500"></i>
+                `;
+                item.onclick = () => {
+                    document.getElementById('input-title').value = t.title;
+                    document.getElementById('input-artist').value = t.artist;
+                    dropdown.classList.add('hidden');
+                    const artDropdown = document.getElementById('artist-suggestions');
+                    if (artDropdown) artDropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(item);
+            });
+        }
+
+        function showArtistSuggestions(val) {
+            const dropdown = document.getElementById('artist-suggestions');
+            if (!dropdown) return;
+            if (!val.trim()) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const query = val.toLowerCase().trim();
+            // アーティストのユニーク一覧から部分一致検索
+            const uniqueArtists = Array.from(new Set(masterTracks.map(t => t.artist)))
+                .filter(artist => artist.toLowerCase().includes(query));
+            
+            if (uniqueArtists.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            dropdown.innerHTML = '';
+            dropdown.classList.remove('hidden');
+            
+            uniqueArtists.slice(0, 5).forEach(artist => {
+                const item = document.createElement('div');
+                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs text-white truncate";
+                item.innerText = artist;
+                item.onclick = () => {
+                    document.getElementById('input-artist').value = artist;
+                    dropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(item);
+            });
+        }
+
+        // 予測変換dropdownの外側をクリックしたときに自動で閉じる
+        document.addEventListener('click', function(e) {
+            const titleBox = document.getElementById('input-title');
+            const titleDropdown = document.getElementById('title-suggestions');
+            if (titleDropdown && titleBox && !titleBox.contains(e.target) && !titleDropdown.contains(e.target)) {
+                titleDropdown.classList.add('hidden');
+            }
+            
+            const artistBox = document.getElementById('input-artist');
+            const artistDropdown = document.getElementById('artist-suggestions');
+            if (artistDropdown && artistBox && !artistBox.contains(e.target) && !artistDropdown.contains(e.target)) {
+                artistDropdown.classList.add('hidden');
+            }
+        });
+
         // ③ 感情・環境パラメータを展開した日付に応じて1つ1つランダムかつ連動して完全に変化させるロジック
         function applyMoodVisuals() {
             const dateInput = document.getElementById('history-date-input').value;
@@ -602,7 +721,7 @@
                 cardStyle = 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.15)]';
                 iconHTML = '<i class="fa-solid fa-cloud-showers-heavy text-cyan-400"></i>';
                 tagText = 'RAINY SOUNDSCAPE';
-            } else if (eventText.match(/(休み|祝|ライブ|遠足|旅行|誕生|記念|フェス|短縮)/)) {
+            } else if (eventText.match(/(休み|祝|ライブ|遠足|旅行|誕生|記念|フェス| Nickname|短縮)/)) {
                 refresh = Math.min(98, refresh + 30);
                 emotion = Math.min(98, emotion + 20);
                 moodClass = 'mood-happy';
@@ -771,7 +890,7 @@
             while(pool.length < 3 && masterTracks.length > pool.length) {
                 const randomTrack = masterTracks[Math.floor(Math.random() * masterTracks.length)];
                 if(!pool.some(p => p.track === randomTrack)) {
-                    pool.push({ track: randomTrack, reason: `🎵 滞在日数 ${randomTrack.totalDays}日間！ふと今聴き返したい思い出の1曲。` });
+                    pool.push({ track: randomTrack, reason: `🎵 累計日数 ${randomTrack.totalDays}日間！思い出のサルベージ楽曲。` });
                 }
             }
             
@@ -804,35 +923,53 @@
             filterTimeline();
         }
 
+        // ② クロニクルタイムラインの重複排除（同じ楽曲は1つの統合表示へしぼる）
         function filterTimeline() {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             const container = document.getElementById('timeline-container');
             if (!container) return;
             container.innerHTML = '';
             
-            let allTimelineEvents = [];
-            rawParsedTracks.forEach(t => {
-                if(query && !t.title.toLowerCase().includes(query) && !t.artist.toLowerCase().includes(query)) return;
-                allTimelineEvents.push(t);
+            // 重複のないマスタ楽曲一覧から部分一致検索を実施
+            const filtered = masterTracks.filter(t => {
+                return !query || t.title.toLowerCase().includes(query) || t.artist.toLowerCase().includes(query);
             });
             
-            allTimelineEvents.sort((a,b) => new Date(b.regDate).getTime() - new Date(a.regDate).getTime());
+            // 最新の登録日に基づいて並び替え
+            filtered.sort((a,b) => {
+                const getLatestTime = (track) => {
+                    let maxTime = 0;
+                    track.history.forEach(h => {
+                        const time = new Date(h.regDate).getTime();
+                        if (time > maxTime) maxTime = time;
+                    });
+                    return maxTime;
+                };
+                return getLatestTime(b) - getLatestTime(a);
+            });
             
-            if(allTimelineEvents.length === 0) {
+            if(filtered.length === 0) {
                 container.innerHTML = `<p class="text-xs text-zinc-500 font-bold text-center py-8">該当する楽曲登録ログがありません。</p>`;
                 return;
             }
             
-            allTimelineEvents.forEach(e => {
-                const escapeKey = (e.title + "|||" + e.artist).replace(/'/g, "\\'");
+            filtered.forEach(t => {
+                const escapeKey = (t.title + "|||" + t.artist).replace(/'/g, "\\'");
                 
-                // ② 日付データを分解してカレンダーカードに変換
-                const parts = e.rawReg.split('/');
+                // 複数の履歴登録のうち、一番最新のものを基準にして日付カードを作成
+                let latestHistory = t.history[0];
+                t.history.forEach(h => {
+                    if (new Date(h.regDate).getTime() > new Date(latestHistory.regDate).getTime()) {
+                        latestHistory = h;
+                    }
+                });
+                
+                const parts = latestHistory.rawReg.split('/');
                 const m = parts[0] ? parseInt(parts[0]) : '--';
                 const d = parts[1] ? parseInt(parts[1]) : '--';
                 
                 let eventBadge = '';
-                const schedKey = `${e.year}/${e.rawReg}`;
+                const schedKey = `${latestHistory.year}/${latestHistory.rawReg}`;
                 const schedText = masterSchedules[schedKey];
                 if(schedText) {
                     eventBadge = `<div class="text-[10px] text-zinc-400 mt-1 bg-black/20 p-1.5 rounded border border-zinc-800/80"><i class="fa-solid fa-calendar-day text-zinc-500 mr-1"></i>${schedText}</div>`;
@@ -842,7 +979,7 @@
                 <div class="glass-card p-3 rounded-xl flex items-center gap-4 bg-zinc-900/40 border-zinc-800/50 hover:bg-zinc-800/30 transition-all cursor-pointer" onclick="openDetailModal('${escapeKey}')">
                     <div class="flex-shrink-0 w-12 h-12 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center overflow-hidden shadow-md">
                         <div class="w-full bg-pink-400 text-[8px] font-black text-center py-0.5 text-slate-900 tracking-wider font-digital uppercase">
-                            ${e.year}
+                            ${latestHistory.year}
                         </div>
                         <div class="flex-grow flex flex-col items-center justify-center font-digital font-black text-[10px] text-pink-300 tracking-tighter leading-none">
                             <span>${m}月</span>
@@ -851,18 +988,18 @@
                     </div>
                     <div class="w-full min-w-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div class="flex items-center gap-3 min-w-0 w-full">
-                            ${getCoverHTML(e.img)}
+                            ${getCoverHTML(t.img)}
                             <div class="min-w-0 flex-grow">
-                                <h4 class="text-white font-bold text-xs truncate">${e.title}</h4>
-                                <p class="text-zinc-400 text-[11px] truncate">${e.artist}</p>
+                                <h4 class="text-white font-bold text-xs truncate">${t.title}</h4>
+                                <p class="text-zinc-400 text-[11px] truncate">${t.artist}</p>
                                 ${eventBadge}
                             </div>
                         </div>
                         <div class="flex items-center gap-2 ml-15 sm:ml-0 self-end sm:self-center flex-shrink-0">
                             <span class="text-[11px] font-digital font-bold text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 whitespace-nowrap flex items-baseline">
-                                ${e.days}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">日間</span>
+                                ${t.totalDays}<span class="text-[8px] font-sans ml-0.5 text-zinc-500 font-normal">累計日数</span>
                             </span>
-                            ${getPlayButtonHTML(e.link)}
+                            ${getPlayButtonHTML(t.link)}
                         </div>
                     </div>
                 </div>`;
@@ -1071,6 +1208,94 @@
 
         window.addEventListener('DOMContentLoaded', initDashboard);
 
+        // 曲追加の時に予測変換候補一覧を表示するシステム
+        function showTitleSuggestions(val) {
+            const dropdown = document.getElementById('title-suggestions');
+            if (!dropdown) return;
+            if (!val.trim()) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const query = val.toLowerCase().trim();
+            const matches = masterTracks.filter(t => t.title.toLowerCase().includes(query));
+            
+            if (matches.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            dropdown.innerHTML = '';
+            dropdown.classList.remove('hidden');
+            
+            matches.slice(0, 5).forEach(t => {
+                const item = document.createElement('div');
+                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs flex items-center justify-between";
+                item.innerHTML = `
+                    <div class="truncate pr-2 text-left">
+                        <span class="text-white font-bold block">${t.title}</span>
+                        <span class="text-zinc-400 text-[10px] block mt-0.5">${t.artist}</span>
+                    </div>
+                    <i class="fa-solid fa-angles-right text-[9px] text-zinc-500"></i>
+                `;
+                item.onclick = () => {
+                    document.getElementById('input-title').value = t.title;
+                    document.getElementById('input-artist').value = t.artist;
+                    dropdown.classList.add('hidden');
+                    const artDropdown = document.getElementById('artist-suggestions');
+                    if (artDropdown) artDropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(item);
+            });
+        }
+
+        function showArtistSuggestions(val) {
+            const dropdown = document.getElementById('artist-suggestions');
+            if (!dropdown) return;
+            if (!val.trim()) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            const query = val.toLowerCase().trim();
+            const uniqueArtists = Array.from(new Set(masterTracks.map(t => t.artist)))
+                .filter(artist => artist.toLowerCase().includes(query));
+            
+            if (uniqueArtists.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            dropdown.innerHTML = '';
+            dropdown.classList.remove('hidden');
+            
+            uniqueArtists.slice(0, 5).forEach(artist => {
+                const item = document.createElement('div');
+                item.className = "p-2.5 hover:bg-zinc-800/80 cursor-pointer transition-colors text-xs text-white text-left truncate";
+                item.innerText = artist;
+                item.onclick = () => {
+                    document.getElementById('input-artist').value = artist;
+                    dropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(item);
+            });
+        }
+
+        // 予測候補ウィンドウの外をクリックしたら候補ウィンドウを閉じる
+        document.addEventListener('click', function(e) {
+            const titleBox = document.getElementById('input-title');
+            const titleDropdown = document.getElementById('title-suggestions');
+            if (titleDropdown && titleBox && !titleBox.contains(e.target) && !titleDropdown.contains(e.target)) {
+                titleDropdown.classList.add('hidden');
+            }
+            
+            const artistBox = document.getElementById('input-artist');
+            const artistDropdown = document.getElementById('artist-suggestions');
+            if (artistDropdown && artistBox && !artistBox.contains(e.target) && !artistDropdown.contains(e.target)) {
+                artistDropdown.classList.add('hidden');
+            }
+        });
+
         // フォームのボタンが押されたときに動く処理
         function handleFormSubmit() {
             const year = document.getElementById('input-year').value;
@@ -1096,8 +1321,11 @@
 
             fetch(GAS_URL, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "text/plain" // CORSのプリフライト検証を回避して送信要求を貫通させる
+                },
                 body: JSON.stringify(data),
-                mode: "no-cors" // CORSエラー（通信遮断）を回避するモード
+                mode: "no-cors" // コネクション切断による送信失敗を回避するモード
             })
             .then(() => {
                 alert("スプレッドシートへ登録要求を送信しました！");
