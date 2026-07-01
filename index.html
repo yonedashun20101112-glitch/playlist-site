@@ -218,7 +218,7 @@
 
         <!-- TIMELINE SCENE -->
         <div id="scene-timeline" class="scene-hidden space-y-6">
-            <!-- 楽曲記録フォーム（任意項目・抹消項目拡張版） -->
+            <!-- 楽曲記録フォーム（画像・リンク入力欄は初期値を排除） -->
             <div class="glass-card p-5 rounded-2xl border border-white/10 bg-zinc-900/40 space-y-4">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-pink-300 flex items-center gap-1.5">
                     <i class="fa-solid fa-plus-circle"></i> 新しい楽曲をタイムラインに記録
@@ -248,15 +248,15 @@
                     </select>
                 </div>
 
-                <!-- 任意追加項目（カバー画像・楽曲リンク） -->
+                <!-- 任意追加項目（プレースホルダーをシンプルにして使いやすく調整） -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-zinc-800/50 text-left">
                     <div>
                         <label class="text-[10px] text-zinc-400 font-bold block mb-1">カバー画像URL (任意)</label>
-                        <input type="text" id="input-img" placeholder="https://is1-ssl.mzstatic.com/image/... (L列に保存されます)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
+                        <input type="text" id="input-img" placeholder="画像URL (任意)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
                     </div>
                     <div>
-                        <label class="text-[10px] text-zinc-400 font-bold block mb-1">楽曲リンク / Apple Music等 (任意)</label>
-                        <input type="text" id="input-link" placeholder="https://music.apple.com/jp/... (M列に保存されます)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
+                        <label class="text-[10px] text-zinc-400 font-bold block mb-1">楽曲リンク (任意)</label>
+                        <input type="text" id="input-link" placeholder="楽曲URL (任意)" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-pink-300">
                     </div>
                 </div>
 
@@ -372,7 +372,7 @@
 
     <script>
         // 本物のGASアプリURL（引き継ぎ済み）
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzC9ksH9m3UpqblL8xSlL9W3syieMrgvqkcDRKT0N93qeaBvFUjzBRTmPicYfvEJtys/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWCjeTjiWQ59KIvdVRRuSfHURVxTiBwYDDJ_8B0g3TTohzcpBLzm1MQjOG75bIJnI0/exec";
 
         let rawParsedTracks = [];
         let masterTracks = [];
@@ -381,7 +381,7 @@
         let currentMonthFilter = 'all';
         let longestTrackKey = '';
 
-        // 【新要素】オフライン＆通信トラブル時用のダミー楽曲データ（Load failed防止）
+        // オフライン＆通信トラブル時用のダミー楽曲データ（Load failed防止）
         const fallbackDummyTracks = [
             { year: "2026", title: "プラネタリア", artist: "フジファブリック", rawReg: "07/01", rawRem: "", days: 1, img: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/05/cf/84/05cf84c9-9f8a-4841-8e46-aad30e79b28b/artwork.jpg/100x100bb.jpg", link: "https://music.apple.com/jp/album/1703000000" },
             { year: "2026", title: "sara", artist: "sumika", rawReg: "06/30", rawRem: "", days: 2, img: "", link: "#" },
@@ -395,8 +395,8 @@
         ];
 
         const fallbackDummySchedules = {
-            "2026/7/1": "テスト期間終了（平穏な日常の通学路）",
-            "2026/6/30": "大雨の通学路",
+            "2026/7/1": "テスト期間終了（平穏な日常 of 通学路）",
+            "2026/6/30": "大雨 of 通学路",
             "2026/6/21": "実力テスト対策勉強"
         };
 
@@ -472,14 +472,14 @@
             }
         }
 
-        // 抹消（OUT）可能曲ドロップダウンの更新ロジック
+        // 抹消（OUT）可能曲ドロップダウン of 更新ロジック
         function updateOutTrackDropdown() {
             const outDropdown = document.getElementById('input-out-track');
             if (!outDropdown) return;
             
             const selectedYear = document.getElementById('input-year').value;
             
-            // 選択した年度のアクティブな（removedDateが現在登録中、または2026年へ継続の）曲だけをフィルタ
+            // 選択した年度 of アクティブな（removedDateが現在登録中、または2026年へ継続 of ）曲だけをフィルタ
             const activeTracks = masterTracks.filter(t => {
                 return t.history.some(h => h.year === selectedYear && (h.removedDate === '現在登録中' || h.removedDate === '2026年へ継続'));
             });
@@ -548,8 +548,8 @@
                 </div>`;
             });
             
-            // ポップアップ表示時の累計日数が0日にならないように補正（最低1日）
-            const displayTotalDays = track.totalDays <= 0 ? 1 : track.totalDays;
+            // ポップアップ表示時 of 累計日数が0日にならないように補正（最低1日）
+            const calculatedTotalDays = track.totalDays <= 0 ? 1 : track.totalDays;
             
             const container = document.getElementById('modal-content');
             container.innerHTML = `
@@ -567,7 +567,7 @@
                 </div>
             </div>
             <div class="bg-zinc-950/40 p-2 rounded-lg border border-zinc-800 text-[11px] flex justify-between">
-                <span class="text-zinc-400">累計愛聴日数</span><span class="text-amber-300 font-digital font-bold">${displayTotalDays(track.totalDays)}</span>
+                <span class="text-zinc-400">累計愛聴日数</span><span class="text-amber-300 font-digital font-bold">${calculatedTotalDays} 日間</span>
             </div>
             <div class="flex justify-center pt-1 gap-2">
                 ${track.link && track.link !== '#' && track.link !== '0' ? `<a href="${track.link}" target="_blank" class="flex-1 py-2 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs text-center shadow-lg flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> 楽曲リンク</a>` : ''}
@@ -583,7 +583,7 @@
             }
         }
 
-        // 表示用日数のフォーマットヘルパー（0日を排除し、登録されていれば最低1日とする）
+        // 表示用日数 of フォーマットヘルパー（0日を排除し、登録されていれば最低1日とする）
         function displayTotalDays(days) {
             const safeDays = days <= 0 ? 1 : days;
             return safeDays + " 日間";
@@ -614,7 +614,7 @@
 
         async function fetchCSV(url) {
             const res = await fetchWithTimeout(url);
-            if (!res.ok) throw new Error(`Googleスプレッドシートの通信エラーが発生しました。(ステータス: ${res.status})`);
+            if (!res.ok) throw new Error(`Googleスプレッドシート of 通信エラーが発生しました。(ステータス: ${res.status})`);
             return await res.text();
         }
 
@@ -646,9 +646,9 @@
             rebuildMasterTracks();
         }
 
-        // 内部楽曲データの再集計と統計の再計算
+        // 内部楽曲データ of 再集計と統計 of 再計算
         function rebuildMasterTracks() {
-            // 同一曲(曲名+アーティスト)に対してカバー画像の相互保管・補完を実施
+            // 同一曲(曲名+アーティスト)に対してカバー画像 of 相互保管・補完を実施
             const validImgMap = {};
             const validLinkMap = {};
             rawParsedTracks.forEach(t => {
@@ -687,7 +687,7 @@
             });
             masterTracks = Object.values(map);
 
-            // 統計データの更新表示
+            // 統計データ of 更新表示
             const statTotal = document.getElementById('stat-total');
             if (statTotal) statTotal.innerText = masterTracks.length;
             
@@ -729,7 +729,7 @@
             }
         }
 
-        // 曲追加の時にある程度入力したら予測変換を行なうオートコンプリート機能
+        // 曲追加 of 時にある程度入力したら予測変換を行なうオートコンプリート機能
         function showTitleSuggestions(val) {
             const dropdown = document.getElementById('title-suggestions');
             if (!dropdown) return;
@@ -804,7 +804,7 @@
             });
         }
 
-        // 予測候補ウィンドウの外をクリックしたら候補ウィンドウを閉じる
+        // 予測変換dropdown of 外側をクリックしたときに自動で閉じる
         document.addEventListener('click', function(e) {
             const titleBox = document.getElementById('input-title');
             const titleDropdown = document.getElementById('title-suggestions');
@@ -985,7 +985,7 @@
             const urlSchedule = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQt7m31X0JQZkoLr20fyqn8fB1w0dKqRNGVpj658i65YJbFV-_RsJbTxxE2CIUozwN2mTCclh6ePcz/pub?gid=1330775074&single=true&output=csv";
             
             try {
-                // スプレッドシートデータの非同期取得をタイムアウト付きで並列実行
+                // スプレッドシートデータ of 非同期取得をタイムアウト付きで並列実行
                 const [csv2025, csv2026, csvSched] = await Promise.all([
                     fetchCSV(url2025),
                     fetchCSV(url2026),
@@ -1007,7 +1007,7 @@
                     });
                 }
 
-                // 成功した直近のデータをキャッシュ保存する
+                // 成功した直近 of データをキャッシュ保存する
                 localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
                 localStorage.setItem('cached_master_schedules', JSON.stringify(masterSchedules));
                 localStorage.setItem('cached_last_loaded', new Date().toLocaleString());
@@ -1017,7 +1017,7 @@
                 
             } catch (e) {
                 console.error("ロード失敗:", e);
-                // 通信エラー発生：ローカルストレージの直近キャッシュを復元して起動させる
+                // 通信エラー発生：ローカルストレージ of 直近キャッシュを復元して起動させる
                 const cachedTracks = localStorage.getItem('cached_parsed_tracks');
                 const cachedSchedules = localStorage.getItem('cached_master_schedules');
                 const cacheTime = localStorage.getItem('cached_last_loaded');
@@ -1031,7 +1031,7 @@
                     hideLoading();
                     
                     // キャッシュ起動を伝えるバナーを表示
-                    showError(`オフラインモード: スプレッドシートのロードに失敗したため、直近の保存データから起動しました。 (バックアップ日時: ${cacheTime})`);
+                    showError(`オフラインモード: スプレッドシート of ロードに失敗したため、直近 of 保存データから起動しました。 (バックアップ日時: ${cacheTime})`);
                 } else {
                     // キャッシュも無い初の起動トラブル時：デモデータをロードしてアプリが「Load failed」で落ちるのを完璧に防ぐ
                     rawParsedTracks = fallbackDummyTracks.map(t => {
@@ -1047,12 +1047,12 @@
                     renderAllData();
                     hideLoading();
 
-                    showError("デモモード: スプレッドシートのWeb公開（CSV）の読み込みに失敗しました。公開設定やURL、インターネット接続を確認してください。現在はサンプルデータで仮起動しています。");
+                    showError("デモモード: スプレッドシート of Web公開（CSV） of 読み込みに失敗しました。公開設定やURL、インターネット接続を確認してください。現在はサンプルデータで仮起動しています。");
                 }
             }
         }
 
-        // 全画面データのレンダリング
+        // 全画面データ of レンダリング
         function renderAllData() {
             generateRecommendations();
             generateDynamicMonthButtons();
@@ -1070,7 +1070,7 @@
             let pool = [];
             if(unmapped.length > 0) {
                 const t = unmapped[Math.floor(Math.random() * unmapped.length)];
-                pool.push({ track: t, reason: "💡 開拓の余地がある隠れたログ曲！" });
+                pool.push({ track: t, reason: "💡 開拓 of 余地がある隠れたログ曲！" });
             }
             if(superHits.length > 0) {
                 const t = superHits[Math.floor(Math.random() * superHits.length)];
@@ -1081,7 +1081,7 @@
                 if(!pool.some(p => p.track === randomTrack)) {
                     // 0日表示を回避
                     const finalDays = randomTrack.totalDays <= 0 ? 1 : randomTrack.totalDays;
-                    pool.push({ track: randomTrack, reason: `🎵 累計日数 ${finalDays}日間！思い出のサルベージ楽曲。` });
+                    pool.push({ track: randomTrack, reason: `🎵 累計日数 ${finalDays}日間！思い出 of サルベージ楽曲。` });
                 }
             }
             
@@ -1114,19 +1114,19 @@
             filterTimeline();
         }
 
-        // ② クロニクルタイムラインの重複排除（同じ楽曲は1つの統合表示へしぼる）
+        // ② クロニクルタイムライン of 重複排除（同じ楽曲は1つの統合表示へしぼる）
         function filterTimeline() {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             const container = document.getElementById('timeline-container');
             if (!container) return;
             container.innerHTML = '';
             
-            // 重複のないマスタ楽曲一覧から部分一致検索を実施
+            // 重複 of ないマスタ楽曲一覧から部分一致検索を実施
             const filtered = masterTracks.filter(t => {
                 return !query || t.title.toLowerCase().includes(query) || t.artist.toLowerCase().includes(query);
             });
             
-            // 最新の登録日に基づいて並び替え
+            // 最新 of 登録日に基づいて並び替え
             filtered.sort((a,b) => {
                 const getLatestTime = (track) => {
                     let maxTime = 0;
@@ -1147,7 +1147,7 @@
             filtered.forEach(t => {
                 const escapeKey = (t.title + "|||" + t.artist).replace(/'/g, "\\'");
                 
-                // 複数の履歴登録のうち、一番最新のものを基準にして日付カードを作成
+                // 複数 of 履歴登録 of うち、一番最新 of ものを基準にして日付カードを作成
                 let latestHistory = t.history[0];
                 t.history.forEach(h => {
                     if (new Date(h.regDate).getTime() > new Date(latestHistory.regDate).getTime()) {
@@ -1207,6 +1207,15 @@
                 else { btn.style.opacity = "0"; btn.style.pointerEvents = "none"; }
             }
             filterTimeline();
+        }
+
+        // 入力フォームクリアの処理（カバー画像・曲リンクも完全クリアにするよう補強）
+        function clearInputForm() {
+            document.getElementById('input-title').value = '';
+            document.getElementById('input-artist').value = '';
+            document.getElementById('input-img').value = '';
+            document.getElementById('input-link').value = '';
+            document.getElementById('input-out-track').value = '';
         }
 
         function clearSearch() {
@@ -1283,7 +1292,7 @@
             filtered.sort((a,b) => new Date(b.regDate).getTime() - new Date(a.regDate).getTime());
             
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-bold text-xs">選択された条件のトラックデータは存在しません。</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-bold text-xs">選択された条件 of トラックデータは存在しません。</td></tr>`;
                 return;
             }
             
@@ -1509,18 +1518,11 @@
                     // 最新状態をローカルにキャッシュ
                     localStorage.setItem('cached_parsed_tracks', JSON.stringify(rawParsedTracks));
 
-                    generateRecommendations();
-                    generateDynamicMonthButtons();
-                    renderRankings();
-                    renderTimeline();
-                    renderTable();
-                    updateOutTrackDropdown(); // ドロップダウンリストも新しくなった状態で同期更新
+                    renderAllData();
+                    hideLoading();
 
-                    // 入力欄をクリア
-                    document.getElementById('input-title').value = '';
-                    document.getElementById('input-artist').value = '';
-                    document.getElementById('input-img').value = '';
-                    document.getElementById('input-link').value = '';
+                    // 入力フォームを完全に初期化
+                    clearInputForm();
                 } else {
                     alert('スプレッドシート側でエラーが発生しました:\n' + result.message);
                 }
