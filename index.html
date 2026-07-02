@@ -1230,19 +1230,98 @@
 
         // フォーム送信
         function handleFormSubmit() {
-            const year = document.getElementById('input-year').value;
-            const title = document.getElementById('input-title').value.trim();
-            const artist = document.getElementById('input-artist').value.trim();
-            const img = document.getElementById('input-img').value.trim();
-            const link = document.getElementById('input-link').value.trim();
-            const outTrack = document.getElementById('input-out-track').value;
+  const year = document.getElementById('input-year').value;
+  const title = document.getElementById('input-title').value.trim();
+  const artist = document.getElementById('input-artist').value.trim();
+  const img = document.getElementById('input-img').value.trim();
+  const link = document.getElementById('input-link').value.trim();
+  const outTrack = document.getElementById('input-out-track').value;
 
-            if (!title || !artist) {
-                alert("曲名とアーティスト名は両方入力してください！");
-                return;
-            }
+  if (!title || !artist) {
+    alert("曲名とアーティスト名は両方入力してください。");
+    return;
+  }
 
-            submitSongToSpreadsheet(year, title, artist, img, link, outTrack);
+  submitSongToSpreadsheet(year, title, artist, img, link, outTrack);
+}
+
+function submitSongToSpreadsheet(year, title, artist, img, link, outTrack) {
+  const params = new URLSearchParams({ year, title, artist, img, link, outTrack });
+  const url = `${GAS_URL}?${params.toString()}`;
+
+  const btn = document.querySelector('button[onclick="handleFormSubmit()"]');
+  const originalText = btn ? btn.innerHTML : "";
+
+  if (btn) {
+    btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> 送信中...`;
+    btn.disabled = true;
+  }
+
+  fetch(url, { method: "GET", mode: "cors" })
+    .then(res => {
+      if (!res.ok) throw new Error("GASへの送信に失敗しました。");
+      return res.json();
+    })
+    .then(result => {
+      if (result.status !== "success") {
+        throw new Error(result.message || "登録に失敗しました。");
+      }
+
+      const today = new Date();
+      const mStr = String(today.getMonth() + 1).padStart(2, "0");
+      const dStr = String(today.getDate()).padStart(2, "0");
+      const rawDateStr = `${mStr}/${dStr}`;
+
+      if (outTrack) {
+        const [outTitle, outArtist] = outTrack.split("|||");
+        rawParsedTracks.forEach(t => {
+          if (
+            t.year === year &&
+            t.title.trim().toLowerCase() === outTitle.trim().toLowerCase() &&
+            t.artist.trim().toLowerCase() === outArtist.trim().toLowerCase() &&
+            t.removedDate === "Active"
+          ) {
+            t.removedDate = `${year}/${rawDateStr}`;
+            t.rawRem = rawDateStr;
+            const start = parseYYYYMMDD(t.regDate);
+            const end = new Date();
+            const diffDays = start ? Math.ceil((end - start) / (1000 * 60 * 60 * 24)) : 2;
+            t.days = diffDays <= 1 ? 2 : diffDays;
+          }
+        });
+      }
+
+      rawParsedTracks.unshift({
+        year,
+        title,
+        artist,
+        days: 2,
+        img,
+        link: link || "#",
+        rawReg: rawDateStr,
+        rawRem: "Active",
+        regDate: `${year}/${rawDateStr}`,
+        removedDate: "Active"
+      });
+
+      rebuildMasterTracks();
+      localStorage.setItem("cached_parsed_tracks", JSON.stringify(rawParsedTracks));
+      renderAllData();
+      clearInputForm();
+
+      alert("新曲を登録しました。");
+    })
+    .catch(error => {
+      console.error("送信エラー:", error);
+      alert("送信に失敗しました。\n\n詳細: " + error.message);
+    })
+    .finally(() => {
+      if (btn) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+}
         }
 
         // GASにデータを送信
