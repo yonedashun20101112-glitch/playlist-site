@@ -1,7 +1,7 @@
 {
-  "name": "TRACKS CHRONICLE",
-  "short_name": "TRACKS",
-  "description": "通勤通学プレイリストの記録アプリ",
+  "name": "通学プレイリスト記録",
+  "short_name": "通学曲",
+  "description": "通学プレイリストと予定を記録するアプリ",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
