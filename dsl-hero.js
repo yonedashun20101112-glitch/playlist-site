@@ -19,11 +19,11 @@
   };
 
   const timings = {
-    intro: 900,
-    eventVisible: 920,
-    eventGap: 170,
-    finalDelay: 180,
-    finalHold: 820
+    intro: 760,
+    eventVisible: 680,
+    eventGap: 100,
+    finalDelay: 140,
+    finalHold: 720
   };
 
   let stopped = false;
@@ -57,6 +57,25 @@
     });
   }
 
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function pickLine(item, key, label) {
+    const row = item[key];
+    const empty = key === "add" ? "追加なし" : "抹消なし";
+    if (!row) {
+      return `<span class="dsl-movie__pick is-empty"><b>${label}</b><span>${empty}</span></span>`;
+    }
+    return `<span class="dsl-movie__pick is-${key}"><b>${label}</b><span>${escapeHtml(row.title)}</span></span>`;
+  }
+
   function activateNode(history, index) {
     [...el.nodes.children].forEach((node, i) => {
       node.classList.toggle("is-active", i <= index);
@@ -66,13 +85,14 @@
   }
 
   function renderEvent(history, item, index) {
-    const isRemove = item.type === "remove";
     el.date.textContent = item.date;
-    el.mark.textContent = isRemove ? "-" : "+";
-    el.type.textContent = isRemove ? "SONG REMOVED" : "SONG ADDED";
-    el.song.textContent = item.title;
-    el.artist.textContent = item.artist || "";
-    el.event.classList.toggle("is-remove", isRemove);
+    el.mark.textContent = "+/-";
+    el.type.textContent = "MONTHLY PICKS";
+    el.song.innerHTML = pickLine(item, "add", "+") + pickLine(item, "remove", "-");
+    const addArtist = item.add?.artist || "";
+    const removeArtist = item.remove?.artist || "";
+    el.artist.textContent = [addArtist && `+ ${addArtist}`, removeArtist && `- ${removeArtist}`].filter(Boolean).join(" / ");
+    el.event.classList.toggle("is-remove", false);
     el.counter.textContent =
       `${String(index + 1).padStart(2, "0")} / ${String(history.length).padStart(2, "0")}`;
     activateNode(history, index);

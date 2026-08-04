@@ -215,6 +215,40 @@
   white-space: nowrap;
 }
 
+.dsl-movie__pick {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dsl-movie__pick + .dsl-movie__pick {
+  margin-top: .18em;
+}
+
+.dsl-movie__pick b {
+  color: var(--dsl-add);
+  font-family: "Noto Sans JP", system-ui, sans-serif;
+  font-size: .42em;
+  letter-spacing: 0;
+}
+
+.dsl-movie__pick.is-remove b {
+  color: var(--dsl-remove);
+}
+
+.dsl-movie__pick.is-empty {
+  color: rgba(240, 234, 223, .34);
+}
+
+.dsl-movie__pick span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dsl-movie__artist {
   margin: 18px 0 0;
   color: var(--dsl-muted);
@@ -278,6 +312,7 @@
 
 .dsl-timeline__node.is-add.is-active { background: var(--dsl-add); }
 .dsl-timeline__node.is-remove.is-active { background: var(--dsl-remove); }
+.dsl-timeline__node.is-month.is-active { background: linear-gradient(90deg, var(--dsl-add), var(--dsl-remove)); }
 
 .dsl-movie__final {
   position: absolute;
