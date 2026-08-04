@@ -19,11 +19,11 @@
   };
 
   const timings = {
-    intro: 650,
-    eventVisible: 380,
-    eventGap: 45,
-    finalDelay: 100,
-    finalHold: 680
+    intro: 900,
+    eventVisible: 920,
+    eventGap: 170,
+    finalDelay: 180,
+    finalHold: 820
   };
 
   let stopped = false;
@@ -42,12 +42,7 @@
 
   function compactHistory(history) {
     const rows = Array.isArray(history) ? history.filter(Boolean) : [];
-    if (!rows.length) return [];
-    if (sessionStorage.getItem("dslHeroPlayed")) {
-      return rows.slice(-2);
-    }
-    if (rows.length <= 5) return rows;
-    return [rows[0], ...rows.slice(-4)];
+    return rows;
   }
 
   function buildNodes(history) {
@@ -149,6 +144,8 @@
   window.DSL_HERO_FINAL = showFinal;
   window.addEventListener("dsl:skip", showFinal);
   el.skip?.addEventListener("click", showFinal);
+  root.addEventListener("click", showFinal);
+  root.addEventListener("touchstart", showFinal, { passive: true });
 
   root.classList.add("is-waiting");
   window.setTimeout(() => {
