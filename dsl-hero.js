@@ -19,10 +19,11 @@
   };
 
   const timings = {
-    intro: 1450,
-    eventVisible: 720,
-    eventGap: 100,
-    finalDelay: 260
+    intro: 650,
+    eventVisible: 380,
+    eventGap: 45,
+    finalDelay: 100,
+    finalHold: 680
   };
 
   let stopped = false;
@@ -43,9 +44,10 @@
     const rows = Array.isArray(history) ? history.filter(Boolean) : [];
     if (!rows.length) return [];
     if (sessionStorage.getItem("dslHeroPlayed")) {
-      return rows.slice(-3);
+      return rows.slice(-2);
     }
-    return rows.slice(0, 10);
+    if (rows.length <= 5) return rows;
+    return [rows[0], ...rows.slice(-4)];
   }
 
   function buildNodes(history) {
@@ -104,6 +106,11 @@
     el.final.classList.add("is-visible");
     el.progress.style.width = "100%";
     el.counter.textContent = "DSL / 75 MIN";
+    window.setTimeout(dismiss, timings.finalHold);
+  }
+
+  function dismiss() {
+    root.classList.add("is-dismissed");
   }
 
   async function play(history) {
@@ -120,7 +127,11 @@
       return;
     }
 
-    root.classList.remove("is-waiting", "is-final");
+    root.classList.remove("is-waiting", "is-final", "is-dismissed");
+    el.event.setAttribute("aria-hidden", "false");
+    el.date.setAttribute("aria-hidden", "false");
+    el.final.setAttribute("aria-hidden", "true");
+    el.final.classList.remove("is-visible");
     root.classList.add("is-intro");
     await wait(timings.intro);
 
@@ -130,8 +141,8 @@
     }
 
     await wait(timings.finalDelay);
-    sessionStorage.setItem("dslHeroPlayed", "1");
     showFinal();
+    sessionStorage.setItem("dslHeroPlayed", "1");
   }
 
   window.DSL_HERO_UPDATE = (history) => play(history);
@@ -142,5 +153,5 @@
   root.classList.add("is-waiting");
   window.setTimeout(() => {
     if (!played) showFinal();
-  }, 5000);
+  }, 2200);
 })();
