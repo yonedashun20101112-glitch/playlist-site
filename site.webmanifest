@@ -1,19 +1,13 @@
 {
-  "name": "通学プレイリスト記録",
-  "short_name": "通学曲",
-  "description": "通学プレイリストと予定を記録するアプリ",
+  "name": "DailySoundLog",
+  "short_name": "DSL",
+  "description": "Daily music and calendar log.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b0c10",
   "theme_color": "#0b0c10",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
