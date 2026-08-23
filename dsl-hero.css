@@ -502,6 +502,12 @@
     min-height: 0;
   }
 
+  .dsl-movie__noise,
+  .dsl-movie__glow,
+  .dsl-active-covers {
+    display: none;
+  }
+
   .dsl-movie::before {
     min-width: 610px;
     min-height: 610px;

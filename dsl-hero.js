@@ -28,6 +28,10 @@
   let timers = [];
   let played = false;
 
+  function isMobile() {
+    return window.matchMedia("(max-width: 640px), (pointer: coarse)").matches;
+  }
+
   const wait = (ms) => new Promise((resolve) => {
     const timer = window.setTimeout(resolve, ms);
     timers.push(timer);
@@ -51,7 +55,7 @@
   }
 
   function activateNode(history, index) {
-    [...el.nodes.children].forEach((node, i) => {
+    Array.prototype.slice.call(el.nodes.children).forEach((node, i) => {
       node.classList.toggle("is-active", i <= index);
     });
     const percent = history.length <= 1 ? 100 : (index / (history.length - 1)) * 100;
@@ -71,6 +75,7 @@
   function renderActiveCovers(covers = []) {
     if (!el.covers) return;
     el.covers.innerHTML = "";
+    if (isMobile()) return;
     covers
       .filter((item) => item && item.img)
       .slice(0, 8)
