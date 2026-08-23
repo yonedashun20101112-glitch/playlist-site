@@ -113,7 +113,7 @@
   };
   window.DSL_HERO_FINAL = dismiss;
   window.addEventListener("dsl:skip", dismiss);
-  el.skip?.addEventListener("click", dismiss);
+  if (el.skip) el.skip.addEventListener("click", dismiss);
   root.addEventListener("click", dismiss);
   root.addEventListener("touchstart", dismiss, { passive: true });
 
