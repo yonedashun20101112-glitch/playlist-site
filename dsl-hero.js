@@ -15,6 +15,7 @@
     nodes: document.getElementById("dslTimelineNodes"),
     counter: document.getElementById("dslMovieCounter"),
     final: document.getElementById("dslMovieFinal"),
+    covers: document.getElementById("dslActiveCovers"),
     skip: document.getElementById("dslMovieSkip")
   };
 
@@ -67,6 +68,21 @@
     root.classList.add("is-dismissed");
   }
 
+  function renderActiveCovers(covers = []) {
+    if (!el.covers) return;
+    el.covers.innerHTML = "";
+    covers
+      .filter((item) => item && item.img)
+      .slice(0, 8)
+      .forEach((item) => {
+        const image = document.createElement("img");
+        image.className = "dsl-active-cover";
+        image.src = item.img;
+        image.alt = "";
+        el.covers.appendChild(image);
+      });
+  }
+
   async function play() {
     if (played) return;
     played = true;
@@ -91,12 +107,25 @@
     sessionStorage.setItem("dslHeroPlayed", "1");
   }
 
-  window.DSL_HERO_UPDATE = () => play();
+  window.DSL_HERO_UPDATE = () => {
+    renderActiveCovers(window.DSL_ACTIVE_COVERS || []);
+    play();
+  };
   window.DSL_HERO_FINAL = dismiss;
   window.addEventListener("dsl:skip", dismiss);
   el.skip?.addEventListener("click", dismiss);
   root.addEventListener("click", dismiss);
   root.addEventListener("touchstart", dismiss, { passive: true });
+
+  try {
+    const savedTracks = JSON.parse(localStorage.getItem("tracks") || "[]");
+    renderActiveCovers(savedTracks
+      .filter((track) => track && track.removedDate === "Active" && track.img && track.img !== "0")
+      .sort((a, b) => (b.days || 0) - (a.days || 0))
+      .slice(0, 8));
+  } catch (error) {
+    renderActiveCovers([]);
+  }
 
   root.classList.add("is-waiting");
   window.setTimeout(() => {
