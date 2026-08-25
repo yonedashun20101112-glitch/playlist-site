@@ -54,6 +54,17 @@
     });
   }
 
+  function mobileHistory() {
+    return [
+      { type: "add" },
+      { type: "month" },
+      { type: "add" },
+      { type: "remove" },
+      { type: "month" },
+      { type: "add" }
+    ];
+  }
+
   function activateNode(history, index) {
     Array.prototype.slice.call(el.nodes.children).forEach((node, i) => {
       node.classList.toggle("is-active", i <= index);
@@ -101,11 +112,31 @@
       return;
     }
 
+    const mobile = isMobile();
+    root.classList.toggle("is-mobile", mobile);
     root.classList.remove("is-waiting", "is-final", "is-dismissed");
     el.event.setAttribute("aria-hidden", "true");
     el.date.setAttribute("aria-hidden", "true");
     el.final.setAttribute("aria-hidden", "true");
     el.final.classList.remove("is-visible");
+
+    if (mobile) {
+      const history = mobileHistory();
+      buildNodes(history);
+      el.final.setAttribute("aria-hidden", "false");
+      el.final.classList.add("is-visible");
+      root.classList.add("is-final");
+      for (let i = 0; i < history.length; i += 1) {
+        if (stopped) return;
+        activateNode(history, i);
+        await wait(230);
+      }
+      await wait(1300);
+      dismiss();
+      sessionStorage.setItem("dslHeroPlayed", "1");
+      return;
+    }
+
     root.classList.add("is-intro");
     await wait(timings.intro);
     dismiss();
