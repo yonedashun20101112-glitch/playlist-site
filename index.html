@@ -30,13 +30,15 @@
 .karaoke-key{border:1px solid rgba(244,114,182,.18);background:rgba(24,24,27,.72);color:#fce7f3;border-radius:12px;padding:8px 0;font-size:12px;font-weight:900}
 .karaoke-key-on{background:#f472b6!important;color:#170712!important;border-color:#fbcfe8!important}
 .score-badge{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:rgba(244,114,182,.13);border:1px solid rgba(244,114,182,.28);color:#f9a8d4}
-.knowledge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.knowledge-item{border:1px solid rgba(255,255,255,.07);background:rgba(2,6,23,.34);border-radius:12px;padding:10px}
-.knowledge-item.wide,.knowledge-status{grid-column:1/-1}
+.compact-analysis{padding:11px}.compact-analysis .ai-pill{padding:4px 7px}.analysis-summary{font-size:11px;line-height:1.55;color:#cbd5e1}
+.knowledge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.knowledge-item{border:1px solid rgba(255,255,255,.07);background:rgba(2,6,23,.34);border-radius:10px;padding:8px}
+.knowledge-item.related,.knowledge-status{grid-column:1/-1}
 .knowledge-label{font-size:10px;font-weight:900;color:#7dd3fc}
-.knowledge-value{margin-top:4px;font-size:12px;line-height:1.65;color:#e2e8f0}
-.knowledge-status{border:1px dashed rgba(125,211,252,.22);border-radius:12px;padding:12px;color:#94a3b8;font-size:11px}
-@media(max-width:640px){.knowledge-grid{grid-template-columns:1fr}}
+.knowledge-value{margin-top:3px;font-size:11px;line-height:1.5;color:#e2e8f0}
+.knowledge-status{border:1px dashed rgba(125,211,252,.22);border-radius:10px;padding:9px;color:#94a3b8;font-size:10px}
+.knowledge-source{display:inline-flex;align-items:center;gap:4px;margin-top:5px;color:#7dd3fc;font-size:9px;font-weight:900}
+@media(max-width:360px){.knowledge-grid{grid-template-columns:1fr}.knowledge-item.related{grid-column:auto}}
 </style>
 </head>
 <body class="theme-home pb-16">
@@ -124,8 +126,45 @@ document.addEventListener('DOMContentLoaded',()=>{bind();switchScene('home');ini
 <script>
 let songKnowledgeRequest=0;
 
-function knowledgeBlock(label,value,wide=false){
-  return '<div class="knowledge-item'+(wide?' wide':'')+'"><p class="knowledge-label">'+esc(label)+'</p><p class="knowledge-value">'+esc(value)+'</p></div>';
+function knowledgeBlock(label,value,extraClass=''){
+  return '<div class="knowledge-item'+(extraClass?' '+extraClass:'')+'"><p class="knowledge-label">'+esc(label)+'</p><p class="knowledge-value">'+esc(value)+'</p></div>';
+}
+
+function renderKnowledgeParts(){
+  const target=$('aiKnowledge');
+  if(target)target.innerHTML=(target.dataset.music||'')+(target.dataset.related||'');
+}
+
+function loadRelatedWork(song,requestId){
+  const target=$('aiKnowledge');
+  if(!target)return;
+  const candidateTitles=[song.title,song.title+' ('+song.artist+'の曲)',song.title+' (曲)'].join('|');
+  const params=new URLSearchParams({action:'query',titles:candidateTitles,redirects:'1',prop:'extracts',exintro:'1',explaintext:'1',format:'json',origin:'*'});
+  fetch('https://ja.wikipedia.org/w/api.php?'+params).then(response=>{
+    if(!response.ok)throw new Error('Wikipedia response error');
+    return response.json();
+  }).then(data=>{
+    if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
+    const titleKey=norm(song.title).replace(/[\s「」『』()（）・]/g,'');
+    const pages=Object.values(data&&data.query&&data.query.pages||{});
+    const candidates=pages.filter(candidate=>{
+      const pageKey=norm(candidate.title).replace(/[\s「」『』()（）・]/g,'');
+      return (pageKey.includes(titleKey)||titleKey.includes(pageKey))&&/(アニメ|映画|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(candidate.extract||'');
+    }).sort((a,b)=>{
+      const score=page=>(/[（(]曲[）)]/.test(page.title)?4:0)+(norm(page.extract).includes(norm(song.artist))?2:0);
+      return score(b)-score(a);
+    });
+    const page=candidates[0];
+    if(!page)return;
+    const sentence=String(page.extract||'').split(/(?<=[。！？])/).find(text=>/(アニメ|映画|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(text));
+    if(!sentence)return;
+    const workNames=[...sentence.matchAll(/『【([^】]{1,70})】』|『([^』]{1,70})』|「([^」]{1,70})」|【([^】]{1,70})】/g)].map(match=>match.slice(1).find(Boolean));
+    const workName=workNames.find(name=>norm(name).replace(/[\s・]/g,'')!==titleKey);
+    const relationType=['オープニングテーマ','エンディングテーマ','テーマソング','主題歌','挿入歌','アニメ映画','実写映画','テレビアニメ','テレビドラマ','映画','ドラマ'].find(type=>sentence.includes(type));
+    const relation=workName?(relationType?'『'+workName+'』の'+relationType+'として紹介されています。':'『'+workName+'』との関連が紹介されています。'):'アニメ・映画・ドラマなど映像作品との関連情報があります。';
+    target.dataset.related='<div class="knowledge-item related"><p class="knowledge-label"><i class="fa-solid fa-film mr-1"></i>関連作品</p><p class="knowledge-value">'+esc(relation)+'</p><a class="knowledge-source" href="https://ja.wikipedia.org/?curid='+encodeURIComponent(page.pageid)+'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>出典を確認</a></div>';
+    renderKnowledgeParts();
+  }).catch(()=>{});
 }
 
 function cleanupKnowledgeRequest(callbackName,script,timer){
@@ -137,6 +176,10 @@ function cleanupKnowledgeRequest(callbackName,script,timer){
 function loadSongKnowledge(song,requestId){
   const target=$('aiKnowledge');
   if(!target)return;
+  target.dataset.music='<div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div>';
+  target.dataset.related='';
+  renderKnowledgeParts();
+  loadRelatedWork(song,requestId);
   const callbackName='dslSongKnowledge'+Date.now()+'_'+requestId;
   const script=document.createElement('script');
   let settled=false;
@@ -144,7 +187,10 @@ function loadSongKnowledge(song,requestId){
     if(settled)return;
     settled=true;
     cleanupKnowledgeRequest(callbackName,script,timer);
-    if(requestId===songKnowledgeRequest&&$('aiKnowledge'))$('aiKnowledge').innerHTML='<div class="knowledge-status">'+esc(message)+'</div>';
+    if(requestId===songKnowledgeRequest&&$('aiKnowledge')){
+      $('aiKnowledge').dataset.music='<div class="knowledge-status">'+esc(message)+'</div>';
+      renderKnowledgeParts();
+    }
   };
   const timer=setTimeout(()=>finishWithMessage('公開作品情報を取得できませんでした。DSLの聴取分析は引き続き確認できます。'),8000);
   window[callbackName]=data=>{
@@ -160,7 +206,8 @@ function loadSongKnowledge(song,requestId){
       return candidate===artistKey||candidate.includes(artistKey)||artistKey.includes(candidate);
     })||titleMatches[0];
     if(!item){
-      $('aiKnowledge').innerHTML='<div class="knowledge-status">この曲に一致する公開作品情報は見つかりませんでした。登録済みのApple Musicリンクから詳細を確認できます。</div>';
+      $('aiKnowledge').dataset.music='<div class="knowledge-status">作品情報はApple Musicリンクから確認できます。</div>';
+      renderKnowledgeParts();
       return;
     }
     const released=item.releaseDate?new Date(item.releaseDate):null;
@@ -170,9 +217,8 @@ function loadSongKnowledge(song,requestId){
     const durationText=duration?Math.floor(duration/60000)+'分'+String(Math.round(duration/1000)%60).padStart(2,'0')+'秒':'時間情報なし';
     const album=item.collectionName||'アルバム情報なし';
     const genre=item.primaryGenreName||'ジャンル情報なし';
-    const releaseNote=validRelease?releaseText+'リリース。世間で聴かれ始めた時期を考えるための基準として表示しています。':'流行時期を推測できる公開日情報がありません。';
-    const generationNote='世代別の実測リスナーデータは公開情報に含まれないため断定していません。リリース年代と、DSLでの初回登録時期を見比べられます。';
-    $('aiKnowledge').innerHTML=knowledgeBlock('作品メモ','「'+album+'」収録。'+genre+'の楽曲で、演奏時間は'+durationText+'です。',true)+knowledgeBlock('リリース・流行時期',releaseNote)+knowledgeBlock('よく聴かれる世代',generationNote);
+    $('aiKnowledge').dataset.music=knowledgeBlock('作品情報','「'+album+'」 / '+genre+' / '+durationText)+knowledgeBlock('公開時期',releaseText);
+    renderKnowledgeParts();
   };
   script.onerror=()=>finishWithMessage('公開作品情報を取得できませんでした。登録済みのApple Musicリンクから詳細を確認できます。');
   script.src='https://itunes.apple.com/search?term='+encodeURIComponent(song.title+' '+song.artist)+'&country=JP&media=music&entity=song&limit=15&callback='+encodeURIComponent(callbackName);
@@ -184,7 +230,7 @@ aiSongAnalysisHtml=function(m){
   const span=first&&latest?(monthNameFromDate(first.regDate)+' → '+monthNameFromDate(latest.regDate)):'--';
   const mood=total>=60?'長く残る定番曲':count>=3?'繰り返し戻ってくる再燃曲':active?'今まさに熱がある曲':avg<=7?'短期集中型の曲':'気分の節目で戻りやすい曲';
   const era=first?'あなたのログ上では'+monthNameFromDate(first.regDate)+'に初登場。'+(active?'現在もActiveなので、最新の気分にも繋がっています。':'最新の登録は'+monthNameFromDate(latest.regDate)+'です。'):'ログはまだ少なめです。';
-  return '<div class="ai-card space-y-3"><div class="flex items-start justify-between gap-3"><div><p class="text-[10px] text-sky-300 font-black tracking-widest">DSL AI分析</p><h4 class="text-base font-black mt-1">'+esc(mood)+'</h4></div><span class="ai-pill"><i class="fa-solid fa-wand-magic-sparkles"></i>'+count+'回 / '+dayLabel(total)+'</span></div><div class="ai-note"><p class="text-[10px] text-zinc-500 font-black">自分の聴取データから</p><p class="text-xs text-zinc-200 mt-1">'+esc(era)+' 平均滞在は'+avg+'日、期間は '+esc(span)+' です。</p></div><div><p class="text-[10px] text-sky-300 font-black mb-2">雑学・作品情報</p><div id="aiKnowledge" class="knowledge-grid"><div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>公開作品情報を取得中...</div></div></div></div>';
+  return '<div class="ai-card compact-analysis space-y-2"><div class="flex items-center justify-between gap-2"><div><p class="text-[9px] text-sky-300 font-black tracking-widest">DSL AI分析</p><h4 class="text-sm font-black">'+esc(mood)+'</h4></div><span class="ai-pill"><i class="fa-solid fa-wand-magic-sparkles"></i>'+count+'回 / '+dayLabel(total)+'</span></div><p class="analysis-summary">'+esc(era)+' 平均'+avg+'日・'+esc(span)+'</p><div id="aiKnowledge" class="knowledge-grid"><div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div></div></div>';
 };
 
 const openModalWithSongKnowledge=openModal;
