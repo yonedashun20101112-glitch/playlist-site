@@ -134,7 +134,10 @@ document.addEventListener('DOMContentLoaded',()=>{bind();switchScene('home');ini
 </script>
 <script>
 let songKnowledgeRequest=0;
-const MEDIA_TAG_CACHE_KEY='dslMediaTagsV1';
+const MEDIA_TAG_CACHE_KEY='dslMediaTagsV2';
+const VERIFIED_MEDIA_RECORDS={
+  [songKey('逆夢','King Gnu')]:{tags:['アニメ','映画'],relation:'『劇場版 呪術廻戦 0』のエンディングテーマです。',sourceUrl:'https://jujutsukaisen-movie.jp/music/index.html',sourceLabel:'作品公式サイト'}
+};
 let mediaTagCache=(()=>{try{return JSON.parse(localStorage.getItem(MEDIA_TAG_CACHE_KEY)||'{}')||{}}catch(e){return{}}})();
 let yearlyTopTagMap={},mediaTagQueue=[],mediaTagScanning=false;
 
@@ -149,6 +152,25 @@ function mediaQueryUrl(songs){
   return 'https://ja.wikipedia.org/w/api.php?'+params;
 }
 
+function verifiedMediaRecord(song){
+  return VERIFIED_MEDIA_RECORDS[songKey(song.title,song.artist)]||null;
+}
+
+function requestPublicJson(url,prefix,timeout=15000){
+  return new Promise((resolve,reject)=>{
+    const callbackName=prefix+Date.now()+'_'+Math.floor(Math.random()*100000),script=document.createElement('script');
+    let settled=false;
+    const cleanup=()=>{clearTimeout(timer);delete window[callbackName];script.remove()};
+    const succeed=data=>{if(settled)return;settled=true;cleanup();resolve(data)};
+    const timer=setTimeout(()=>{if(settled)return;settled=true;cleanup();reject(new Error('Public data timeout'))},timeout);
+    window[callbackName]=succeed;
+    script.onerror=()=>{};
+    script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(callbackName);
+    document.head.appendChild(script);
+    fetch(url).then(response=>{if(!response.ok)throw new Error('Public data response error');return response.json()}).then(succeed).catch(()=>{});
+  });
+}
+
 function mediaRecordFromPages(song,pages){
   const titleKey=norm(song.title).replace(/[\s「」『』()（）・]/g,'');
   const candidates=pages.filter(candidate=>{
@@ -161,19 +183,24 @@ function mediaRecordFromPages(song,pages){
   const page=candidates[0];
   if(!page)return{tags:[]};
   const text=String(page.extract||''),tags=[];
-  if(/(テレビアニメ|アニメ映画|劇場アニメ|アニメーション)/.test(text))tags.push('アニメ');
-  if(/(テレビドラマ|連続ドラマ|ドラマ版|ドラマ.{0,16}(主題歌|挿入歌|テーマ))/.test(text))tags.push('ドラマ');
-  if(/(映画|劇場版)/.test(text))tags.push('映画');
-  if(!tags.length)return{tags:[]};
   const sentences=text.match(/[^。！？]+[。！？]?/g)||[text];
-  const sentence=sentences.find(value=>/(アニメ|映画|劇場版|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(value))||'';
-  const workNames=[],workPattern=/『【([^】]{1,70})】』|『([^』]{1,70})』|「([^」]{1,70})」|【([^】]{1,70})】/g;
+  const relationPattern=/(主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/;
+  const mediaPattern=/(テレビアニメ|アニメ映画|劇場アニメ|アニメーション映画|実写映画|映画|劇場版|テレビドラマ|連続ドラマ|ドラマ)/;
+  const sentence=sentences.find(value=>relationPattern.test(value)&&mediaPattern.test(value))||'';
+  if(!sentence)return{tags:[]};
+  if(/(テレビアニメ|アニメ映画|劇場アニメ|アニメーション映画)/.test(sentence))tags.push('アニメ');
+  if(/(テレビドラマ|連続ドラマ|ドラマ)/.test(sentence))tags.push('ドラマ');
+  if(/(アニメ映画|アニメーション映画|実写映画|映画|劇場版)/.test(sentence))tags.push('映画');
+  if(!tags.length)return{tags:[]};
+  const works=[],workPattern=/『【([^】]{1,70})】』|『([^』]{1,70})』|「([^」]{1,70})」|【([^】]{1,70})】/g;
   let workMatch;
-  while((workMatch=workPattern.exec(sentence))!==null)workNames.push(workMatch.slice(1).find(Boolean));
-  const workName=workNames.find(name=>norm(name).replace(/[\s・]/g,'')!==titleKey);
+  while((workMatch=workPattern.exec(sentence))!==null)works.push({name:workMatch.slice(1).find(Boolean),index:workMatch.index});
+  const mediaIndex=sentence.search(mediaPattern);
+  const workAfterMedia=works.find(work=>work.index>=mediaIndex);
+  const workName=(workAfterMedia&&workAfterMedia.name)||works.map(work=>work.name).find(name=>norm(name).replace(/[\s・]/g,'')!==titleKey);
   const relationType=['オープニングテーマ','エンディングテーマ','テーマソング','主題歌','挿入歌','アニメ映画','実写映画','テレビアニメ','テレビドラマ','映画','ドラマ'].find(type=>sentence.includes(type));
   const relation=workName?(relationType?'『'+workName+'』の'+relationType+'として紹介されています。':'『'+workName+'』との関連が紹介されています。'):'アニメ・映画・ドラマなど映像作品との関連情報があります。';
-  return{tags:[...new Set(tags)],relation,pageid:page.pageid};
+  return{tags:[...new Set(tags)],relation,pageid:page.pageid,sourceUrl:'https://ja.wikipedia.org/?curid='+page.pageid,sourceLabel:'Wikipedia'};
 }
 
 function saveMediaTagCache(){
@@ -198,7 +225,7 @@ function rebuildYearlyTopTags(){
 
 function automaticSongTags(title,artist){
   const key=songKey(title,artist),tags=[];
-  const media=mediaTagCache[key];
+  const media=verifiedMediaRecord({title,artist})||mediaTagCache[key];
   if(media&&Array.isArray(media.tags))media.tags.forEach(label=>tags.push({label,type:label==='アニメ'?'anime':label==='ドラマ'?'drama':'movie'}));
   if(karaokeLogs.some(row=>songKey(row.title,row.artist)===key))tags.push({label:'カラオケ',type:'karaoke'});
   (yearlyTopTagMap[key]||[]).forEach(label=>tags.push({label,type:'year'}));
@@ -237,7 +264,7 @@ function queueMediaTagScan(songs){
   const queued=new Set(mediaTagQueue.map(song=>songKey(song.title,song.artist)));
   songs.forEach(song=>{
     const key=songKey(song.title,song.artist);
-    if(!Object.prototype.hasOwnProperty.call(mediaTagCache,key)&&!queued.has(key)){mediaTagQueue.push(song);queued.add(key)}
+    if(!verifiedMediaRecord(song)&&!Object.prototype.hasOwnProperty.call(mediaTagCache,key)&&!queued.has(key)){mediaTagQueue.push(song);queued.add(key)}
   });
   scanNextMediaTagBatch();
 }
@@ -246,10 +273,7 @@ function scanNextMediaTagBatch(){
   if(mediaTagScanning||!mediaTagQueue.length)return;
   mediaTagScanning=true;
   const batch=mediaTagQueue.splice(0,8);
-  fetch(mediaQueryUrl(batch)).then(response=>{
-    if(!response.ok)throw new Error('Wikipedia response error');
-    return response.json();
-  }).then(data=>{
+  requestPublicJson(mediaQueryUrl(batch),'dslMediaTags').then(data=>{
     const pages=Object.values(data&&data.query&&data.query.pages||{});
     batch.forEach(song=>{mediaTagCache[songKey(song.title,song.artist)]=mediaRecordFromPages(song,pages)});
     saveMediaTagCache();
@@ -274,18 +298,17 @@ function loadRelatedWork(song,requestId){
   if(!target)return;
   const key=songKey(song.title,song.artist);
   const renderRecord=record=>{
-    if(!record||!record.relation||!record.pageid)return;
-    target.dataset.related='<div class="knowledge-item related"><p class="knowledge-label"><i class="fa-solid fa-film mr-1"></i>関連作品</p><p class="knowledge-value">'+esc(record.relation)+'</p><a class="knowledge-source" href="https://ja.wikipedia.org/?curid='+encodeURIComponent(record.pageid)+'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>出典を確認</a></div>';
+    if(!record||!record.relation||!record.sourceUrl)return;
+    target.dataset.related='<div class="knowledge-item related"><p class="knowledge-label"><i class="fa-solid fa-film mr-1"></i>関連作品</p><p class="knowledge-value">'+esc(record.relation)+'</p><a class="knowledge-source" href="'+esc(record.sourceUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>'+esc(record.sourceLabel||'出典を確認')+'</a></div>';
     renderKnowledgeParts();
   };
+  const verified=verifiedMediaRecord(song);
+  if(verified){renderRecord(verified);return}
   if(Object.prototype.hasOwnProperty.call(mediaTagCache,key)){
     renderRecord(mediaTagCache[key]);
     return;
   }
-  fetch(mediaQueryUrl([song])).then(response=>{
-    if(!response.ok)throw new Error('Wikipedia response error');
-    return response.json();
-  }).then(data=>{
+  requestPublicJson(mediaQueryUrl([song]),'dslRelatedWork').then(data=>{
     if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
     const pages=Object.values(data&&data.query&&data.query.pages||{});
     const record=mediaRecordFromPages(song,pages);
@@ -296,36 +319,24 @@ function loadRelatedWork(song,requestId){
   }).catch(()=>{});
 }
 
-function cleanupKnowledgeRequest(callbackName,script,timer){
-  clearTimeout(timer);
-  delete window[callbackName];
-  script.remove();
+function appleTrackId(link){
+  try{
+    const url=new URL(link||'','https://music.apple.com/');
+    return url.searchParams.get('i')||'';
+  }catch(e){return''}
 }
 
 function loadSongKnowledge(song,requestId){
   const target=$('aiKnowledge');
   if(!target)return;
-  target.dataset.music='<div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div>';
+  const localInfo=knowledgeBlock('作品情報',song.title+' / '+song.artist);
+  target.dataset.music=localInfo+knowledgeBlock('公開情報','取得中...');
   target.dataset.related='';
   renderKnowledgeParts();
   loadRelatedWork(song,requestId);
-  const callbackName='dslSongKnowledge'+Date.now()+'_'+requestId;
-  const script=document.createElement('script');
-  let settled=false;
-  const finishWithMessage=message=>{
-    if(settled)return;
-    settled=true;
-    cleanupKnowledgeRequest(callbackName,script,timer);
-    if(requestId===songKnowledgeRequest&&$('aiKnowledge')){
-      $('aiKnowledge').dataset.music='<div class="knowledge-status">'+esc(message)+'</div>';
-      renderKnowledgeParts();
-    }
-  };
-  const timer=setTimeout(()=>finishWithMessage('公開作品情報を取得できませんでした。DSLの聴取分析は引き続き確認できます。'),15000);
-  const acceptSongData=data=>{
-    if(settled)return;
-    settled=true;
-    cleanupKnowledgeRequest(callbackName,script,timer);
+  const trackId=appleTrackId(song.link);
+  const searchUrl=trackId?'https://itunes.apple.com/lookup?id='+encodeURIComponent(trackId)+'&country=JP&entity=song':'https://itunes.apple.com/search?term='+encodeURIComponent(song.title+' '+song.artist)+'&country=JP&media=music&entity=song&limit=15';
+  requestPublicJson(searchUrl,'dslSongKnowledge').then(data=>{
     if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
     const results=Array.isArray(data&&data.results)?data.results:[];
     const titleKey=norm(song.title),artistKey=norm(song.artist);
@@ -333,9 +344,9 @@ function loadSongKnowledge(song,requestId){
     const item=titleMatches.find(item=>{
       const candidate=norm(item.artistName);
       return candidate===artistKey||candidate.includes(artistKey)||artistKey.includes(candidate);
-    })||titleMatches[0];
+    })||titleMatches[0]||(trackId?results.find(item=>item.kind==='song'):null);
     if(!item){
-      $('aiKnowledge').dataset.music='<div class="knowledge-status">作品情報はApple Musicリンクから確認できます。</div>';
+      $('aiKnowledge').dataset.music=localInfo+knowledgeBlock('公開情報',song.link&&song.link!=='#'?'Apple Musicリンクから確認できます。':'公開作品情報は未取得です。');
       renderKnowledgeParts();
       return;
     }
@@ -348,16 +359,11 @@ function loadSongKnowledge(song,requestId){
     const genre=item.primaryGenreName||'ジャンル情報なし';
     $('aiKnowledge').dataset.music=knowledgeBlock('作品情報','「'+album+'」 / '+genre+' / '+durationText)+knowledgeBlock('公開時期',releaseText);
     renderKnowledgeParts();
-  };
-  window[callbackName]=acceptSongData;
-  script.onerror=()=>{};
-  const searchUrl='https://itunes.apple.com/search?term='+encodeURIComponent(song.title+' '+song.artist)+'&country=JP&media=music&entity=song&limit=15';
-  script.src=searchUrl+'&callback='+encodeURIComponent(callbackName);
-  document.head.appendChild(script);
-  fetch(searchUrl).then(response=>{
-    if(!response.ok)throw new Error('Apple response error');
-    return response.json();
-  }).then(acceptSongData).catch(()=>{});
+  }).catch(()=>{
+    if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
+    $('aiKnowledge').dataset.music=localInfo+knowledgeBlock('公開情報',song.link&&song.link!=='#'?'Apple Musicリンクから確認できます。':'公開作品情報は未取得です。');
+    renderKnowledgeParts();
+  });
 }
 
 aiSongAnalysisHtml=function(m){
