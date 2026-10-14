@@ -38,6 +38,14 @@
 .knowledge-value{margin-top:3px;font-size:11px;line-height:1.5;color:#e2e8f0}
 .knowledge-status{border:1px dashed rgba(125,211,252,.22);border-radius:10px;padding:9px;color:#94a3b8;font-size:10px}
 .knowledge-source{display:inline-flex;align-items:center;gap:4px;margin-top:5px;color:#7dd3fc;font-size:9px;font-weight:900}
+.song-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;min-height:0}
+.song-tag{display:inline-flex;align-items:center;min-height:17px;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:2px 6px;font-size:8px;line-height:1;font-weight:900;white-space:nowrap}
+.song-tag-anime{color:#c4b5fd;background:rgba(139,92,246,.13);border-color:rgba(167,139,250,.24)}
+.song-tag-drama{color:#7dd3fc;background:rgba(14,165,233,.12);border-color:rgba(56,189,248,.22)}
+.song-tag-movie{color:#fda4af;background:rgba(244,63,94,.12);border-color:rgba(251,113,133,.22)}
+.song-tag-karaoke{color:#f9a8d4;background:rgba(236,72,153,.12);border-color:rgba(244,114,182,.25)}
+.song-tag-year{color:#fde68a;background:rgba(245,158,11,.12);border-color:rgba(251,191,36,.26)}
+.tagged-title-cell{white-space:normal}.tagged-title-cell>.song-tags{max-width:220px}
 @media(max-width:360px){.knowledge-grid{grid-template-columns:1fr}.knowledge-item.related{grid-column:auto}}
 </style>
 </head>
@@ -125,6 +133,127 @@ document.addEventListener('DOMContentLoaded',()=>{bind();switchScene('home');ini
 </script>
 <script>
 let songKnowledgeRequest=0;
+const MEDIA_TAG_CACHE_KEY='dslMediaTagsV1';
+let mediaTagCache=(()=>{try{return JSON.parse(localStorage.getItem(MEDIA_TAG_CACHE_KEY)||'{}')||{}}catch(e){return{}}})();
+let yearlyTopTagMap={},mediaTagQueue=[],mediaTagScanning=false;
+
+function mediaCandidateTitles(song){
+  return [song.title,song.title+' ('+song.artist+'の曲)',song.title+' (曲)'];
+}
+
+function mediaQueryUrl(songs){
+  const titles=songs.flatMap(mediaCandidateTitles).join('|');
+  const params=new URLSearchParams({action:'query',titles,redirects:'1',prop:'extracts',exintro:'1',explaintext:'1',format:'json',origin:'*'});
+  return 'https://ja.wikipedia.org/w/api.php?'+params;
+}
+
+function mediaRecordFromPages(song,pages){
+  const titleKey=norm(song.title).replace(/[\s「」『』()（）・]/g,'');
+  const candidates=pages.filter(candidate=>{
+    const pageKey=norm(candidate.title).replace(/[\s「」『』()（）・]/g,'');
+    return (pageKey.includes(titleKey)||titleKey.includes(pageKey))&&/(アニメ|映画|劇場版|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(candidate.extract||'');
+  }).sort((a,b)=>{
+    const score=page=>(/[（(]曲[）)]/.test(page.title)?4:0)+(norm(page.extract).includes(norm(song.artist))?2:0);
+    return score(b)-score(a);
+  });
+  const page=candidates[0];
+  if(!page)return{tags:[]};
+  const text=String(page.extract||''),tags=[];
+  if(/(テレビアニメ|アニメ映画|劇場アニメ|アニメーション)/.test(text))tags.push('アニメ');
+  if(/(テレビドラマ|連続ドラマ|ドラマ版|ドラマ.{0,16}(主題歌|挿入歌|テーマ))/.test(text))tags.push('ドラマ');
+  if(/(映画|劇場版)/.test(text))tags.push('映画');
+  if(!tags.length)return{tags:[]};
+  const sentence=text.split(/(?<=[。！？])/).find(value=>/(アニメ|映画|劇場版|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(value))||'';
+  const workNames=[...sentence.matchAll(/『【([^】]{1,70})】』|『([^』]{1,70})』|「([^」]{1,70})」|【([^】]{1,70})】/g)].map(match=>match.slice(1).find(Boolean));
+  const workName=workNames.find(name=>norm(name).replace(/[\s・]/g,'')!==titleKey);
+  const relationType=['オープニングテーマ','エンディングテーマ','テーマソング','主題歌','挿入歌','アニメ映画','実写映画','テレビアニメ','テレビドラマ','映画','ドラマ'].find(type=>sentence.includes(type));
+  const relation=workName?(relationType?'『'+workName+'』の'+relationType+'として紹介されています。':'『'+workName+'』との関連が紹介されています。'):'アニメ・映画・ドラマなど映像作品との関連情報があります。';
+  return{tags:[...new Set(tags)],relation,pageid:page.pageid};
+}
+
+function saveMediaTagCache(){
+  try{localStorage.setItem(MEDIA_TAG_CACHE_KEY,JSON.stringify(mediaTagCache))}catch(e){}
+}
+
+function rebuildYearlyTopTags(){
+  yearlyTopTagMap={};
+  const now=new Date(),years=[...new Set(tracks.map(t=>String(t.year)).filter(Boolean))];
+  years.filter(year=>new Date(Number(year),11,31)<=now).forEach(year=>{
+    const grouped={};
+    tracks.filter(t=>String(t.year)===year).forEach(t=>{
+      const key=songKey(t.title,t.artist);
+      if(!grouped[key])grouped[key]={title:t.title,artist:t.artist,days:0};
+      grouped[key].days+=Number(t.days)||0;
+    });
+    Object.entries(grouped).sort((a,b)=>b[1].days-a[1].days||a[1].title.localeCompare(b[1].title,'ja')).slice(0,10).forEach(([key])=>{
+      (yearlyTopTagMap[key]||(yearlyTopTagMap[key]=[])).push(year+'年度TOP10');
+    });
+  });
+}
+
+function automaticSongTags(title,artist){
+  const key=songKey(title,artist),tags=[];
+  const media=mediaTagCache[key];
+  if(media&&Array.isArray(media.tags))media.tags.forEach(label=>tags.push({label,type:label==='アニメ'?'anime':label==='ドラマ'?'drama':'movie'}));
+  if(karaokeLogs.some(row=>songKey(row.title,row.artist)===key))tags.push({label:'カラオケ',type:'karaoke'});
+  (yearlyTopTagMap[key]||[]).forEach(label=>tags.push({label,type:'year'}));
+  return tags;
+}
+
+function songTagsHtml(title,artist){
+  return automaticSongTags(title,artist).map(tag=>'<span class="song-tag song-tag-'+tag.type+'">'+esc(tag.label)+'</span>').join('');
+}
+
+function refreshSongTagDisplays(root=document){
+  root.querySelectorAll('[data-auto-tags]').forEach(slot=>{slot.innerHTML=songTagsHtml(slot.dataset.tagTitle,slot.dataset.tagArtist)});
+}
+
+function attachSongTags(parent,title,artist,extraClass=''){
+  if(!parent||parent.querySelector(':scope > [data-auto-tags]'))return;
+  const slot=document.createElement('div');
+  slot.className='song-tags '+extraClass;
+  slot.dataset.autoTags='';
+  slot.dataset.tagTitle=title;
+  slot.dataset.tagArtist=artist;
+  slot.innerHTML=songTagsHtml(title,artist);
+  parent.appendChild(slot);
+}
+
+function songsFromTaggedElements(root){
+  const found={};
+  root.querySelectorAll('[data-song-title][data-song-artist]').forEach(element=>{
+    const key=songKey(element.dataset.songTitle,element.dataset.songArtist);
+    found[key]={title:element.dataset.songTitle,artist:element.dataset.songArtist};
+  });
+  return Object.values(found);
+}
+
+function queueMediaTagScan(songs){
+  const queued=new Set(mediaTagQueue.map(song=>songKey(song.title,song.artist)));
+  songs.forEach(song=>{
+    const key=songKey(song.title,song.artist);
+    if(!Object.prototype.hasOwnProperty.call(mediaTagCache,key)&&!queued.has(key)){mediaTagQueue.push(song);queued.add(key)}
+  });
+  scanNextMediaTagBatch();
+}
+
+function scanNextMediaTagBatch(){
+  if(mediaTagScanning||!mediaTagQueue.length)return;
+  mediaTagScanning=true;
+  const batch=mediaTagQueue.splice(0,8);
+  fetch(mediaQueryUrl(batch)).then(response=>{
+    if(!response.ok)throw new Error('Wikipedia response error');
+    return response.json();
+  }).then(data=>{
+    const pages=Object.values(data&&data.query&&data.query.pages||{});
+    batch.forEach(song=>{mediaTagCache[songKey(song.title,song.artist)]=mediaRecordFromPages(song,pages)});
+    saveMediaTagCache();
+    refreshSongTagDisplays();
+  }).catch(()=>{}).finally(()=>{
+    mediaTagScanning=false;
+    if(mediaTagQueue.length)setTimeout(scanNextMediaTagBatch,350);
+  });
+}
 
 function knowledgeBlock(label,value,extraClass=''){
   return '<div class="knowledge-item'+(extraClass?' '+extraClass:'')+'"><p class="knowledge-label">'+esc(label)+'</p><p class="knowledge-value">'+esc(value)+'</p></div>';
@@ -138,32 +267,27 @@ function renderKnowledgeParts(){
 function loadRelatedWork(song,requestId){
   const target=$('aiKnowledge');
   if(!target)return;
-  const candidateTitles=[song.title,song.title+' ('+song.artist+'の曲)',song.title+' (曲)'].join('|');
-  const params=new URLSearchParams({action:'query',titles:candidateTitles,redirects:'1',prop:'extracts',exintro:'1',explaintext:'1',format:'json',origin:'*'});
-  fetch('https://ja.wikipedia.org/w/api.php?'+params).then(response=>{
+  const key=songKey(song.title,song.artist);
+  const renderRecord=record=>{
+    if(!record||!record.relation||!record.pageid)return;
+    target.dataset.related='<div class="knowledge-item related"><p class="knowledge-label"><i class="fa-solid fa-film mr-1"></i>関連作品</p><p class="knowledge-value">'+esc(record.relation)+'</p><a class="knowledge-source" href="https://ja.wikipedia.org/?curid='+encodeURIComponent(record.pageid)+'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>出典を確認</a></div>';
+    renderKnowledgeParts();
+  };
+  if(Object.prototype.hasOwnProperty.call(mediaTagCache,key)){
+    renderRecord(mediaTagCache[key]);
+    return;
+  }
+  fetch(mediaQueryUrl([song])).then(response=>{
     if(!response.ok)throw new Error('Wikipedia response error');
     return response.json();
   }).then(data=>{
     if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
-    const titleKey=norm(song.title).replace(/[\s「」『』()（）・]/g,'');
     const pages=Object.values(data&&data.query&&data.query.pages||{});
-    const candidates=pages.filter(candidate=>{
-      const pageKey=norm(candidate.title).replace(/[\s「」『』()（）・]/g,'');
-      return (pageKey.includes(titleKey)||titleKey.includes(pageKey))&&/(アニメ|映画|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(candidate.extract||'');
-    }).sort((a,b)=>{
-      const score=page=>(/[（(]曲[）)]/.test(page.title)?4:0)+(norm(page.extract).includes(norm(song.artist))?2:0);
-      return score(b)-score(a);
-    });
-    const page=candidates[0];
-    if(!page)return;
-    const sentence=String(page.extract||'').split(/(?<=[。！？])/).find(text=>/(アニメ|映画|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(text));
-    if(!sentence)return;
-    const workNames=[...sentence.matchAll(/『【([^】]{1,70})】』|『([^』]{1,70})』|「([^」]{1,70})」|【([^】]{1,70})】/g)].map(match=>match.slice(1).find(Boolean));
-    const workName=workNames.find(name=>norm(name).replace(/[\s・]/g,'')!==titleKey);
-    const relationType=['オープニングテーマ','エンディングテーマ','テーマソング','主題歌','挿入歌','アニメ映画','実写映画','テレビアニメ','テレビドラマ','映画','ドラマ'].find(type=>sentence.includes(type));
-    const relation=workName?(relationType?'『'+workName+'』の'+relationType+'として紹介されています。':'『'+workName+'』との関連が紹介されています。'):'アニメ・映画・ドラマなど映像作品との関連情報があります。';
-    target.dataset.related='<div class="knowledge-item related"><p class="knowledge-label"><i class="fa-solid fa-film mr-1"></i>関連作品</p><p class="knowledge-value">'+esc(relation)+'</p><a class="knowledge-source" href="https://ja.wikipedia.org/?curid='+encodeURIComponent(page.pageid)+'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>出典を確認</a></div>';
-    renderKnowledgeParts();
+    const record=mediaRecordFromPages(song,pages);
+    mediaTagCache[key]=record;
+    saveMediaTagCache();
+    refreshSongTagDisplays();
+    renderRecord(record);
   }).catch(()=>{});
 }
 
@@ -238,6 +362,74 @@ openModal=function(title,artist){
   const song=masters.find(x=>songKey(x.title,x.artist)===songKey(title,artist))||masters.find(x=>norm(x.title)===norm(title));
   openModalWithSongKnowledge(title,artist);
   if(song)loadSongKnowledge(song,++songKnowledgeRequest);
+};
+
+function decorateTimelineSongTags(){
+  const root=$('timelineList');
+  if(!root)return;
+  root.querySelectorAll(':scope > [data-song-title][data-song-artist]').forEach(item=>{
+    attachSongTags(item.querySelector('.flex-grow'),item.dataset.songTitle,item.dataset.songArtist);
+  });
+  queueMediaTagScan(songsFromTaggedElements(root));
+}
+
+function decorateTableSongTags(){
+  const root=$('tableBody');
+  if(!root)return;
+  root.querySelectorAll('tr[data-song-title][data-song-artist]').forEach(row=>{
+    const cell=row.children[1];
+    if(cell){cell.classList.remove('truncate');cell.classList.add('tagged-title-cell');attachSongTags(cell,row.dataset.songTitle,row.dataset.songArtist)}
+  });
+  queueMediaTagScan(songsFromTaggedElements(root));
+}
+
+function decorateHistorySearchTags(){
+  const root=$('historyResults');
+  if(!root)return;
+  root.querySelectorAll('[data-song-title][data-song-artist]').forEach(item=>{
+    attachSongTags(item.querySelector('.min-w-0.flex-1'),item.dataset.songTitle,item.dataset.songArtist);
+  });
+  queueMediaTagScan(songsFromTaggedElements(root));
+}
+
+const rebuildMastersWithAutomaticTags=rebuildMasters;
+rebuildMasters=function(){
+  rebuildMastersWithAutomaticTags();
+  rebuildYearlyTopTags();
+};
+
+const renderTimelineWithAutomaticTags=renderTimeline;
+renderTimeline=function(){
+  renderTimelineWithAutomaticTags();
+  decorateTimelineSongTags();
+};
+
+const renderTableWithAutomaticTags=renderTable;
+renderTable=function(){
+  renderTableWithAutomaticTags();
+  decorateTableSongTags();
+};
+
+const searchHistoryWithAutomaticTags=searchHistory;
+searchHistory=function(){
+  searchHistoryWithAutomaticTags();
+  decorateHistorySearchTags();
+};
+
+const saveKaraokeLogsWithAutomaticTags=saveKaraokeLogs;
+saveKaraokeLogs=function(){
+  saveKaraokeLogsWithAutomaticTags();
+  refreshSongTagDisplays();
+};
+
+const openModalWithAutomaticTags=openModal;
+openModal=function(title,artist){
+  const song=masters.find(x=>songKey(x.title,x.artist)===songKey(title,artist))||masters.find(x=>norm(x.title)===norm(title));
+  openModalWithAutomaticTags(title,artist);
+  if(!song)return;
+  const header=$('modalContent')&&$('modalContent').firstElementChild;
+  const info=header&&header.querySelector('div:last-child');
+  attachSongTags(info,song.title,song.artist);
 };
 </script>
 </body>
