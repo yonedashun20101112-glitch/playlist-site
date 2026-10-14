@@ -134,12 +134,14 @@ document.addEventListener('DOMContentLoaded',()=>{bind();switchScene('home');ini
 </script>
 <script>
 let songKnowledgeRequest=0;
-const MEDIA_TAG_CACHE_KEY='dslMediaTagsV2';
+const MEDIA_TAG_CACHE_KEY='dslMediaTagsV3';
+function tagSongPart(value){return String(value||'').normalize('NFKC').toLowerCase().replace(/[‐‑‒–—―ー]/g,'-').replace(/[・･]/g,'').replace(/[\s「」『』【】()（）[\]［］]/g,'')}
+function tagSongKey(title,artist){return tagSongPart(title)+'|||'+tagSongPart(artist)}
 const VERIFIED_MEDIA_RECORDS={
-  [songKey('逆夢','King Gnu')]:{tags:['アニメ','映画'],relation:'『劇場版 呪術廻戦 0』のエンディングテーマです。',sourceUrl:'https://jujutsukaisen-movie.jp/music/index.html',sourceLabel:'作品公式サイト'}
+  [tagSongKey('逆夢','King Gnu')]:{tags:['アニメ','映画'],relation:'『劇場版 呪術廻戦 0』のエンディングテーマです。',sourceUrl:'https://jujutsukaisen-movie.jp/music/index.html',sourceLabel:'作品公式サイト'}
 };
 let mediaTagCache=(()=>{try{return JSON.parse(localStorage.getItem(MEDIA_TAG_CACHE_KEY)||'{}')||{}}catch(e){return{}}})();
-let yearlyTopTagMap={},mediaTagQueue=[],mediaTagScanning=false;
+let yearlyTopTagMap={},mediaTagQueue=[],mediaTagScanning=false,mediaTagChecked=new Set();
 
 function mediaCandidateTitles(song){
   return [song.title,song.title+' ('+song.artist+'の曲)',song.title+' (曲)'];
@@ -152,8 +154,15 @@ function mediaQueryUrl(songs){
   return 'https://ja.wikipedia.org/w/api.php?'+params;
 }
 
+function mediaSearchUrl(songOrSongs){
+  const songs=Array.isArray(songOrSongs)?songOrSongs:[songOrSongs];
+  const query='('+songs.map(song=>'("'+song.title+'" "'+song.artist+'")').join(' OR ')+') (主題歌 OR 挿入歌 OR テーマソング OR アニメ OR 映画 OR ドラマ)';
+  const params=new URLSearchParams({action:'query',generator:'search',gsrsearch:query,gsrnamespace:'0',gsrlimit:String(Math.min(20,Math.max(10,songs.length*3))),prop:'extracts',exintro:'1',explaintext:'1',format:'json',origin:'*'});
+  return 'https://ja.wikipedia.org/w/api.php?'+params;
+}
+
 function verifiedMediaRecord(song){
-  return VERIFIED_MEDIA_RECORDS[songKey(song.title,song.artist)]||null;
+  return VERIFIED_MEDIA_RECORDS[tagSongKey(song.title,song.artist)]||null;
 }
 
 function requestPublicJson(url,prefix,timeout=15000){
@@ -171,23 +180,27 @@ function requestPublicJson(url,prefix,timeout=15000){
   });
 }
 
-function mediaRecordFromPages(song,pages){
-  const titleKey=norm(song.title).replace(/[\s「」『』()（）・]/g,'');
+function mediaRecordFromPages(song,pages,allowWorkPages=false){
+  const titleKey=tagSongPart(song.title),artistKey=tagSongPart(song.artist);
   const candidates=pages.filter(candidate=>{
-    const pageKey=norm(candidate.title).replace(/[\s「」『』()（）・]/g,'');
-    return (pageKey.includes(titleKey)||titleKey.includes(pageKey))&&/(アニメ|映画|劇場版|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(candidate.extract||'');
+    const pageKey=tagSongPart(candidate.title),extract=String(candidate.extract||''),extractKey=tagSongPart(extract);
+    const titlePage=pageKey.includes(titleKey)||titleKey.includes(pageKey);
+    const workPage=allowWorkPages&&extractKey.includes(titleKey)&&extractKey.includes(artistKey);
+    return (titlePage||workPage)&&/(アニメ|映画|劇場版|ドラマ|主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/.test(extract);
   }).sort((a,b)=>{
-    const score=page=>(/[（(]曲[）)]/.test(page.title)?4:0)+(norm(page.extract).includes(norm(song.artist))?2:0);
+    const score=page=>(/[（(]曲[）)]/.test(page.title)?4:0)+(tagSongPart(page.extract).includes(artistKey)?2:0)+(tagSongPart(page.title).includes(titleKey)?2:0);
     return score(b)-score(a);
   });
-  const page=candidates[0];
-  if(!page)return{tags:[]};
-  const text=String(page.extract||''),tags=[];
-  const sentences=text.match(/[^。！？]+[。！？]?/g)||[text];
   const relationPattern=/(主題歌|挿入歌|テーマソング|オープニングテーマ|エンディングテーマ)/;
   const mediaPattern=/(テレビアニメ|アニメ映画|劇場アニメ|アニメーション映画|実写映画|映画|劇場版|テレビドラマ|連続ドラマ|ドラマ)/;
-  const sentence=sentences.find(value=>relationPattern.test(value)&&mediaPattern.test(value))||'';
+  let page=null,sentence='';
+  for(const candidate of candidates){
+    const sentences=String(candidate.extract||'').match(/[^。！？]+[。！？]?/g)||[];
+    const match=sentences.find(value=>relationPattern.test(value)&&mediaPattern.test(value)&&(!allowWorkPages||tagSongPart(candidate.title).includes(titleKey)||tagSongPart(value).includes(titleKey)));
+    if(match){page=candidate;sentence=match;break}
+  }
   if(!sentence)return{tags:[]};
+  const tags=[];
   if(/(テレビアニメ|アニメ映画|劇場アニメ|アニメーション映画)/.test(sentence))tags.push('アニメ');
   if(/(テレビドラマ|連続ドラマ|ドラマ)/.test(sentence))tags.push('ドラマ');
   if(/(アニメ映画|アニメーション映画|実写映画|映画|劇場版)/.test(sentence))tags.push('映画');
@@ -213,7 +226,7 @@ function rebuildYearlyTopTags(){
   years.filter(year=>new Date(Number(year),11,31)<=now).forEach(year=>{
     const grouped={};
     tracks.filter(t=>String(t.year)===year).forEach(t=>{
-      const key=songKey(t.title,t.artist);
+      const key=tagSongKey(t.title,t.artist);
       if(!grouped[key])grouped[key]={title:t.title,artist:t.artist,days:0};
       grouped[key].days+=Number(t.days)||0;
     });
@@ -224,10 +237,10 @@ function rebuildYearlyTopTags(){
 }
 
 function automaticSongTags(title,artist){
-  const key=songKey(title,artist),tags=[];
+  const key=tagSongKey(title,artist),tags=[];
   const media=verifiedMediaRecord({title,artist})||mediaTagCache[key];
   if(media&&Array.isArray(media.tags))media.tags.forEach(label=>tags.push({label,type:label==='アニメ'?'anime':label==='ドラマ'?'drama':'movie'}));
-  if(karaokeLogs.some(row=>songKey(row.title,row.artist)===key))tags.push({label:'カラオケ',type:'karaoke'});
+  if(karaokeLogs.some(row=>tagSongKey(row.title,row.artist)===key))tags.push({label:'カラオケ',type:'karaoke'});
   (yearlyTopTagMap[key]||[]).forEach(label=>tags.push({label,type:'year'}));
   return tags;
 }
@@ -254,17 +267,17 @@ function attachSongTags(parent,title,artist,extraClass=''){
 function songsFromTaggedElements(root){
   const found={};
   root.querySelectorAll('[data-song-title][data-song-artist]').forEach(element=>{
-    const key=songKey(element.dataset.songTitle,element.dataset.songArtist);
+    const key=tagSongKey(element.dataset.songTitle,element.dataset.songArtist);
     found[key]={title:element.dataset.songTitle,artist:element.dataset.songArtist};
   });
   return Object.values(found);
 }
 
 function queueMediaTagScan(songs){
-  const queued=new Set(mediaTagQueue.map(song=>songKey(song.title,song.artist)));
+  const queued=new Set(mediaTagQueue.map(song=>tagSongKey(song.title,song.artist)));
   songs.forEach(song=>{
-    const key=songKey(song.title,song.artist);
-    if(!verifiedMediaRecord(song)&&!Object.prototype.hasOwnProperty.call(mediaTagCache,key)&&!queued.has(key)){mediaTagQueue.push(song);queued.add(key)}
+    const key=tagSongKey(song.title,song.artist);
+    if(!verifiedMediaRecord(song)&&!mediaTagCache[key]&&!mediaTagChecked.has(key)&&!queued.has(key)){mediaTagQueue.push(song);queued.add(key)}
   });
   scanNextMediaTagBatch();
 }
@@ -275,7 +288,15 @@ function scanNextMediaTagBatch(){
   const batch=mediaTagQueue.splice(0,8);
   requestPublicJson(mediaQueryUrl(batch),'dslMediaTags').then(data=>{
     const pages=Object.values(data&&data.query&&data.query.pages||{});
-    batch.forEach(song=>{mediaTagCache[songKey(song.title,song.artist)]=mediaRecordFromPages(song,pages)});
+    const unresolved=[];
+    batch.forEach(song=>{const key=tagSongKey(song.title,song.artist),record=mediaRecordFromPages(song,pages);if(record.tags.length)mediaTagCache[key]=record;else unresolved.push(song)});
+    if(!unresolved.length)return;
+    return requestPublicJson(mediaSearchUrl(unresolved),'dslMediaTagSearch').then(searchData=>{
+      const searchPages=Object.values(searchData&&searchData.query&&searchData.query.pages||{});
+      unresolved.forEach(song=>{const key=tagSongKey(song.title,song.artist),record=mediaRecordFromPages(song,searchPages,true);if(record.tags.length)mediaTagCache[key]=record});
+    }).catch(()=>{});
+  }).then(()=>{
+    batch.forEach(song=>mediaTagChecked.add(tagSongKey(song.title,song.artist)));
     saveMediaTagCache();
     refreshSongTagDisplays();
   }).catch(()=>{}).finally(()=>{
@@ -296,7 +317,7 @@ function renderKnowledgeParts(){
 function loadRelatedWork(song,requestId){
   const target=$('aiKnowledge');
   if(!target)return;
-  const key=songKey(song.title,song.artist);
+  const key=tagSongKey(song.title,song.artist);
   const renderRecord=record=>{
     if(!record||!record.relation||!record.sourceUrl)return;
     target.dataset.related='<div class="knowledge-item related"><p class="knowledge-label"><i class="fa-solid fa-film mr-1"></i>関連作品</p><p class="knowledge-value">'+esc(record.relation)+'</p><a class="knowledge-source" href="'+esc(record.sourceUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>'+esc(record.sourceLabel||'出典を確認')+'</a></div>';
@@ -304,18 +325,20 @@ function loadRelatedWork(song,requestId){
   };
   const verified=verifiedMediaRecord(song);
   if(verified){renderRecord(verified);return}
-  if(Object.prototype.hasOwnProperty.call(mediaTagCache,key)){
+  if(mediaTagCache[key]){
     renderRecord(mediaTagCache[key]);
     return;
   }
+  const storeAndRender=record=>{if(record&&record.tags&&record.tags.length){mediaTagCache[key]=record;saveMediaTagCache();refreshSongTagDisplays();renderRecord(record)}return record};
   requestPublicJson(mediaQueryUrl([song]),'dslRelatedWork').then(data=>{
     if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
     const pages=Object.values(data&&data.query&&data.query.pages||{});
     const record=mediaRecordFromPages(song,pages);
-    mediaTagCache[key]=record;
-    saveMediaTagCache();
-    refreshSongTagDisplays();
-    renderRecord(record);
+    if(record.tags.length)return storeAndRender(record);
+    return requestPublicJson(mediaSearchUrl(song),'dslRelatedWorkSearch').then(searchData=>{
+      if(requestId!==songKnowledgeRequest||!$('aiKnowledge'))return;
+      return storeAndRender(mediaRecordFromPages(song,Object.values(searchData&&searchData.query&&searchData.query.pages||{}),true));
+    });
   }).catch(()=>{});
 }
 
