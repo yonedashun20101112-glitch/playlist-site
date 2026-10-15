@@ -48,6 +48,9 @@
 .tagged-title-cell{white-space:normal;overflow:hidden}.tagged-title-cell>.song-tags{max-width:220px}.archive-title-text{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;letter-spacing:0}
 @media(max-width:640px){.archive-title-text{font-size:9px}.tagged-title-cell{padding-left:5px!important;padding-right:5px!important}.tagged-title-cell>.song-tags{flex-wrap:nowrap;overflow:hidden}}
 @media(max-width:360px){.knowledge-grid{grid-template-columns:1fr}.knowledge-item.related{grid-column:auto}}
+.analysis-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.analysis-fact{min-width:0;border:1px solid rgba(125,211,252,.13);background:rgba(2,6,23,.24);border-radius:9px;padding:6px}.analysis-fact span{display:block;color:#64748b;font-size:8px;font-weight:900}.analysis-fact b{display:block;margin-top:2px;color:#e2e8f0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-artist-picker{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.top-artist-picker::-webkit-scrollbar,.top-song-strip::-webkit-scrollbar,.top-month-strip::-webkit-scrollbar{display:none}.top-artist-choice{flex:0 0 auto;border:1px solid rgba(255,255,255,.1);background:rgba(2,6,23,.24);color:#cbd5e1;border-radius:10px;padding:8px 12px;font-size:11px;font-weight:900}.top-artist-choice.active{border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.16);color:#fde68a}.top-artist-card{padding:18px}.top-artist-intro{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:16px;align-items:start}.top-artist-intro .top-cover-hero{aspect-ratio:1}.top-stat-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}.top-stat p{font-size:8px;color:#94a3b8;font-weight:900}.top-stat-strip .top-stat:nth-child(2) b{color:#bae6fd}.top-stat-strip .top-stat:nth-child(3) b{color:#fde68a}.top-stat-strip .top-stat:nth-child(4) b{color:#a7f3d0}.top-song-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);grid-template-rows:1fr;gap:7px;overflow-x:auto;scroll-snap-type:x proximity}.top-song-strip>*{scroll-snap-align:start}
+@media(max-width:640px){.analysis-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.top-artist-hero{padding:13px}.top-artist-title{font-size:22px}.top-artist-copy{font-size:10px;line-height:1.5;margin-top:6px}.top-artist-stage{padding:9px}.top-artist-card{padding:12px!important}.top-artist-intro{grid-template-columns:minmax(0,1fr) 92px;gap:10px}.top-artist-intro .top-cover-hero{border-radius:12px}.top-artist-name{font-size:clamp(24px,9vw,34px);line-height:1.05;white-space:normal;overflow-wrap:anywhere}.top-artist-medal{width:34px;height:34px;border-radius:10px}.top-artist-lead{font-size:10px!important;line-height:1.5;margin-top:7px!important}.top-stat-strip{gap:4px;margin-top:10px}.top-stat{padding:7px 5px;border-radius:9px}.top-stat b{font-size:16px!important}.top-song-strip{grid-auto-columns:82%}.top-month-strip{display:grid;grid-auto-flow:column;grid-auto-columns:82px;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:3px}.top-month-chip{scroll-snap-align:start}.top-month-detail{padding:8px}.top-pop-badge{padding:5px 7px}.top-year-tab{padding:8px 10px}.top-artist-choice{padding:7px 10px}}
 </style>
 </head>
 <body class="theme-home pb-16">
@@ -503,6 +506,86 @@ aiSongAnalysisHtml=function(m){
   return '<div class="ai-card compact-analysis space-y-2"><div class="flex items-center justify-between gap-2"><div><p class="text-[9px] text-sky-300 font-black tracking-widest">DSL AI分析</p><h4 class="text-sm font-black">'+esc(mood)+'</h4></div><span class="ai-pill"><i class="fa-solid fa-wand-magic-sparkles"></i>'+count+'回 / '+dayLabel(total)+'</span></div><p class="analysis-summary">'+esc(opening+' '+insight+ending)+'</p><div id="aiKnowledge" class="knowledge-grid"><div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div></div></div>';
 };
 
+aiSongAnalysisHtml=function(m){
+  const hist=[...m.history].sort(sortOldest),first=hist[0],latest=hist[hist.length-1],active=hist.some(row=>row.removedDate==='Active'),total=m.totalDays,count=hist.length,avg=count?Math.round(total/count):0;
+  const seed=analysisHash(m.title+'|||'+m.artist+'|||'+count+'|||'+total),firstMonth=first?monthNameFromDate(first.regDate):'記録初期',latestMonth=latest?monthNameFromDate(latest.regDate):'現在';
+  const longest=hist.reduce((best,row)=>(Number(row.days)||0)>(Number(best&&best.days)||0)?row:best,null),shortest=hist.reduce((best,row)=>(Number(row.days)||0)<(Number(best&&best.days)||Infinity)?row:best,null);
+  const dates=hist.map(row=>parseDate(row.regDate)).filter(Boolean),gaps=[];
+  for(let i=1;i<dates.length;i++)gaps.push(Math.max(1,Math.round((dates[i]-dates[i-1])/86400000)));
+  const maxGap=gaps.length?Math.max(...gaps):0,spanDays=dates.length>1?Math.max(1,Math.round((dates[dates.length-1]-dates[0])/86400000)):0,months={};
+  dates.forEach(date=>{const month=date.getMonth()+1;months[month]=(months[month]||0)+1});
+  const peakMonth=Object.keys(months).map(Number).sort((a,b)=>months[b]-months[a]||a-b)[0],peakCount=peakMonth?months[peakMonth]:0;
+  const ranked=[...masters].sort((a,b)=>b.totalDays-a.totalDays||b.history.length-a.history.length),rank=ranked.findIndex(song=>songKey(song.title,song.artist)===songKey(m.title,m.artist))+1;
+  const karaoke=typeof karaokeRowsForSong==='function'?karaokeRowsForSong(m.title,m.artist):[],bestScore=karaoke.reduce((best,row)=>Math.max(best,Number(row.score)||0),0);
+  const mediaTags=typeof automaticSongTags==='function'?automaticSongTags(m.title,m.artist).map(tag=>tag.label).filter(label=>['アニメ','映画','ドラマ'].includes(label)):[];
+  let type='steady';
+  if(total>=90)type='long';else if(count>=2&&maxGap>=120)type='revival';else if(peakCount>=2)type='seasonal';else if(count>=3)type='comeback';else if(active&&avg>=21)type='activeLong';else if(active)type='active';else if(avg<=7)type='burst';else if(count===1)type='single';
+  const headlines={
+    long:['ログを横断するロングヒット','時間をかけて育った定番曲','聴取記録の中心にいる一曲','長期滞在で存在感を残す曲','日数で証明された主力曲'],
+    revival:['長い間を越えて戻った一曲','時間を置いて再点火した曲','記憶から再浮上したリバイバル曲','大きな空白も越える定番'],
+    seasonal:['季節の記憶と結びつく曲','同じ時期に呼び戻される一曲','季節ごとに輪郭が増す曲','月の偏りが語るシーズン曲'],
+    comeback:['何度でも戻ってくる再燃曲','節目ごとに再会する一曲','周期的に熱が戻るリピート曲','忘れた頃に帰ってくる定番','選び直すたび強くなる曲'],
+    activeLong:['現在進行形のロングラン','いまも記録を伸ばす主力曲','長く聴き続けている現役曲','まだ終点の見えない長期曲'],
+    active:['いま気分の中心にいる曲','現在のプレイリストを動かす一曲','熱量が継続中の現役曲','今期のムードを映す曲','今日のDSLを支える一曲'],
+    burst:['短期間で駆け抜けた集中曲','一気に熱が高まった瞬発曲','短く強く残った一曲','ピンポイントで刺さった曲','密度で勝負した短期曲'],
+    single:['一度の登録で輪郭を残した曲','ひとつの時期を象徴する一曲','単独ログが印象を残す曲','一回の出会いを刻んだ曲'],
+    steady:['ほどよい余韻を残した曲','気分の一場面に定着した一曲','静かに存在感を残した曲','ログに自然と馴染んだ一曲']
+  };
+  const openings=active?[
+    firstMonth+'に登場し、現在もActive。平均'+avg+'日のペースで記録が続いています。',
+    firstMonth+'から始まった流れはまだ継続中。'+count+'回、合計'+total+'日を積み上げています。',
+    '初登場は'+firstMonth+'。最新の気分にも残り、合計'+total+'日を記録しています。',
+    firstMonth+'の初記録から現在まで、現役曲として'+count+'回選ばれています。'
+  ]:[
+    firstMonth+'に初登場し、'+latestMonth+'までに'+count+'回・合計'+total+'日を記録しました。',
+    'ログの起点は'+firstMonth+'。平均'+avg+'日ずつ、'+count+'回の履歴を残しています。',
+    firstMonth+'から'+latestMonth+'までに刻まれた滞在は合計'+total+'日です。',
+    count===1?firstMonth+'に一度だけ登録され、その'+total+'日間がこの曲の記録です。':firstMonth+'に始まり、'+latestMonth+'の再登場まで記録がつながっています。'
+  ];
+  const insights=[];
+  if(longest)insights.push('1回の最長滞在は'+Math.max(1,Number(longest.days)||1)+'日。');
+  if(shortest&&count>1&&shortest!==longest)insights.push('滞在幅は'+Math.max(1,Number(shortest.days)||1)+'日から'+Math.max(1,Number(longest.days)||1)+'日まで。');
+  if(rank>0&&rank<=20)insights.push('総日数では全登録曲の第'+rank+'位に入っています。');
+  if(maxGap)insights.push('再登場までの最長間隔は'+maxGap+'日でした。');
+  if(spanDays)insights.push('初回から最新登録まで'+spanDays+'日をまたぐ履歴です。');
+  if(peakMonth&&peakCount>=2)insights.push(peakMonth+'月の登場が最多で、'+historySeasonName(peakMonth)+'に戻りやすい傾向です。');
+  if(karaoke.length)insights.push('カラオケでは'+karaoke.length+'回記録され、最高'+bestScore.toFixed(2).replace(/\.00$/,'')+'点です。');
+  if(mediaTags.length)insights.push(mediaTags.join('・')+'との結びつきも持つ一曲です。');
+  if(active)insights.push('現在もActiveで、評価はまだ更新途中です。');
+  const endings={
+    long:['長さそのものが、この曲への信頼度を物語っています。','瞬間的な流行より、生活に馴染んだ強さが目立ちます。','記録全体を見ても、息の長さが際立っています。'],
+    revival:['空白を越えて選び直されたことが、この曲の強さです。','時間が経っても戻れる曲として記録に残っています。','再会までの長さも、この曲らしい物語になっています。'],
+    seasonal:['聴く時期まで含めて、この曲の個性になっています。','カレンダー上の偏りが、気分との結びつきを映しています。','季節が巡るたび思い出す可能性を持っています。'],
+    comeback:['気分が巡るたびに選び直されるタイプです。','再会の多さが、この曲の持続力を示しています。','何度離れても戻れる強さがあります。'],
+    activeLong:['この先どこまで伸びるか注目の一曲です。','現時点でも記録の主役級です。','長期記録はまだ進行しています。'],
+    active:['今の聴取傾向を読むうえで外せない存在です。','現在のムードを最も素直に映しています。','これからの滞在日数で印象が変わりそうです。'],
+    burst:['短さよりも、集中して聴いた密度が印象的です。','必要な瞬間に強く響いた記録といえます。','短期決戦型の熱量が表れています。'],
+    single:['次の再登場で評価が大きく変わる可能性があります。','一度きりだからこそ、その時期との結びつきが際立ちます。','今後リピート曲へ育つかが見どころです。'],
+    steady:['派手さより、自然に残った余韻が特徴です。','聴取の流れに無理なく溶け込んだ一曲です。','穏やかな定着の仕方が記録に表れています。']
+  };
+  const facts=[['初登場',firstMonth],['最長',longest?dayLabel(Math.max(1,Number(longest.days)||1)):'--'],['全体順位',rank>0?'#'+rank:'--'],karaoke.length?['最高点',bestScore.toFixed(2).replace(/\.00$/,'')]:['季節',peakMonth?historySeasonName(peakMonth):'--']];
+  const factsHtml='<div class="analysis-facts">'+facts.map(fact=>'<div class="analysis-fact"><span>'+esc(fact[0])+'</span><b>'+esc(fact[1])+'</b></div>').join('')+'</div>';
+  const mood=analysisPick(headlines[type],seed),opening=analysisPick(openings,seed,7),insight=analysisPick(insights,seed,13),ending=analysisPick(endings[type],seed,19);
+  return '<div class="ai-card compact-analysis space-y-2"><div class="flex items-center justify-between gap-2"><div><p class="text-[9px] text-sky-300 font-black tracking-widest">DSL AI分析</p><h4 class="text-sm font-black">'+esc(mood)+'</h4></div><span class="ai-pill"><i class="fa-solid fa-wand-magic-sparkles"></i>'+count+'回 / '+dayLabel(total)+'</span></div><p class="analysis-summary">'+esc(opening+' '+insight+ending)+'</p>'+factsHtml+'<div id="aiKnowledge" class="knowledge-grid"><div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div></div></div>';
+};
+
+let topArtistFocus='';
+topArtistCard=function(stat,index,total){
+  const medal=index===0?'fa-crown':'fa-gem',glows=['rgba(251,191,36,.22)','rgba(56,189,248,.18)','rgba(244,114,182,.16)'];
+  const stats=stat.rows.length?'<div class="top-stat-strip"><div class="top-stat"><p>登録</p><b>'+stat.rows.length+'</b></div><div class="top-stat"><p>曲数</p><b>'+stat.songs.length+'</b></div><div class="top-stat"><p>総日数</p><b>'+stat.totalDays+'</b></div><div class="top-stat"><p>現役</p><b>'+stat.active+'</b></div></div>':'<p class="text-xs text-zinc-400 font-bold mt-3">この年度の登録データはまだありません。</p>';
+  const songs=stat.songs.slice(0,4).map((song,i)=>'<button class="btn top-song-row text-left p-3" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="block min-w-0 mt-2"><span class="block text-xs font-black truncate">'+esc(song.title)+'</span><span class="block text-[10px] text-zinc-400 truncate">代表曲 '+(i+1)+' / '+dayLabel(song.days)+(song.count>1?' / '+song.count+'回':'')+'</span></span></button>').join('');
+  return '<article class="top-artist-card" style="--artist-glow:'+glows[index%glows.length]+'"><div class="top-artist-intro"><div class="min-w-0"><div class="top-year-band"><span>'+stat.year+'年度</span><span>TOPアーティスト</span></div><div class="flex items-start justify-between gap-2 mt-2"><div class="min-w-0"><h4 class="top-artist-name">'+esc(stat.artist)+'</h4><p class="top-artist-lead text-zinc-300 font-bold mt-2">'+topArtistLead(stat,total,index)+'</p></div><div class="top-artist-medal"><i class="fa-solid '+medal+'"></i></div></div>'+stats+'</div>'+topLargeCover(stat.longest)+'</div><div class="mt-4"><div class="flex items-center justify-between mb-2"><p class="text-[10px] text-amber-200 font-black">代表曲</p><span class="text-[9px] text-zinc-500">横にスワイプ</span></div><div class="top-song-strip">'+(songs||'<p class="text-xs text-zinc-500">代表曲データはまだありません。</p>')+'</div></div>'+topMonthHtml(stat)+'<div class="mt-4 flex flex-wrap gap-2"><button class="btn bg-amber-400 text-slate-950 rounded-xl px-4 py-2 text-xs font-black" data-artist-filter="'+esc(stat.artist)+'"><i class="fa-solid fa-timeline mr-1"></i>履歴を見る</button><span class="inline-flex items-center rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-300">リピート '+stat.repeat+' / 初登場 '+esc((stat.first&&stat.first.regDate)||'--')+'</span></div></article>';
+};
+renderTopArtists=function(){
+  const box=$('topArtistsArea');if(!box)return;
+  const years=Object.keys(TOP_ARTISTS).sort().reverse();if(!TOP_ARTISTS[topArtistYear])topArtistYear=years[0];
+  const artists=TOP_ARTISTS[topArtistYear];if(!artists.includes(topArtistFocus))topArtistFocus=artists[0];
+  const selectedIndex=Math.max(0,artists.indexOf(topArtistFocus)),stat=topArtistStats(topArtistYear,topArtistFocus);
+  const tabs='<div class="top-artist-tabs">'+years.map(year=>'<button class="btn top-year-tab '+(year===topArtistYear?'active':'')+'" data-top-year="'+year+'"><i class="fa-solid fa-star mr-1"></i>'+year+'年度</button>').join('')+'</div>';
+  const picker='<div class="top-artist-picker">'+artists.map((artist,index)=>'<button class="btn top-artist-choice '+(artist===topArtistFocus?'active':'')+'" data-top-artist="'+esc(artist)+'"><span class="font-digital text-[9px]">0'+(index+1)+'</span><b>'+esc(artist)+'</b></button>').join('')+'</div>';
+  box.innerHTML=tabs+'<section class="top-artist-stage"><div class="top-artist-hero"><p class="text-[10px] text-amber-300 font-black tracking-widest">'+topArtistYear+'年度の頂点</p><h4 class="top-artist-title font-black mt-1">受賞アーティスト</h4><p class="top-artist-copy text-zinc-400 mt-1">アーティストを選ぶと、その年の記録をコンパクトに楽しめます。</p>'+picker+'</div>'+topArtistCard(stat,selectedIndex,artists.length)+'</section>';
+};
+
 const openModalWithSongKnowledge=openModal;
 openModal=function(title,artist){
   const song=masters.find(x=>songKey(x.title,x.artist)===songKey(title,artist))||masters.find(x=>norm(x.title)===norm(title));
@@ -591,6 +674,15 @@ openModal=function(title,artist){
 };
 
 document.addEventListener('click',event=>{
+  const artist=event.target.closest('[data-top-artist]');
+  if(artist){
+    event.preventDefault();
+    event.stopPropagation();
+    topArtistFocus=artist.dataset.topArtist;
+    topArtistOpenMonth='';
+    renderTopArtists();
+    return;
+  }
   const tag=event.target.closest('[data-song-tag]');
   const work=event.target.closest('[data-media-work]');
   if(!tag&&!work)return;
