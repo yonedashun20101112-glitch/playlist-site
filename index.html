@@ -403,12 +403,55 @@ function loadSongKnowledge(song,requestId){
   });
 }
 
+function analysisHash(value){let hash=2166136261;for(const char of String(value||'')){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619)}return hash>>>0}
+function analysisPick(rows,seed,offset=0){return rows.length?rows[(seed+offset)%rows.length]:''}
+function historySeasonName(month){return month<=2||month===12?'冬':month<=5?'春':month<=8?'夏':'秋'}
+
 aiSongAnalysisHtml=function(m){
-  const hist=[...m.history].sort(sortOldest),first=hist[0],latest=[...m.history].sort(sortNewest)[0],active=hist.some(h=>h.removedDate==='Active'),total=m.totalDays,count=m.history.length,avg=count?Math.round(total/count):0;
-  const span=first&&latest?(monthNameFromDate(first.regDate)+' → '+monthNameFromDate(latest.regDate)):'--';
-  const mood=total>=60?'長く残る定番曲':count>=3?'繰り返し戻ってくる再燃曲':active?'今まさに熱がある曲':avg<=7?'短期集中型の曲':'気分の節目で戻りやすい曲';
-  const era=first?'あなたのログ上では'+monthNameFromDate(first.regDate)+'に初登場。'+(active?'現在もActiveなので、最新の気分にも繋がっています。':'最新の登録は'+monthNameFromDate(latest.regDate)+'です。'):'ログはまだ少なめです。';
-  return '<div class="ai-card compact-analysis space-y-2"><div class="flex items-center justify-between gap-2"><div><p class="text-[9px] text-sky-300 font-black tracking-widest">DSL AI分析</p><h4 class="text-sm font-black">'+esc(mood)+'</h4></div><span class="ai-pill"><i class="fa-solid fa-wand-magic-sparkles"></i>'+count+'回 / '+dayLabel(total)+'</span></div><p class="analysis-summary">'+esc(era)+' 平均'+avg+'日・'+esc(span)+'</p><div id="aiKnowledge" class="knowledge-grid"><div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div></div></div>';
+  const hist=[...m.history].sort(sortOldest),first=hist[0],latest=hist[hist.length-1],active=hist.some(h=>h.removedDate==='Active'),total=m.totalDays,count=hist.length,avg=count?Math.round(total/count):0;
+  const seed=analysisHash(m.title+'|||'+m.artist+'|||'+count+'|||'+total),firstMonth=first?monthNameFromDate(first.regDate):'記録初期',latestMonth=latest?monthNameFromDate(latest.regDate):'現在',longest=hist.reduce((best,row)=>(Number(row.days)||0)>(Number(best&&best.days)||0)?row:best,null);
+  const dates=hist.map(row=>parseDate(row.regDate)).filter(Boolean),gaps=[];
+  for(let i=1;i<dates.length;i++)gaps.push(Math.max(1,Math.round((dates[i]-dates[i-1])/86400000)));
+  const maxGap=gaps.length?Math.max(...gaps):0,months={};
+  dates.forEach(date=>{const month=date.getMonth()+1;months[month]=(months[month]||0)+1});
+  const peakMonth=Object.keys(months).map(Number).sort((a,b)=>months[b]-months[a]||a-b)[0],peakCount=peakMonth?months[peakMonth]:0;
+  let type='steady';
+  if(total>=90)type='long';else if(count>=3)type='comeback';else if(active&&avg>=21)type='activeLong';else if(active)type='active';else if(avg<=7)type='burst';else if(count===1)type='single';
+  const headlines={
+    long:['ログを横断するロングヒット','時間をかけて育った定番曲','聴取記録の中心にいる一曲','長期滞在で存在感を残す曲'],
+    comeback:['何度でも戻ってくる再燃曲','節目ごとに再会する一曲','周期的に熱が戻るリピート曲','忘れた頃に帰ってくる定番'],
+    activeLong:['現在進行形のロングラン','いまも記録を伸ばす主力曲','長く聴き続けている現役曲'],
+    active:['いま気分の中心にいる曲','現在のプレイリストを動かす一曲','熱量が継続中の現役曲','今期のムードを映す曲'],
+    burst:['短期間で駆け抜けた集中曲','一気に熱が高まった瞬発曲','短く強く残った一曲','ピンポイントで刺さった曲'],
+    single:['一度の登録で輪郭を残した曲','ひとつの時期を象徴する一曲','単独ログが印象を残す曲'],
+    steady:['ほどよい余韻を残した曲','気分の一場面に定着した一曲','静かに存在感を残した曲']
+  };
+  const openings=active?[
+    firstMonth+'に登場し、現在もActive。平均'+avg+'日というペースで記録が続いています。',
+    firstMonth+'から始まった流れはまだ継続中。これまで'+count+'回、合計'+total+'日を積み上げています。',
+    '初登場は'+firstMonth+'。最新の気分にも残り、合計'+total+'日を記録しています。'
+  ]:[
+    firstMonth+'に初登場し、'+latestMonth+'までに'+count+'回・合計'+total+'日を記録しました。',
+    'ログの起点は'+firstMonth+'。平均'+avg+'日ずつ、'+count+'回の履歴を残しています。',
+    firstMonth+'から'+latestMonth+'までに刻まれた滞在は合計'+total+'日です。'
+  ];
+  const insights=[];
+  if(longest)insights.push('1回の最長滞在は'+Math.max(1,Number(longest.days)||1)+'日。');
+  if(maxGap)insights.push('再登場までの最長間隔は'+maxGap+'日でした。');
+  if(peakMonth&&peakCount>=2)insights.push(peakMonth+'月の登場が最多で、'+historySeasonName(peakMonth)+'に戻りやすい傾向です。');
+  if(count>=3)insights.push((count-1)+'回の再登録があり、一過性ではない好みが見えます。');
+  if(active)insights.push('現在もActiveで、評価はまだ更新途中です。');
+  const endings={
+    long:['長さそのものが、この曲への信頼度を物語っています。','瞬間的な流行より、生活に馴染んだ強さが目立ちます。','記録全体を見ても、息の長さが際立っています。'],
+    comeback:['気分が巡るたびに選び直されるタイプです。','再会の多さが、この曲の持続力を示しています。','何度離れても戻れる強さがあります。'],
+    activeLong:['この先どこまで伸びるか注目の一曲です。','現時点でも記録の主役級です。','長期記録はまだ進行しています。'],
+    active:['今の聴取傾向を読むうえで外せない存在です。','現在のムードを最も素直に映しています。','これからの滞在日数で印象が変わりそうです。'],
+    burst:['短さよりも、集中して聴いた密度が印象的です。','必要な瞬間に強く響いた記録といえます。','短期決戦型の熱量が表れています。'],
+    single:['次の再登場で評価が大きく変わる可能性があります。','一度きりだからこそ、その時期との結びつきが際立ちます。','今後リピート曲へ育つかが見どころです。'],
+    steady:['派手さより、自然に残った余韻が特徴です。','聴取の流れに無理なく溶け込んだ一曲です。','穏やかな定着の仕方が記録に表れています。']
+  };
+  const mood=analysisPick(headlines[type],seed),opening=analysisPick(openings,seed,7),insight=analysisPick(insights,seed,13),ending=analysisPick(endings[type],seed,19);
+  return '<div class="ai-card compact-analysis space-y-2"><div class="flex items-center justify-between gap-2"><div><p class="text-[9px] text-sky-300 font-black tracking-widest">DSL AI分析</p><h4 class="text-sm font-black">'+esc(mood)+'</h4></div><span class="ai-pill"><i class="fa-solid fa-wand-magic-sparkles"></i>'+count+'回 / '+dayLabel(total)+'</span></div><p class="analysis-summary">'+esc(opening+' '+insight+ending)+'</p><div id="aiKnowledge" class="knowledge-grid"><div class="knowledge-status"><i class="fa-solid fa-spinner fa-spin mr-2"></i>作品情報を取得中...</div></div></div>';
 };
 
 const openModalWithSongKnowledge=openModal;
