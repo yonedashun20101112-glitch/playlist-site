@@ -604,7 +604,7 @@ function installAnalysisUI(){
     const section=document.createElement('section');
     section.id='scene-analysis';
     section.className='scene space-y-6';
-    section.innerHTML='<div class="analysis-hero"><p class="text-[10px] text-cyan-300 font-black tracking-widest">DSL LISTENING INTELLIGENCE</p><h3 class="text-2xl font-black mt-1">聴き方の輪郭を読む</h3><p class="text-xs text-zinc-400 mt-2">登録履歴、滞在日数、再登場間隔から、あなたの音楽の傾向を立体的にまとめます。</p><div id="analysisSummary" class="mt-4"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>MUSIC DNA</p><h4 class="text-lg font-black">音楽DNA</h4></div><span class="text-[9px] text-zinc-500">全登録曲に占める割合</span></div><div id="musicDnaArea" class="dna-strip"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>ARTIST DEEP DIVE</p><h4 class="text-lg font-black">アーティスト深掘り</h4></div><span class="text-[9px] text-zinc-500">登録数上位から選択</span></div><div id="analysisArtistPicker" class="analysis-artist-picker"></div><div id="artistDeepArea"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>RETURN FORECAST</p><h4 class="text-lg font-black">再ブーム予測</h4></div><span class="text-[9px] text-zinc-500">過去の登録周期による推測</span></div><div id="revivalPredictionArea" class="prediction-strip"></div></div>';
+    section.innerHTML='<div class="analysis-hero"><p class="text-[10px] text-cyan-300 font-black tracking-widest">DSL LISTENING INTELLIGENCE</p><h3 class="text-2xl font-black mt-1">聴き方の輪郭を読む</h3><p class="text-xs text-zinc-400 mt-2">登録履歴、滞在日数、再登場間隔から、あなたの音楽の傾向を立体的にまとめます。</p><div id="analysisSummary" class="mt-4"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>MUSIC DNA</p><h4 class="text-lg font-black">音楽DNA</h4></div><span class="text-[9px] text-zinc-500">指標ごとに適切な対象曲で独立集計</span></div><div id="musicDnaArea" class="dna-strip"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>ARTIST DEEP DIVE</p><h4 class="text-lg font-black">アーティスト深掘り</h4></div><span class="text-[9px] text-zinc-500">登録数上位から選択</span></div><div id="analysisArtistPicker" class="analysis-artist-picker"></div><div id="artistDeepArea"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>RETURN FORECAST</p><h4 class="text-lg font-black">再ブーム予測</h4></div><span class="text-[9px] text-zinc-500">過去の登録周期による推測</span></div><div id="revivalPredictionArea" class="prediction-strip"></div></div>';
     main.insertBefore(section,$('scene-topartists'));
   }
   const memoryBox=$('recommendSongs');
@@ -627,14 +627,16 @@ function analysisRegistrationGaps(history){
 }
 
 function musicDnaData(){
-  const buckets=[{key:'long',label:'長期定着',color:'#fbbf24',note:'90日以上残った曲',count:0},{key:'revival',label:'再燃型',color:'#f472b6',note:'長い間隔で戻った曲',count:0},{key:'repeat',label:'反復型',color:'#c084fc',note:'3回以上登録した曲',count:0},{key:'active',label:'現役型',color:'#34d399',note:'現在Activeの曲',count:0},{key:'burst',label:'短期集中',color:'#38bdf8',note:'平均7日以下の曲',count:0},{key:'steady',label:'安定型',color:'#818cf8',note:'穏やかに定着した曲',count:0}];
-  masters.forEach(song=>{
-    const active=song.history.some(row=>row.removedDate==='Active'),avg=song.history.length?song.totalDays/song.history.length:0,gaps=analysisRegistrationGaps(song.history).gaps;
-    let key='steady';
-    if(song.totalDays>=90)key='long';else if(gaps.length&&Math.max(...gaps)>=120)key='revival';else if(song.history.length>=3)key='repeat';else if(active)key='active';else if(avg<=7)key='burst';
-    buckets.find(bucket=>bucket.key===key).count++;
-  });
-  return buckets.map(bucket=>({...bucket,pct:masters.length?Math.round(bucket.count/masters.length*100):0}));
+  const all=[...masters],repeated=all.filter(song=>song.history.length>=2),completed=all.filter(song=>!song.history.some(row=>row.removedDate==='Active'));
+  const metric=(key,label,color,note,rows,test)=>{const count=rows.filter(test).length,total=rows.length;return{key,label,color,note,count,total,pct:total?Math.round(count/total*100):0}};
+  return[
+    metric('long','長期定着率','#fbbf24','累計30日以上 / 全登録曲',all,song=>song.totalDays>=30),
+    metric('repeat','再訪率','#c084fc','2回以上登録 / 全登録曲',all,song=>song.history.length>=2),
+    metric('revival','再燃率','#f472b6','90日以上空けて再登録 / リピート曲',repeated,song=>{const gaps=analysisRegistrationGaps(song.history).gaps;return gaps.length&&Math.max(...gaps)>=90}),
+    metric('active','現役率','#34d399','現在Active / 全登録曲',all,song=>song.history.some(row=>row.removedDate==='Active')),
+    metric('burst','短期集中率','#38bdf8','平均7日以下 / 終了曲',completed,song=>song.history.length&&song.totalDays/song.history.length<=7),
+    metric('karaoke','カラオケ率','#fb7185','点数記録あり / 全登録曲',all,song=>typeof karaokeRowsForSong==='function'&&karaokeRowsForSong(song.title,song.artist).length>0)
+  ];
 }
 
 function analysisArtists(){
@@ -670,12 +672,12 @@ function revivalPredictions(){
 }
 
 function renderAnalysis(){
-  const dna=musicDnaData(),dominant=[...dna].sort((a,b)=>b.count-a.count)[0],artists=analysisArtists(),predictions=revivalPredictions();
+  const dna=musicDnaData(),artists=analysisArtists(),predictions=revivalPredictions(),eligibleRepeat=dna.find(item=>item.key==='revival');
   if(!analysisArtist&&artists[0])analysisArtist=artists[0].artist;
   const summary=$('analysisSummary');
-  if(summary)summary.innerHTML='<div class="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2"><i class="fa-solid fa-fingerprint text-cyan-300"></i><span class="text-[10px] text-zinc-300">現在の中心DNA</span><b class="text-xs text-cyan-100">'+esc(dominant?dominant.label:'--')+'</b></div>';
+  if(summary)summary.innerHTML='<div class="flex flex-wrap items-center gap-2"><div class="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2"><i class="fa-solid fa-scale-balanced text-cyan-300"></i><span class="text-[10px] text-zinc-300">全'+masters.length+'曲を基準に集計</span><b class="text-xs text-cyan-100">再燃のみリピート'+(eligibleRepeat?eligibleRepeat.total:0)+'曲と比較</b></div><span class="text-[9px] text-zinc-500">各指標は独立しており、同じ曲を複数指標に含みます。</span></div>';
   const dnaArea=$('musicDnaArea');
-  if(dnaArea)dnaArea.innerHTML=dna.map(item=>'<div class="dna-card"><div class="dna-ring" style="--pct:'+item.pct+';--dna:'+item.color+'"><b class="font-digital">'+item.pct+'%</b></div><div><p class="text-xs font-black">'+item.label+'</p><p class="text-[9px] text-zinc-500 mt-1">'+item.note+'</p><p class="text-[9px] font-digital mt-1" style="color:'+item.color+'">'+item.count+'曲</p></div></div>').join('');
+  if(dnaArea)dnaArea.innerHTML=dna.map(item=>'<div class="dna-card"><div class="dna-ring" style="--pct:'+item.pct+';--dna:'+item.color+'"><b class="font-digital">'+item.pct+'%</b></div><div><p class="text-xs font-black">'+item.label+'</p><p class="text-[9px] text-zinc-500 mt-1">'+item.note+'</p><p class="text-[9px] font-digital mt-1" style="color:'+item.color+'">'+item.count+' / '+item.total+'曲</p></div></div>').join('');
   const picker=$('analysisArtistPicker');
   if(picker)picker.innerHTML=artists.slice(0,8).map(item=>'<button class="btn analysis-artist-button '+(item.artist===analysisArtist?'active':'')+'" data-analysis-artist="'+esc(item.artist)+'">'+esc(item.artist)+'</button>').join('');
   renderArtistDeepDive(artists);
