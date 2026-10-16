@@ -890,6 +890,120 @@ document.addEventListener('click',event=>{
   event.stopPropagation();
   openMediaCollection(work?'work':'tag',work?work.dataset.mediaWork:tag.dataset.songTag);
 },true);
+
+function durationLabel(n){
+  return `${Math.max(1,parseInt(n,10)||1)}日間`;
+}
+
+function replaceDayTerm(root,from,to){
+  if(!root)return;
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  const nodes=[];
+  while(walker.nextNode())nodes.push(walker.currentNode);
+  const pattern=new RegExp(`(\\d+(?:\\.\\d+)?)${from}`,'g');
+  nodes.forEach(node=>{
+    node.nodeValue=node.nodeValue.replace(pattern,`$1${to}`);
+  });
+}
+
+function normalizeDurationTerms(root){
+  replaceDayTerm(root,'日目','日間');
+}
+
+function normalizeBareDurationTerms(root){
+  if(!root)return;
+  root.querySelectorAll('.font-digital').forEach(item=>{
+    const value=item.textContent.trim();
+    if(/^\d+(?:\.\d+)?日$/.test(value))item.textContent=value+'間';
+    item.querySelectorAll('span').forEach(unit=>{
+      if(unit.textContent.trim()==='日')unit.textContent='日間';
+    });
+  });
+}
+
+function restoreActiveProgressTerms(root){
+  if(!root)return;
+  root.querySelectorAll('[data-song-title], tr, .flex.justify-between').forEach(item=>{
+    if(/\bActive\b/.test(item.textContent))replaceDayTerm(item,'日間','日目');
+  });
+}
+
+function normalizeMixedDayTerms(root){
+  normalizeDurationTerms(root);
+  restoreActiveProgressTerms(root);
+}
+
+// 「日目」は進行中だけに残し、確定値・累計値は「日間」に統一する。
+const renderStatsWithDayTerms=renderStats;
+renderStats=function(){
+  renderStatsWithDayTerms();
+  normalizeDurationTerms($('longestCard'));
+  const avgUnit=$('statAvg')&&$('statAvg').querySelector('span');
+  if(avgUnit)avgUnit.textContent='日間';
+};
+
+const renderTimelineWithDayTerms=renderTimeline;
+renderTimeline=function(){
+  renderTimelineWithDayTerms();
+  normalizeMixedDayTerms($('timelineList'));
+};
+
+const renderTableWithDayTerms=renderTable;
+renderTable=function(){
+  renderTableWithDayTerms();
+  normalizeMixedDayTerms($('tableBody'));
+  normalizeDurationTerms($('monthlyStats'));
+  normalizeBareDurationTerms($('monthlyStats'));
+};
+
+const renderRankingWithDayTerms=renderRanking;
+renderRanking=function(){
+  renderRankingWithDayTerms();
+  normalizeDurationTerms($('rankingArea'));
+};
+
+const renderTopArtistsWithDayTerms=renderTopArtists;
+renderTopArtists=function(){
+  renderTopArtistsWithDayTerms();
+  normalizeMixedDayTerms($('topArtistsArea'));
+};
+
+const renderAnalysisWithDayTerms=renderAnalysis;
+renderAnalysis=function(){
+  renderAnalysisWithDayTerms();
+  normalizeDurationTerms($('scene-analysis'));
+};
+
+const renderPredictiveSuggestionsWithDayTerms=renderPredictiveSuggestions;
+renderPredictiveSuggestions=function(type){
+  renderPredictiveSuggestionsWithDayTerms(type);
+  normalizeDurationTerms($('titleSuggestBox'));
+  normalizeDurationTerms($('artistSuggestBox'));
+};
+
+const searchHistoryWithDayTerms=searchHistory;
+searchHistory=function(){
+  searchHistoryWithDayTerms();
+  normalizeDurationTerms($('historyResults'));
+};
+
+const openMonthRepeatsWithDayTerms=openMonthRepeats;
+openMonthRepeats=function(year,month){
+  openMonthRepeatsWithDayTerms(year,month);
+  normalizeMixedDayTerms($('modalContent'));
+};
+
+const openDayWithDayTerms=openDay;
+openDay=function(id){
+  openDayWithDayTerms(id);
+  normalizeDurationTerms($('modalContent'));
+};
+
+const openModalWithDayTerms=openModal;
+openModal=function(title,artist){
+  openModalWithDayTerms(title,artist);
+  normalizeMixedDayTerms($('modalContent'));
+};
 </script>
 </body>
 </html>
