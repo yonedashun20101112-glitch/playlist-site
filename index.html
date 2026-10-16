@@ -50,7 +50,9 @@
 @media(max-width:360px){.knowledge-grid{grid-template-columns:1fr}.knowledge-item.related{grid-column:auto}}
 .analysis-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.analysis-fact{min-width:0;border:1px solid rgba(125,211,252,.13);background:rgba(2,6,23,.24);border-radius:9px;padding:6px}.analysis-fact span{display:block;color:#64748b;font-size:8px;font-weight:900}.analysis-fact b{display:block;margin-top:2px;color:#e2e8f0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-artist-picker{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.top-artist-picker::-webkit-scrollbar,.top-song-strip::-webkit-scrollbar,.top-month-strip::-webkit-scrollbar{display:none}.top-artist-choice{flex:0 0 auto;border:1px solid rgba(255,255,255,.1);background:rgba(2,6,23,.24);color:#cbd5e1;border-radius:10px;padding:8px 12px;font-size:11px;font-weight:900}.top-artist-choice.active{border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.16);color:#fde68a}.top-artist-card{padding:18px}.top-artist-intro{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:16px;align-items:start}.top-artist-intro .top-cover-hero{aspect-ratio:1}.top-stat-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}.top-stat p{font-size:8px;color:#94a3b8;font-weight:900}.top-stat-strip .top-stat:nth-child(2) b{color:#bae6fd}.top-stat-strip .top-stat:nth-child(3) b{color:#fde68a}.top-stat-strip .top-stat:nth-child(4) b{color:#a7f3d0}.top-song-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);grid-template-rows:1fr;gap:7px;overflow-x:auto;scroll-snap-type:x proximity}.top-song-strip>*{scroll-snap-align:start}
+.theme-analysis{--accent:#22d3ee}.analysis-hero{position:relative;overflow:hidden;border:1px solid rgba(34,211,238,.22);background:linear-gradient(135deg,rgba(34,211,238,.12),rgba(244,114,182,.08) 52%,rgba(251,191,36,.08));border-radius:18px;padding:18px}.analysis-hero:after{content:"";position:absolute;right:-55px;bottom:-80px;width:210px;height:210px;border-radius:999px;background:radial-gradient(circle,rgba(34,211,238,.18),transparent 68%)}.analysis-hero>*{position:relative}.analysis-section{border-top:1px solid rgba(255,255,255,.08);padding-top:16px}.analysis-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:10px}.analysis-heading p{font-size:9px;color:#64748b;font-weight:900}.dna-strip,.prediction-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:4px;scrollbar-width:none}.dna-strip::-webkit-scrollbar,.prediction-strip::-webkit-scrollbar,.analysis-artist-picker::-webkit-scrollbar{display:none}.dna-card,.prediction-card{scroll-snap-align:start}.dna-card{display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.28);border-radius:13px;padding:10px}.dna-ring{--dna:#22d3ee;width:48px;height:48px;flex:0 0 auto;border-radius:999px;display:grid;place-items:center;background:conic-gradient(var(--dna) calc(var(--pct)*1%),rgba(255,255,255,.07) 0)}.dna-ring:before{content:"";grid-area:1/1;width:38px;height:38px;border-radius:999px;background:#151b2a}.dna-ring b{grid-area:1/1;position:relative;font-size:9px}.analysis-artist-picker{display:flex;gap:6px;overflow-x:auto;margin-bottom:9px;scrollbar-width:none}.analysis-artist-button{flex:0 0 auto;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);border-radius:10px;padding:7px 10px;color:#cbd5e1;font-size:10px;font-weight:900}.analysis-artist-button.active{border-color:rgba(244,114,182,.45);background:rgba(244,114,182,.13);color:#fbcfe8}.artist-deep-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.75fr);gap:12px;border:1px solid rgba(244,114,182,.18);background:rgba(244,114,182,.055);border-radius:15px;padding:13px}.artist-deep-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.artist-deep-stat{border:1px solid rgba(255,255,255,.07);background:rgba(2,6,23,.25);border-radius:10px;padding:8px}.artist-deep-stat span{display:block;font-size:8px;color:#64748b;font-weight:900}.artist-deep-stat b{display:block;margin-top:2px;font-size:15px}.artist-month-bars{display:flex;align-items:end;gap:4px;height:70px;padding-top:8px}.artist-month-bar{flex:1;min-width:7px;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:3px;height:100%}.artist-month-bar i{display:block;width:100%;min-height:3px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#f472b6,#22d3ee)}.artist-month-bar span{font-size:7px;color:#64748b}.prediction-card{position:relative;overflow:hidden;text-align:left;border:1px solid rgba(251,191,36,.16);background:linear-gradient(145deg,rgba(251,191,36,.09),rgba(2,6,23,.28));border-radius:13px;padding:11px}.prediction-card .poster,.memory-card .poster{width:100%;aspect-ratio:1;object-fit:cover}.prediction-confidence{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(251,191,36,.2);background:rgba(251,191,36,.1);color:#fde68a;border-radius:999px;padding:4px 6px;font-size:8px;font-weight:900}.memory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.memory-card{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:center;text-align:left;border:1px solid rgba(129,140,248,.18);background:linear-gradient(135deg,rgba(129,140,248,.1),rgba(244,114,182,.055));border-radius:14px;padding:10px}.memory-card img,.memory-card>.no-poster{width:64px!important;height:64px!important;border-radius:11px!important}.memory-reason{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:9px;line-height:1.45;color:#a5b4fc;font-weight:700}
 @media(max-width:640px){.analysis-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.top-artist-hero{padding:13px}.top-artist-title{font-size:22px}.top-artist-copy{font-size:10px;line-height:1.5;margin-top:6px}.top-artist-stage{padding:9px}.top-artist-card{padding:12px!important}.top-artist-intro{grid-template-columns:minmax(0,1fr) 92px;gap:10px}.top-artist-intro .top-cover-hero{border-radius:12px}.top-artist-name{font-size:clamp(24px,9vw,34px);line-height:1.05;white-space:normal;overflow-wrap:anywhere}.top-artist-medal{width:34px;height:34px;border-radius:10px}.top-artist-lead{font-size:10px!important;line-height:1.5;margin-top:7px!important}.top-stat-strip{gap:4px;margin-top:10px}.top-stat{padding:7px 5px;border-radius:9px}.top-stat b{font-size:16px!important}.top-song-strip{grid-auto-columns:82%}.top-month-strip{display:grid;grid-auto-flow:column;grid-auto-columns:82px;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:3px}.top-month-chip{scroll-snap-align:start}.top-month-detail{padding:8px}.top-pop-badge{padding:5px 7px}.top-year-tab{padding:8px 10px}.top-artist-choice{padding:7px 10px}}
+@media(max-width:640px){.analysis-hero{padding:13px}.analysis-heading{align-items:start}.dna-strip{grid-auto-columns:72%}.artist-deep-card{grid-template-columns:1fr;padding:10px}.prediction-strip{grid-auto-columns:78%}.memory-grid{display:grid;grid-auto-flow:column;grid-auto-columns:88%;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}.memory-card{scroll-snap-align:start}.analysis-artist-button{padding:7px 9px}}
 </style>
 </head>
 <body class="theme-home pb-16">
@@ -585,6 +587,140 @@ renderTopArtists=function(){
   const picker='<div class="top-artist-picker">'+artists.map((artist,index)=>'<button class="btn top-artist-choice '+(artist===topArtistFocus?'active':'')+'" data-top-artist="'+esc(artist)+'"><span class="font-digital text-[9px]">0'+(index+1)+'</span><b>'+esc(artist)+'</b></button>').join('')+'</div>';
   box.innerHTML=tabs+'<section class="top-artist-stage"><div class="top-artist-hero"><p class="text-[10px] text-amber-300 font-black tracking-widest">'+topArtistYear+'年度の頂点</p><h4 class="top-artist-title font-black mt-1">受賞アーティスト</h4><p class="top-artist-copy text-zinc-400 mt-1">アーティストを選ぶと、その年の記録をコンパクトに楽しめます。</p>'+picker+'</div>'+topArtistCard(stat,selectedIndex,artists.length)+'</section>';
 };
+
+let analysisArtist='';
+
+function installAnalysisUI(){
+  const nav=document.querySelector('.nav-scroll'),main=document.querySelector('main');
+  if(nav&&!$('tab-analysis')){
+    const button=document.createElement('button');
+    button.id='tab-analysis';
+    button.className='btn nav-tab px-4 py-2 rounded-lg text-zinc-300 whitespace-nowrap';
+    button.dataset.scene='analysis';
+    button.innerHTML='<i class="fa-solid fa-chart-pie mr-1.5"></i>分析';
+    nav.insertBefore(button,$('tab-topartists'));
+  }
+  if(main&&!$('scene-analysis')){
+    const section=document.createElement('section');
+    section.id='scene-analysis';
+    section.className='scene space-y-6';
+    section.innerHTML='<div class="analysis-hero"><p class="text-[10px] text-cyan-300 font-black tracking-widest">DSL LISTENING INTELLIGENCE</p><h3 class="text-2xl font-black mt-1">聴き方の輪郭を読む</h3><p class="text-xs text-zinc-400 mt-2">登録履歴、滞在日数、再登場間隔から、あなたの音楽の傾向を立体的にまとめます。</p><div id="analysisSummary" class="mt-4"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>MUSIC DNA</p><h4 class="text-lg font-black">音楽DNA</h4></div><span class="text-[9px] text-zinc-500">全登録曲に占める割合</span></div><div id="musicDnaArea" class="dna-strip"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>ARTIST DEEP DIVE</p><h4 class="text-lg font-black">アーティスト深掘り</h4></div><span class="text-[9px] text-zinc-500">登録数上位から選択</span></div><div id="analysisArtistPicker" class="analysis-artist-picker"></div><div id="artistDeepArea"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>RETURN FORECAST</p><h4 class="text-lg font-black">再ブーム予測</h4></div><span class="text-[9px] text-zinc-500">過去の登録周期による推測</span></div><div id="revivalPredictionArea" class="prediction-strip"></div></div>';
+    main.insertBefore(section,$('scene-topartists'));
+  }
+  const memoryBox=$('recommendSongs');
+  if(memoryBox){
+    const heading=memoryBox.parentElement&&memoryBox.parentElement.querySelector('h3');
+    if(heading)heading.innerHTML='<i class="fa-solid fa-clock-rotate-left text-indigo-300"></i> 今日の記憶';
+    if(memoryBox.parentElement&&!memoryBox.parentElement.querySelector('.memory-caption')){
+      const caption=document.createElement('p');
+      caption.className='memory-caption text-[10px] text-zinc-500 font-bold -mt-2 mb-3';
+      caption.textContent='この日付とあなたの履歴から、今だから思い出したい3曲を選びました。';
+      memoryBox.parentElement.insertBefore(caption,memoryBox);
+    }
+  }
+}
+
+function analysisRegistrationGaps(history){
+  const dates=history.map(row=>parseDate(row.regDate)).filter(Boolean).sort((a,b)=>a-b),gaps=[];
+  for(let i=1;i<dates.length;i++)gaps.push(Math.max(1,Math.round((dates[i]-dates[i-1])/86400000)));
+  return{dates,gaps,average:gaps.length?Math.round(gaps.reduce((sum,value)=>sum+value,0)/gaps.length):0};
+}
+
+function musicDnaData(){
+  const buckets=[{key:'long',label:'長期定着',color:'#fbbf24',note:'90日以上残った曲',count:0},{key:'revival',label:'再燃型',color:'#f472b6',note:'長い間隔で戻った曲',count:0},{key:'repeat',label:'反復型',color:'#c084fc',note:'3回以上登録した曲',count:0},{key:'active',label:'現役型',color:'#34d399',note:'現在Activeの曲',count:0},{key:'burst',label:'短期集中',color:'#38bdf8',note:'平均7日以下の曲',count:0},{key:'steady',label:'安定型',color:'#818cf8',note:'穏やかに定着した曲',count:0}];
+  masters.forEach(song=>{
+    const active=song.history.some(row=>row.removedDate==='Active'),avg=song.history.length?song.totalDays/song.history.length:0,gaps=analysisRegistrationGaps(song.history).gaps;
+    let key='steady';
+    if(song.totalDays>=90)key='long';else if(gaps.length&&Math.max(...gaps)>=120)key='revival';else if(song.history.length>=3)key='repeat';else if(active)key='active';else if(avg<=7)key='burst';
+    buckets.find(bucket=>bucket.key===key).count++;
+  });
+  return buckets.map(bucket=>({...bucket,pct:masters.length?Math.round(bucket.count/masters.length*100):0}));
+}
+
+function analysisArtists(){
+  const map={};
+  tracks.forEach(row=>{const key=norm(row.artist);if(!map[key])map[key]={artist:row.artist,rows:[],days:0,songs:new Set()};map[key].rows.push(row);map[key].days+=row.days;map[key].songs.add(songKey(row.title,row.artist))});
+  return Object.values(map).sort((a,b)=>b.rows.length-a.rows.length||b.days-a.days||a.artist.localeCompare(b.artist,'ja'));
+}
+
+function renderArtistDeepDive(artists){
+  const area=$('artistDeepArea');if(!area)return;
+  const selected=artists.find(item=>item.artist===analysisArtist)||artists[0];
+  if(!selected){area.innerHTML='<p class="text-xs text-zinc-500">分析できるデータがありません。</p>';return}
+  analysisArtist=selected.artist;
+  const songMap={};
+  selected.rows.forEach(row=>{const key=songKey(row.title,row.artist);if(!songMap[key])songMap[key]={title:row.title,artist:row.artist,img:row.img,days:0,count:0};songMap[key].days+=row.days;songMap[key].count++});
+  const songs=Object.values(songMap).sort((a,b)=>b.days-a.days||b.count-a.count),months=Array(12).fill(0);
+  selected.rows.forEach(row=>{const date=parseDate(row.regDate);if(date)months[date.getMonth()]++});
+  const maxMonth=Math.max(1,...months),peak=months.indexOf(maxMonth)+1,active=selected.rows.filter(row=>row.removedDate==='Active').length;
+  const songHtml=songs.slice(0,4).map((song,index)=>'<button class="btn top-song-row w-full p-2 text-left flex items-center gap-2" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="min-w-0 flex-1"><span class="block text-[11px] font-black truncate">'+esc(song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+(index===0?'最長代表曲':'代表曲 '+(index+1))+' / '+dayLabel(song.days)+'</span></span></button>').join('');
+  const bars=months.map((count,index)=>'<span class="artist-month-bar"><i style="height:'+Math.max(count?12:3,Math.round(count/maxMonth*100))+'%"></i><span>'+((index+1)%3===0?index+1:'')+'</span></span>').join('');
+  area.innerHTML='<div class="artist-deep-card"><div><p class="text-[9px] text-pink-300 font-black">選択中のアーティスト</p><h5 class="text-2xl font-black mt-1">'+esc(selected.artist)+'</h5><p class="text-[10px] text-zinc-400 mt-1">登録のピークは'+peak+'月。最長代表曲は「'+esc(songs[0]?songs[0].title:'--')+'」です。</p><div class="artist-deep-stats mt-3"><div class="artist-deep-stat"><span>登録</span><b class="font-digital">'+selected.rows.length+'</b></div><div class="artist-deep-stat"><span>曲数</span><b class="font-digital text-cyan-200">'+selected.songs.size+'</b></div><div class="artist-deep-stat"><span>総日数</span><b class="font-digital text-amber-200">'+selected.days+'</b></div></div><div class="artist-month-bars" title="月別登録数">'+bars+'</div></div><div class="space-y-2">'+songHtml+'<button class="btn w-full rounded-xl border border-pink-500/20 bg-pink-500/10 text-pink-200 py-2 text-[10px] font-black" data-artist-filter="'+esc(selected.artist)+'"><i class="fa-solid fa-timeline mr-1"></i>すべての履歴を見る</button></div></div>';
+}
+
+function revivalPredictions(){
+  const today=new Date();
+  return masters.filter(song=>song.history.length>=2&&!song.history.some(row=>row.removedDate==='Active')).map(song=>{
+    const cycle=analysisRegistrationGaps(song.history);if(!cycle.average||!cycle.dates.length)return null;
+    const latest=cycle.dates[cycle.dates.length-1],expected=new Date(latest);expected.setDate(expected.getDate()+cycle.average);
+    const delta=Math.round((expected-today)/86400000),spread=cycle.gaps.length>1?Math.max(...cycle.gaps)-Math.min(...cycle.gaps):cycle.average;
+    const confidence=Math.max(42,Math.min(92,54+song.history.length*8-Math.round(spread/30)));
+    return{song,cycle:cycle.average,expected,delta,confidence};
+  }).filter(Boolean).sort((a,b)=>Math.abs(a.delta)-Math.abs(b.delta)||b.confidence-a.confidence).slice(0,6);
+}
+
+function renderAnalysis(){
+  const dna=musicDnaData(),dominant=[...dna].sort((a,b)=>b.count-a.count)[0],artists=analysisArtists(),predictions=revivalPredictions();
+  if(!analysisArtist&&artists[0])analysisArtist=artists[0].artist;
+  const summary=$('analysisSummary');
+  if(summary)summary.innerHTML='<div class="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2"><i class="fa-solid fa-fingerprint text-cyan-300"></i><span class="text-[10px] text-zinc-300">現在の中心DNA</span><b class="text-xs text-cyan-100">'+esc(dominant?dominant.label:'--')+'</b></div>';
+  const dnaArea=$('musicDnaArea');
+  if(dnaArea)dnaArea.innerHTML=dna.map(item=>'<div class="dna-card"><div class="dna-ring" style="--pct:'+item.pct+';--dna:'+item.color+'"><b class="font-digital">'+item.pct+'%</b></div><div><p class="text-xs font-black">'+item.label+'</p><p class="text-[9px] text-zinc-500 mt-1">'+item.note+'</p><p class="text-[9px] font-digital mt-1" style="color:'+item.color+'">'+item.count+'曲</p></div></div>').join('');
+  const picker=$('analysisArtistPicker');
+  if(picker)picker.innerHTML=artists.slice(0,8).map(item=>'<button class="btn analysis-artist-button '+(item.artist===analysisArtist?'active':'')+'" data-analysis-artist="'+esc(item.artist)+'">'+esc(item.artist)+'</button>').join('');
+  renderArtistDeepDive(artists);
+  const predictionArea=$('revivalPredictionArea');
+  if(predictionArea)predictionArea.innerHTML=predictions.map(item=>{const status=item.delta<0?Math.abs(item.delta)+'日ほど予測時期を通過':item.delta<=45?'約'+item.delta+'日後に周期到来':'次の周期まで約'+item.delta+'日';return '<button class="btn prediction-card" data-song-title="'+esc(item.song.title)+'" data-song-artist="'+esc(item.song.artist)+'"><div class="flex items-center gap-2">'+cover(item.song.img)+'<span class="min-w-0 flex-1"><span class="block text-xs font-black truncate">'+esc(item.song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+esc(item.song.artist)+'</span></span></div><p class="text-[10px] text-amber-100 font-bold mt-3">'+status+'</p><p class="text-[9px] text-zinc-500 mt-1">平均'+item.cycle+'日周期 / '+item.song.history.length+'回登録</p><span class="prediction-confidence mt-2"><i class="fa-solid fa-chart-line"></i>周期一致度 '+item.confidence+'%</span></button>'}).join('')||'<p class="text-xs text-zinc-500">再登録が2回以上ある終了曲が増えると、予測を表示できます。</p>';
+}
+
+function memoryDateDistance(date,today){
+  const base=new Date(2000,today.getMonth(),today.getDate()),point=new Date(2000,date.getMonth(),date.getDate()),days=Math.abs(Math.round((point-base)/86400000));
+  return Math.min(days,366-days);
+}
+
+renderRecs=function(){
+  const box=$('recommendSongs');if(!box)return;
+  const today=new Date(),used=new Set(),picks=[];
+  const seasonal=masters.map(song=>{const dates=song.history.map(row=>parseDate(row.regDate)).filter(Boolean),near=dates.sort((a,b)=>memoryDateDistance(a,today)-memoryDateDistance(b,today))[0];return{song,near,distance:near?memoryDateDistance(near,today):999}}).sort((a,b)=>a.distance-b.distance||b.song.totalDays-a.song.totalDays)[0];
+  if(seasonal){const years=Math.max(0,today.getFullYear()-seasonal.near.getFullYear());picks.push({song:seasonal.song,label:'季節の記憶',reason:(years?years+'年前':'過去')+'の今ごろに登録。カレンダー上で今日に最も近い一曲です。'});used.add(songKey(seasonal.song.title,seasonal.song.artist))}
+  const longest=[...masters].filter(song=>!used.has(songKey(song.title,song.artist))).sort((a,b)=>b.totalDays-a.totalDays)[0];
+  if(longest){picks.push({song:longest,label:'長く残った一曲',reason:'累計'+longest.totalDays+'日。登録履歴の中でも滞在日数が際立つ一曲です。'});used.add(songKey(longest.title,longest.artist))}
+  const returning=[...masters].filter(song=>song.history.length>=2&&!used.has(songKey(song.title,song.artist))).sort((a,b)=>b.history.length-a.history.length||b.totalDays-a.totalDays)[0];
+  if(returning){picks.push({song:returning,label:'再会の記憶',reason:returning.history.length+'回登録、累計'+returning.totalDays+'日。何度も選び直されてきた一曲です。'});used.add(songKey(returning.title,returning.artist))}
+  const seed=Number(String(today.getFullYear())+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0'));
+  [...masters].filter(song=>!used.has(songKey(song.title,song.artist))).sort((a,b)=>(analysisHash(a.title+seed)-analysisHash(b.title+seed))).forEach(song=>{if(picks.length<3){picks.push({song,label:'今日の余韻',reason:'今日の日付を起点に、記録済みの曲から選び出しました。'});used.add(songKey(song.title,song.artist))}});
+  box.className='memory-grid';
+  box.innerHTML=picks.slice(0,3).map(item=>'<button class="btn memory-card" data-song-title="'+esc(item.song.title)+'" data-song-artist="'+esc(item.song.artist)+'">'+cover(item.song.img)+'<span class="min-w-0"><span class="block text-[9px] text-indigo-300 font-black">'+item.label+'</span><span class="block text-xs font-black truncate mt-1">'+esc(item.song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+esc(item.song.artist)+'</span><span class="memory-reason mt-1">'+esc(item.reason)+'</span></span></button>').join('')||'<p class="text-xs text-zinc-500">記憶を選ぶための曲データがありません。</p>';
+};
+
+const switchSceneWithAnalysis=switchScene;
+switchScene=function(scene){
+  const analysisTab=$('tab-analysis');
+  if(analysisTab)analysisTab.className='btn nav-tab px-4 py-2 rounded-lg text-zinc-300 whitespace-nowrap';
+  switchSceneWithAnalysis(scene);
+  if(scene==='analysis')requestAnimationFrame(renderAnalysis);
+};
+
+const renderAllWithAnalysis=renderAll;
+renderAll=function(){renderAllWithAnalysis();if(isSceneActive('analysis'))renderAnalysis()};
+
+installAnalysisUI();
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-analysis-artist]');
+  if(!button)return;
+  analysisArtist=button.dataset.analysisArtist;
+  renderAnalysis();
+});
 
 const openModalWithSongKnowledge=openModal;
 openModal=function(title,artist){
