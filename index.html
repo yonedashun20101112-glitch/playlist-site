@@ -605,7 +605,7 @@ function installAnalysisUI(){
     const section=document.createElement('section');
     section.id='scene-analysis';
     section.className='scene space-y-6';
-    section.innerHTML='<div class="analysis-hero"><p class="text-[10px] text-cyan-300 font-black tracking-widest">DSL LISTENING INTELLIGENCE</p><h3 class="text-2xl font-black mt-1">聴き方の輪郭を読む</h3><p class="text-xs text-zinc-400 mt-2">登録履歴、滞在日数、再登場間隔から、あなたの音楽の傾向を立体的にまとめます。</p><div id="analysisSummary" class="mt-4"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>MUSIC DNA</p><h4 class="text-lg font-black">音楽DNA</h4></div><span class="text-[9px] text-zinc-500">指標ごとに適切な対象曲で独立集計</span></div><div id="musicDnaArea" class="dna-strip"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>ARTIST DEEP DIVE</p><h4 class="text-lg font-black">アーティスト深掘り</h4></div><span class="text-[9px] text-zinc-500">登録数上位から選択</span></div><div id="analysisArtistPicker" class="analysis-artist-picker"></div><div id="artistDeepArea"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>RETURN FORECAST</p><h4 class="text-lg font-black">再ブーム予測</h4></div><span class="text-[9px] text-zinc-500">過去の登録周期による推測</span></div><div id="revivalPredictionArea" class="prediction-strip"></div></div>';
+    section.innerHTML='<div class="analysis-hero"><p class="text-[10px] text-cyan-300 font-black tracking-widest">DSL LISTENING INTELLIGENCE</p><h3 class="text-2xl font-black mt-1">聴き方の輪郭を読む</h3><p class="text-xs text-zinc-400 mt-2">登録履歴、滞在日数、再登場間隔から、あなたの音楽の傾向を立体的にまとめます。</p><div id="analysisSummary" class="mt-4"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>MUSIC DNA</p><h4 class="text-lg font-black">音楽DNA</h4></div><span class="text-[9px] text-zinc-500">指標ごとに適切な対象曲で独立集計</span></div><div id="musicDnaArea" class="dna-strip"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>ARTIST DEEP DIVE</p><h4 class="text-lg font-black">アーティスト深掘り</h4></div><span class="text-[9px] text-zinc-500">総滞在日数上位から選択</span></div><div id="analysisArtistPicker" class="analysis-artist-picker"></div><div id="artistDeepArea"></div></div><div class="analysis-section"><div class="analysis-heading"><div><p>RETURN FORECAST</p><h4 class="text-lg font-black">再ブーム予測</h4></div><span class="text-[9px] text-zinc-500">過去の登録周期による推測</span></div><div id="revivalPredictionArea" class="prediction-strip"></div></div>';
     main.insertBefore(section,$('scene-topartists'));
   }
   const memoryBox=$('recommendSongs');
@@ -640,10 +640,59 @@ function musicDnaData(){
   ];
 }
 
+function trackPeriod(row){
+  const start=parseDate(row.regDate),rawEnd=row.removedDate==='Active'?new Date():parseDate(row.removedDate),end=rawEnd&&start&&rawEnd>=start?rawEnd:start;
+  return{start,end};
+}
+
+function monthlyResidency(rows){
+  const monthSongs=Array.from({length:12},()=>new Set());
+  rows.forEach(row=>{
+    const period=trackPeriod(row);if(!period.start||!period.end)return;
+    const cursor=new Date(period.start.getFullYear(),period.start.getMonth(),1),last=new Date(period.end.getFullYear(),period.end.getMonth(),1),key=songKey(row.title,row.artist);
+    while(cursor<=last){monthSongs[cursor.getMonth()].add(key);cursor.setMonth(cursor.getMonth()+1)}
+  });
+  return monthSongs.map(set=>set.size);
+}
+
+topArtistStats=function(year,artist){
+  const rows=artistYearTracks(year,artist),unique={},songs=[],numericYear=Number(year),months=Array.from({length:12},(_,index)=>({month:index+1,count:0,days:0,titles:[],tracks:[],songKeys:new Set()}));
+  rows.forEach(row=>{
+    const key=songKey(row.title,row.artist);
+    if(!unique[key])unique[key]={title:row.title,artist:row.artist,img:row.img,days:0,count:0,active:false};
+    unique[key].days+=row.days;unique[key].count++;if(row.removedDate==='Active')unique[key].active=true;
+    const period=trackPeriod(row);if(!period.start||!period.end)return;
+    months.forEach(month=>{
+      const monthStart=new Date(numericYear,month.month-1,1),monthEnd=new Date(numericYear,month.month,0);
+      if(period.start>monthEnd||period.end<monthStart)return;
+      const overlapStart=period.start>monthStart?period.start:monthStart,overlapEnd=period.end<monthEnd?period.end:monthEnd,overlap=Math.max(1,Math.floor((overlapEnd-overlapStart)/86400000)+1);
+      month.days=Math.max(month.days,Math.min(31,overlap));
+      if(!month.songKeys.has(key)){month.songKeys.add(key);month.tracks.push(row);month.count=month.songKeys.size;if(month.titles.length<2)month.titles.push(row.title)}
+    });
+  });
+  Object.keys(unique).forEach(key=>songs.push(unique[key]));
+  songs.sort((a,b)=>b.days-a.days||b.count-a.count||a.title.localeCompare(b.title,'ja'));
+  months.forEach(month=>month.tracks.sort(sortNewest));
+  const shownMonths=year==='2025'?months.slice(3):months,totalDays=rows.reduce((sum,row)=>sum+row.days,0),active=rows.filter(row=>row.removedDate==='Active').length,repeat=songs.filter(song=>song.count>1).length,first=[...rows].sort(sortOldest)[0],longest=songs[0],peak=shownMonths.slice().sort((a,b)=>b.count-a.count||b.days-a.days)[0];
+  return{year,artist,rows,songs,totalDays,active,repeat,first,longest,months:shownMonths,peak};
+};
+
+const topMonthHtmlByResidency=topMonthHtml;
+topMonthHtml=function(stat){return topMonthHtmlByResidency(stat).replace('月ごとの登場曲','月ごとの在籍曲').replace('ピーク ','最多 ')};
+const topArtistLeadByResidency=topArtistLead;
+topArtistLead=function(stat,total,index){return topArtistLeadByResidency(stat,total,index).replace('月に登録の山がありました。','月の在籍曲数が最多でした。')};
+const rankRowsByDuration=rankRows;
+rankRows=function(kind,year,limit=20){
+  if(kind!=='artist')return rankRowsByDuration(kind,year,limit);
+  const list=year==='all'?[...tracks]:tracks.filter(row=>row.year===year),map={};
+  list.forEach(row=>{const key=norm(row.artist);if(!map[key])map[key]={artist:row.artist,days:0,songs:new Set(),records:0};map[key].days+=row.days;map[key].songs.add(songKey(row.title,row.artist));map[key].records++});
+  return Object.values(map).sort((a,b)=>b.days-a.days||b.songs.size-a.songs.size).slice(0,limit).map((item,index)=>rankItem(index,esc(item.artist),dayLabel(item.days),item.songs.size+'曲 / '+item.records+'履歴',null,'artist')).join('')||'<p class="text-xs text-zinc-500">データなし</p>';
+};
+
 function analysisArtists(){
   const map={};
   tracks.forEach(row=>{const key=norm(row.artist);if(!map[key])map[key]={artist:row.artist,rows:[],days:0,songs:new Set()};map[key].rows.push(row);map[key].days+=row.days;map[key].songs.add(songKey(row.title,row.artist))});
-  return Object.values(map).sort((a,b)=>b.rows.length-a.rows.length||b.days-a.days||a.artist.localeCompare(b.artist,'ja'));
+  return Object.values(map).sort((a,b)=>b.days-a.days||b.songs.size-a.songs.size||b.rows.length-a.rows.length||a.artist.localeCompare(b.artist,'ja'));
 }
 
 function renderArtistDeepDive(artists){
@@ -653,12 +702,11 @@ function renderArtistDeepDive(artists){
   analysisArtist=selected.artist;
   const songMap={};
   selected.rows.forEach(row=>{const key=songKey(row.title,row.artist);if(!songMap[key])songMap[key]={title:row.title,artist:row.artist,img:row.img,days:0,count:0};songMap[key].days+=row.days;songMap[key].count++});
-  const songs=Object.values(songMap).sort((a,b)=>b.days-a.days||b.count-a.count),months=Array(12).fill(0);
-  selected.rows.forEach(row=>{const date=parseDate(row.regDate);if(date)months[date.getMonth()]++});
-  const maxMonth=Math.max(1,...months),peak=months.indexOf(maxMonth)+1,active=selected.rows.filter(row=>row.removedDate==='Active').length;
+  const songs=Object.values(songMap).sort((a,b)=>b.days-a.days||b.count-a.count),months=monthlyResidency(selected.rows),averageDays=selected.songs.size?Math.round(selected.days/selected.songs.size):0;
+  const maxMonth=Math.max(1,...months),peak=months.indexOf(maxMonth)+1;
   const songHtml=songs.slice(0,4).map((song,index)=>'<button class="btn top-song-row w-full p-2 text-left flex items-center gap-2" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="min-w-0 flex-1"><span class="block text-[11px] font-black truncate">'+esc(song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+(index===0?'最長代表曲':'代表曲 '+(index+1))+' / '+dayLabel(song.days)+'</span></span></button>').join('');
   const bars=months.map((count,index)=>'<span class="artist-month-bar '+(count===maxMonth&&count?'is-peak ':'')+(count?'':'is-empty')+'"><b class="font-digital">'+count+'</b><em><i style="height:'+Math.max(count?12:4,Math.round(count/maxMonth*100))+'%"></i></em><span>'+(index+1)+'月</span></span>').join('');
-  area.innerHTML='<div class="artist-deep-card"><div><p class="text-[9px] text-pink-300 font-black">選択中のアーティスト</p><h5 class="text-2xl font-black mt-1">'+esc(selected.artist)+'</h5><p class="text-[10px] text-zinc-400 mt-1">登録のピークは'+peak+'月。最長代表曲は「'+esc(songs[0]?songs[0].title:'--')+'」です。</p><div class="artist-deep-stats mt-3"><div class="artist-deep-stat"><span>登録</span><b class="font-digital">'+selected.rows.length+'</b></div><div class="artist-deep-stat"><span>曲数</span><b class="font-digital text-cyan-200">'+selected.songs.size+'</b></div><div class="artist-deep-stat"><span>総日数</span><b class="font-digital text-amber-200">'+selected.days+'</b></div></div><div class="artist-month-chart-head"><p><i class="fa-solid fa-chart-column text-cyan-300 mr-1"></i>月別登録数</p><span>ピーク '+peak+'月 / '+maxMonth+'曲</span></div><div class="artist-month-scroll"><div class="artist-month-bars" aria-label="'+esc(selected.artist)+'の月別登録数">'+bars+'</div></div></div><div class="space-y-2">'+songHtml+'<button class="btn w-full rounded-xl border border-pink-500/20 bg-pink-500/10 text-pink-200 py-2 text-[10px] font-black" data-artist-filter="'+esc(selected.artist)+'"><i class="fa-solid fa-timeline mr-1"></i>すべての履歴を見る</button></div></div>';
+  area.innerHTML='<div class="artist-deep-card"><div><p class="text-[9px] text-pink-300 font-black">選択中のアーティスト</p><h5 class="text-2xl font-black mt-1">'+esc(selected.artist)+'</h5><p class="text-[10px] text-zinc-400 mt-1">在籍曲のピークは'+peak+'月。最長代表曲は「'+esc(songs[0]?songs[0].title:'--')+'」です。</p><div class="artist-deep-stats mt-3"><div class="artist-deep-stat"><span>総日数</span><b class="font-digital text-amber-200">'+selected.days+'</b></div><div class="artist-deep-stat"><span>平均滞在</span><b class="font-digital">'+averageDays+'日</b></div><div class="artist-deep-stat"><span>曲数</span><b class="font-digital text-cyan-200">'+selected.songs.size+'</b></div></div><div class="artist-month-chart-head"><p><i class="fa-solid fa-chart-column text-cyan-300 mr-1"></i>月別在籍曲数</p><span>ピーク '+peak+'月 / '+maxMonth+'曲</span></div><div class="artist-month-scroll"><div class="artist-month-bars" aria-label="'+esc(selected.artist)+'の月別在籍曲数">'+bars+'</div></div></div><div class="space-y-2">'+songHtml+'<button class="btn w-full rounded-xl border border-pink-500/20 bg-pink-500/10 text-pink-200 py-2 text-[10px] font-black" data-artist-filter="'+esc(selected.artist)+'"><i class="fa-solid fa-timeline mr-1"></i>すべての履歴を見る</button></div></div>';
 }
 
 function revivalPredictions(){
@@ -667,9 +715,9 @@ function revivalPredictions(){
     const cycle=analysisRegistrationGaps(song.history);if(!cycle.average||!cycle.dates.length)return null;
     const latest=cycle.dates[cycle.dates.length-1],expected=new Date(latest);expected.setDate(expected.getDate()+cycle.average);
     const delta=Math.round((expected-today)/86400000),spread=cycle.gaps.length>1?Math.max(...cycle.gaps)-Math.min(...cycle.gaps):cycle.average;
-    const confidence=Math.max(42,Math.min(92,54+song.history.length*8-Math.round(spread/30)));
+    const confidence=Math.max(42,Math.min(94,54+song.history.length*8+Math.min(12,Math.round(song.totalDays/30))-Math.round(spread/30)));
     return{song,cycle:cycle.average,expected,delta,confidence};
-  }).filter(Boolean).sort((a,b)=>Math.abs(a.delta)-Math.abs(b.delta)||b.confidence-a.confidence).slice(0,6);
+  }).filter(Boolean).sort((a,b)=>Math.abs(a.delta)-Math.abs(b.delta)||b.song.totalDays-a.song.totalDays||b.confidence-a.confidence).slice(0,6);
 }
 
 function renderAnalysis(){
@@ -683,7 +731,7 @@ function renderAnalysis(){
   if(picker)picker.innerHTML=artists.slice(0,8).map(item=>'<button class="btn analysis-artist-button '+(item.artist===analysisArtist?'active':'')+'" data-analysis-artist="'+esc(item.artist)+'">'+esc(item.artist)+'</button>').join('');
   renderArtistDeepDive(artists);
   const predictionArea=$('revivalPredictionArea');
-  if(predictionArea)predictionArea.innerHTML=predictions.map(item=>{const status=item.delta<0?Math.abs(item.delta)+'日ほど予測時期を通過':item.delta<=45?'約'+item.delta+'日後に周期到来':'次の周期まで約'+item.delta+'日';return '<button class="btn prediction-card" data-song-title="'+esc(item.song.title)+'" data-song-artist="'+esc(item.song.artist)+'"><div class="flex items-center gap-2">'+cover(item.song.img)+'<span class="min-w-0 flex-1"><span class="block text-xs font-black truncate">'+esc(item.song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+esc(item.song.artist)+'</span></span></div><p class="text-[10px] text-amber-100 font-bold mt-3">'+status+'</p><p class="text-[9px] text-zinc-500 mt-1">平均'+item.cycle+'日周期 / '+item.song.history.length+'回登録</p><span class="prediction-confidence mt-2"><i class="fa-solid fa-chart-line"></i>周期一致度 '+item.confidence+'%</span></button>'}).join('')||'<p class="text-xs text-zinc-500">再登録が2回以上ある終了曲が増えると、予測を表示できます。</p>';
+  if(predictionArea)predictionArea.innerHTML=predictions.map(item=>{const status=item.delta<0?Math.abs(item.delta)+'日ほど予測時期を通過':item.delta<=45?'約'+item.delta+'日後に周期到来':'次の周期まで約'+item.delta+'日';return '<button class="btn prediction-card" data-song-title="'+esc(item.song.title)+'" data-song-artist="'+esc(item.song.artist)+'"><div class="flex items-center gap-2">'+cover(item.song.img)+'<span class="min-w-0 flex-1"><span class="block text-xs font-black truncate">'+esc(item.song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+esc(item.song.artist)+'</span></span></div><p class="text-[10px] text-amber-100 font-bold mt-3">'+status+'</p><p class="text-[9px] text-zinc-500 mt-1">累計'+item.song.totalDays+'日 / 平均'+item.cycle+'日周期 / '+item.song.history.length+'回</p><span class="prediction-confidence mt-2"><i class="fa-solid fa-chart-line"></i>周期一致度 '+item.confidence+'%</span></button>'}).join('')||'<p class="text-xs text-zinc-500">再登録が2回以上ある終了曲が増えると、予測を表示できます。</p>';
 }
 
 function memoryDateDistance(date,today){
@@ -691,11 +739,24 @@ function memoryDateDistance(date,today){
   return Math.min(days,366-days);
 }
 
+function memoryResidencyMatch(song,today){
+  let best={distance:999,inside:false,year:0};
+  song.history.forEach(row=>{
+    const period=trackPeriod(row);if(!period.start||!period.end)return;
+    for(let year=period.start.getFullYear();year<=Math.min(period.end.getFullYear(),today.getFullYear()-1);year++){
+      const probe=new Date(year,today.getMonth(),today.getDate());
+      if(probe>=period.start&&probe<=period.end&&(!best.inside||year>best.year))best={distance:0,inside:true,year};
+    }
+    if(!best.inside){const distance=Math.min(memoryDateDistance(period.start,today),memoryDateDistance(period.end,today));if(distance<best.distance)best={distance,inside:false,year:period.start.getFullYear()}}
+  });
+  return best;
+}
+
 renderRecs=function(){
   const box=$('recommendSongs');if(!box)return;
   const today=new Date(),used=new Set(),picks=[];
-  const seasonal=masters.map(song=>{const dates=song.history.map(row=>parseDate(row.regDate)).filter(Boolean),near=dates.sort((a,b)=>memoryDateDistance(a,today)-memoryDateDistance(b,today))[0];return{song,near,distance:near?memoryDateDistance(near,today):999}}).sort((a,b)=>a.distance-b.distance||b.song.totalDays-a.song.totalDays)[0];
-  if(seasonal){const years=Math.max(0,today.getFullYear()-seasonal.near.getFullYear());picks.push({song:seasonal.song,label:'季節の記憶',reason:(years?years+'年前':'過去')+'の今ごろに登録。カレンダー上で今日に最も近い一曲です。'});used.add(songKey(seasonal.song.title,seasonal.song.artist))}
+  const seasonal=masters.map(song=>({song,match:memoryResidencyMatch(song,today)})).sort((a,b)=>Number(b.match.inside)-Number(a.match.inside)||a.match.distance-b.match.distance||b.song.totalDays-a.song.totalDays)[0];
+  if(seasonal){const years=Math.max(0,today.getFullYear()-seasonal.match.year),reason=seasonal.match.inside?(years+'年前の今日、この曲はプレイリストに在籍していました。'):'過去の在籍期間が、カレンダー上で今の季節に最も近い一曲です。';picks.push({song:seasonal.song,label:'季節の記憶',reason});used.add(songKey(seasonal.song.title,seasonal.song.artist))}
   const longest=[...masters].filter(song=>!used.has(songKey(song.title,song.artist))).sort((a,b)=>b.totalDays-a.totalDays)[0];
   if(longest){picks.push({song:longest,label:'長く残った一曲',reason:'累計'+longest.totalDays+'日。登録履歴の中でも滞在日数が際立つ一曲です。'});used.add(songKey(longest.title,longest.artist))}
   const returning=[...masters].filter(song=>song.history.length>=2&&!used.has(songKey(song.title,song.artist))).sort((a,b)=>b.history.length-a.history.length||b.totalDays-a.totalDays)[0];
