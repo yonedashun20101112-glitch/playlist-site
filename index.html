@@ -1005,28 +1005,20 @@ openModal=function(title,artist){
   normalizeMixedDayTerms($('modalContent'));
 };
 
-let lifelineSongKey='';
-
 function installLifelineUI(){
   if(!$('lifelineStyles')){
     const style=document.createElement('style');
     style.id='lifelineStyles';
     style.textContent=`
-      .theme-lifeline{--accent:#22d3ee}
-      #tab-lifeline{--tab-accent:#22d3ee}
-      .lifeline-hero{position:relative;overflow:hidden;border:1px solid rgba(34,211,238,.24);background:linear-gradient(135deg,rgba(34,211,238,.12),rgba(244,114,182,.08) 48%,rgba(20,24,35,.94));border-radius:20px;padding:20px}
-      .lifeline-hero:after{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:999px;background:radial-gradient(circle,rgba(34,211,238,.20),transparent 68%);pointer-events:none}
-      .lifeline-hero>*{position:relative;z-index:1}
-      .lifeline-search{display:flex;gap:8px;margin-top:16px;max-width:680px}
-      .lifeline-search input{width:100%;border:1px solid rgba(34,211,238,.20);background:rgba(2,6,23,.62);border-radius:12px;padding:11px 13px;color:#f8fafc;font-size:12px;outline:0}
-      .lifeline-search input:focus{border-color:rgba(34,211,238,.58);box-shadow:0 0 0 3px rgba(34,211,238,.10)}
-      .lifeline-picks{display:flex;gap:7px;overflow-x:auto;padding:4px 0 2px;scroll-snap-type:x proximity}
-      .lifeline-pick{flex:0 0 auto;max-width:220px;scroll-snap-align:start;border:1px solid rgba(255,255,255,.09);background:rgba(2,6,23,.34);border-radius:11px;padding:8px 10px;color:#cbd5e1;font-size:10px;font-weight:800;text-align:left}
-      .lifeline-pick.active{border-color:rgba(34,211,238,.52);background:rgba(34,211,238,.13);color:#cffafe}
-      .lifeline-stage{border:1px solid rgba(255,255,255,.10);background:rgba(20,24,35,.90);border-radius:20px;padding:16px;overflow:hidden}
-      .lifeline-song-head{display:grid;grid-template-columns:92px minmax(0,1fr);gap:15px;align-items:center}
-      .lifeline-cover{width:92px;aspect-ratio:1;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.11);background:#09090b}
-      .lifeline-cover img,.lifeline-cover .no-poster{width:100%;height:100%;object-fit:cover}
+      #modal:has(.lifeline-modal-panel) #modalBox{max-width:760px}
+      .lifeline-modal-panel{border:1px solid rgba(34,211,238,.20);background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(129,140,248,.05));border-radius:14px;overflow:hidden}
+      .lifeline-modal-panel>summary{display:flex;align-items:center;gap:9px;cursor:pointer;padding:12px 13px;color:#cffafe;font-size:11px;font-weight:900;list-style:none}
+      .lifeline-modal-panel>summary::-webkit-details-marker{display:none}
+      .lifeline-modal-panel>summary:after{content:"＋";margin-left:auto;color:#67e8f9;font-size:14px}
+      .lifeline-modal-panel[open]>summary:after{content:"－"}
+      .lifeline-modal-panel>summary span{margin-left:auto;color:#94a3b8;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700}
+      .lifeline-modal-panel>summary span+span{margin-left:0}
+      .lifeline-stage{border-top:1px solid rgba(34,211,238,.14);padding:13px;overflow:hidden}
       .lifeline-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
       .lifeline-stat{border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.30);border-radius:12px;padding:9px}
       .lifeline-stat span{display:block;color:#71717a;font-size:9px;font-weight:900}
@@ -1054,11 +1046,7 @@ function installLifelineUI(){
       .lifeline-event-icon{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:rgba(34,211,238,.12);color:#67e8f9}
       .lifeline-event.karaoke .lifeline-event-icon{background:rgba(244,114,182,.13);color:#f9a8d4}
       @media(max-width:640px){
-        #tab-lifeline{min-width:96px}
-        .lifeline-hero{padding:15px}
-        .lifeline-search{display:block}
-        .lifeline-song-head{grid-template-columns:72px minmax(0,1fr);gap:11px}
-        .lifeline-cover{width:72px;border-radius:12px}
+        .lifeline-modal-panel>summary{padding:11px;font-size:10px}
         .lifeline-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
         .lifeline-scale,.lifeline-lane{grid-template-columns:74px minmax(0,1fr);gap:7px}
         .lifeline-lane-label span{font-size:7px}
@@ -1067,54 +1055,11 @@ function installLifelineUI(){
     `;
     document.head.appendChild(style);
   }
-  const nav=document.querySelector('.nav-scroll'),main=document.querySelector('main');
-  if(nav&&!$('tab-lifeline')){
-    const button=document.createElement('button');
-    button.id='tab-lifeline';
-    button.className='btn nav-tab px-4 py-2 rounded-lg text-zinc-300 whitespace-nowrap';
-    button.dataset.scene='lifeline';
-    button.innerHTML='<i class="fa-solid fa-wave-square mr-1.5"></i>ライフライン';
-    nav.insertBefore(button,$('tab-analysis')||$('tab-topartists'));
-  }
-  if(main&&!$('scene-lifeline')){
-    const section=document.createElement('section');
-    section.id='scene-lifeline';
-    section.className='scene space-y-4';
-    section.innerHTML='<div class="lifeline-hero"><p class="text-[10px] text-cyan-300 font-black tracking-widest">SONG LIFELINE</p><h3 class="text-2xl font-black mt-1">曲と過ごした時間</h3><p class="text-xs text-zinc-400 mt-2">登録、終了、再登録、カラオケの記録を一本の時間軸でたどります。</p><div class="lifeline-search"><input id="lifelineSearch" type="search" placeholder="曲名・アーティストで検索" autocomplete="off"></div><div id="lifelinePicks" class="lifeline-picks mt-3"></div></div><div id="lifelineArea"></div>';
-    main.insertBefore(section,$('scene-analysis')||$('scene-topartists'));
-  }
-  const search=$('lifelineSearch');
-  if(search&&!search.dataset.bound){
-    search.dataset.bound='1';
-    search.addEventListener('input',()=>renderLifelinePicks(search.value));
-  }
 }
 
 function lifelineDateLabel(date){
   if(!date)return'--';
   return date.getFullYear()+'/'+String(date.getMonth()+1).padStart(2,'0')+'/'+String(date.getDate()).padStart(2,'0');
-}
-
-function lifelineScore(song){
-  const karaoke=typeof karaokeRowsForSong==='function'?karaokeRowsForSong(song.title,song.artist).length:0;
-  return song.history.length*10000+karaoke*3000+song.totalDays;
-}
-
-function lifelineDefaultSong(){
-  return [...masters].sort((a,b)=>lifelineScore(b)-lifelineScore(a))[0]||null;
-}
-
-function lifelineSong(){
-  return masters.find(song=>songKey(song.title,song.artist)===lifelineSongKey)||lifelineDefaultSong();
-}
-
-function renderLifelinePicks(query=''){
-  const box=$('lifelinePicks');if(!box)return;
-  const term=norm(query),selected=lifelineSong();
-  let songs=[...masters].filter(song=>!term||norm(song.title).includes(term)||norm(song.artist).includes(term));
-  songs.sort((a,b)=>term?String(a.title).localeCompare(String(b.title),'ja'):lifelineScore(b)-lifelineScore(a));
-  const shown=songs.slice(0,term?10:6);
-  box.innerHTML=shown.map(song=>'<button class="btn lifeline-pick '+(selected&&songKey(song.title,song.artist)===songKey(selected.title,selected.artist)?'active':'')+'" data-lifeline-pick="'+encodeURIComponent(songKey(song.title,song.artist))+'"><span class="block truncate">'+esc(song.title)+'</span><span class="block text-[8px] text-zinc-500 truncate mt-0.5">'+esc(song.artist)+' / '+song.history.length+'回</span></button>').join('')||'<span class="text-[10px] text-zinc-500 py-2">該当する曲はありません。</span>';
 }
 
 function lifelineStory(song,history,karaoke){
@@ -1136,12 +1081,8 @@ function lifelineStory(song,history,karaoke){
   return pieces.join('');
 }
 
-function renderLifeline(){
-  const area=$('lifelineArea');if(!area)return;
-  const song=lifelineSong();
-  renderLifelinePicks(($('lifelineSearch')&&$('lifelineSearch').value)||'');
-  if(!song){area.innerHTML='<div class="lifeline-stage text-xs text-zinc-500">表示できる曲データがありません。</div>';return}
-  lifelineSongKey=songKey(song.title,song.artist);
+function renderLifeline(song,area){
+  if(!area||!song)return;
   const history=song.history.map(row=>{const period=trackPeriod(row);return{row,start:period.start,end:period.end}}).filter(item=>item.start&&item.end).sort((a,b)=>a.start-b.start);
   const karaoke=(typeof karaokeRowsForSong==='function'?karaokeRowsForSong(song.title,song.artist):[]).map(row=>({...row,point:parseDate(row.date)})).filter(row=>row.point).sort((a,b)=>a.point-b.point);
   if(!history.length){area.innerHTML='<div class="lifeline-stage text-xs text-zinc-500">この曲には日付付きの履歴がありません。</div>';return}
@@ -1160,38 +1101,29 @@ function renderLifeline(){
   const karaokeEvents=karaoke.map(row=>({date:row.point,type:'karaoke',title:'カラオケ '+Number(row.score).toFixed(2).replace(/\.00$/,'')+'点',detail:lifelineDateLabel(row.point)+(row.memo?' / '+row.memo:'')}));
   const events=[...historyEvents,...karaokeEvents].sort((a,b)=>b.date-a.date).map(event=>'<div class="lifeline-event '+event.type+'"><span class="lifeline-event-icon"><i class="fa-solid '+(event.type==='karaoke'?'fa-microphone-lines':event.type==='end'?'fa-circle-stop':'fa-play')+'"></i></span><span class="min-w-0"><b class="block text-[10px] text-zinc-200 truncate">'+esc(event.title)+'</b><span class="block text-[8px] text-zinc-500 truncate mt-0.5">'+esc(event.detail)+'</span></span></div>').join('');
   const latest=history[history.length-1],active=history.some(item=>item.row.removedDate==='Active');
-  const coverHtml=song.img&&song.img!=='0'?'<img src="'+esc(song.img)+'" alt="'+esc(song.title)+'">':'<div class="no-poster"><i class="fa-solid fa-music"></i></div>';
-  area.innerHTML='<article class="lifeline-stage"><div class="lifeline-song-head"><div class="lifeline-cover">'+coverHtml+'</div><div class="min-w-0"><p class="text-[9px] text-cyan-300 font-black">選択中の曲</p><h4 class="text-xl md:text-2xl font-black truncate mt-1">'+esc(song.title)+'</h4><p class="text-xs text-zinc-400 truncate mt-1">'+esc(song.artist)+'</p><button class="btn mt-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-cyan-200 px-3 py-1.5 text-[9px] font-black" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'"><i class="fa-solid fa-up-right-from-square mr-1"></i>曲の詳細</button></div></div><div class="lifeline-summary"><div class="lifeline-stat"><span>初登録</span><b>'+lifelineDateLabel(history[0].start)+'</b></div><div class="lifeline-stat"><span>累計在籍</span><b class="text-cyan-200">'+durationLabel(song.totalDays)+'</b></div><div class="lifeline-stat"><span>登録回数</span><b>'+history.length+'回</b></div><div class="lifeline-stat"><span>現在</span><b class="'+(active?'text-emerald-300':'text-zinc-300')+'">'+(active?dayLabel(latest.row.days):'終了')+'</b></div></div><p class="lifeline-story">'+esc(lifelineStory(song,history,karaoke))+'</p><div class="lifeline-chart"><div class="lifeline-scale"><span class="text-[9px] text-zinc-500 font-black">時間軸</span><div class="lifeline-scale-track">'+ticks+'</div></div>'+lanes+karaokeRail+'</div><div class="flex items-center justify-between gap-2 mt-5"><p class="text-[10px] text-zinc-400 font-black">記録イベント</p><span class="text-[8px] text-zinc-600">新しい順</span></div><div class="lifeline-events">'+events+'</div></article>';
+  area.innerHTML='<div class="lifeline-stage"><div class="lifeline-summary"><div class="lifeline-stat"><span>初登録</span><b>'+lifelineDateLabel(history[0].start)+'</b></div><div class="lifeline-stat"><span>累計在籍</span><b class="text-cyan-200">'+durationLabel(song.totalDays)+'</b></div><div class="lifeline-stat"><span>登録回数</span><b>'+history.length+'回</b></div><div class="lifeline-stat"><span>現在</span><b class="'+(active?'text-emerald-300':'text-zinc-300')+'">'+(active?dayLabel(latest.row.days):'終了')+'</b></div></div><p class="lifeline-story">'+esc(lifelineStory(song,history,karaoke))+'</p><div class="lifeline-chart"><div class="lifeline-scale"><span class="text-[9px] text-zinc-500 font-black">時間軸</span><div class="lifeline-scale-track">'+ticks+'</div></div>'+lanes+karaokeRail+'</div><div class="flex items-center justify-between gap-2 mt-5"><p class="text-[10px] text-zinc-400 font-black">記録イベント</p><span class="text-[8px] text-zinc-600">新しい順</span></div><div class="lifeline-events">'+events+'</div></div>';
 }
 
 installLifelineUI();
 
-const switchSceneWithLifeline=switchScene;
-switchScene=function(scene){
-  const tab=$('tab-lifeline');
-  if(tab)tab.className='btn nav-tab px-4 py-2 rounded-lg text-zinc-300 whitespace-nowrap';
-  switchSceneWithLifeline(scene);
-  if(scene==='lifeline')requestAnimationFrame(renderLifeline);
-};
+function renderModalLifeline(title,artist){
+  const song=masters.find(item=>songKey(item.title,item.artist)===songKey(title,artist))||masters.find(item=>norm(item.title)===norm(title));
+  const content=$('modalContent');
+  if(!song||!content)return;
+  const panel=document.createElement('details');
+  panel.className='lifeline-modal-panel';
+  panel.open=true;
+  panel.innerHTML='<summary><i class="fa-solid fa-wave-square"></i>曲のライフライン<span>'+song.history.length+'回 / '+durationLabel(song.totalDays)+'</span></summary><div class="modal-lifeline-area"></div>';
+  const stats=content.querySelector('.grid.grid-cols-2');
+  if(stats&&stats.nextSibling)content.insertBefore(panel,stats.nextSibling);else content.appendChild(panel);
+  renderLifeline(song,panel.querySelector('.modal-lifeline-area'));
+}
 
-const renderAllWithLifeline=renderAll;
-renderAll=function(){
-  renderAllWithLifeline();
-  if(isSceneActive('lifeline'))renderLifeline();
+const openModalWithLifeline=openModal;
+openModal=function(title,artist){
+  openModalWithLifeline(title,artist);
+  renderModalLifeline(title,artist);
 };
-
-const saveKaraokeLogsWithLifeline=saveKaraokeLogs;
-saveKaraokeLogs=function(){
-  saveKaraokeLogsWithLifeline();
-  if(isSceneActive('lifeline'))renderLifeline();
-};
-
-document.addEventListener('click',event=>{
-  const pick=event.target.closest('[data-lifeline-pick]');
-  if(!pick)return;
-  lifelineSongKey=decodeURIComponent(pick.dataset.lifelinePick);
-  renderLifeline();
-});
 </script>
 </body>
 </html>
