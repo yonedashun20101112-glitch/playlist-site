@@ -1011,20 +1011,19 @@ function installLifelineUI(){
     style.id='lifelineStyles';
     style.textContent=`
       #modal:has(.lifeline-modal-panel) #modalBox{max-width:760px}
-      .lifeline-modal-panel{border:1px solid rgba(34,211,238,.20);background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(129,140,248,.05));border-radius:14px;overflow:hidden}
-      .lifeline-modal-panel>summary{display:flex;align-items:center;gap:9px;cursor:pointer;padding:12px 13px;color:#cffafe;font-size:11px;font-weight:900;list-style:none}
+      .lifeline-modal-panel{position:relative;border:1px solid rgba(103,232,249,.18);background:linear-gradient(145deg,rgba(8,16,29,.96),rgba(17,24,39,.90));border-radius:14px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+      .lifeline-modal-panel:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,#22d3ee,#818cf8,#f472b6);opacity:.75}
+      .lifeline-modal-panel>summary{display:flex;align-items:center;gap:9px;cursor:pointer;padding:13px;color:#e0f2fe;font-size:11px;font-weight:900;list-style:none}
       .lifeline-modal-panel>summary::-webkit-details-marker{display:none}
-      .lifeline-modal-panel>summary:after{content:"＋";margin-left:auto;color:#67e8f9;font-size:14px}
+      .lifeline-modal-panel>summary>i{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:linear-gradient(135deg,rgba(34,211,238,.20),rgba(129,140,248,.15));color:#67e8f9}
+      .lifeline-modal-panel>summary:after{content:"＋";margin-left:0;color:#67e8f9;font-size:14px}
       .lifeline-modal-panel[open]>summary:after{content:"－"}
-      .lifeline-modal-panel>summary span{margin-left:auto;color:#94a3b8;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700}
-      .lifeline-modal-panel>summary span+span{margin-left:0}
-      .lifeline-stage{border-top:1px solid rgba(34,211,238,.14);padding:13px;overflow:hidden}
-      .lifeline-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
-      .lifeline-stat{border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.30);border-radius:12px;padding:9px}
-      .lifeline-stat span{display:block;color:#71717a;font-size:9px;font-weight:900}
-      .lifeline-stat b{display:block;margin-top:3px;color:#f8fafc;font-size:13px;line-height:1.2}
-      .lifeline-story{margin-top:13px;border-left:3px solid #22d3ee;background:rgba(34,211,238,.07);border-radius:0 11px 11px 0;padding:10px 12px;color:#cbd5e1;font-size:11px;font-weight:700;line-height:1.7}
-      .lifeline-chart{margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+      .lifeline-modal-panel>summary span{margin-left:auto;color:#64748b;font-size:8px;font-weight:800}
+      .lifeline-stage{border-top:1px solid rgba(103,232,249,.10);padding:13px;overflow:hidden}
+      .lifeline-context{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px}
+      .lifeline-context span{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);border-radius:999px;padding:6px 9px;color:#94a3b8;font-size:8px;font-weight:800}
+      .lifeline-context i{color:#67e8f9}
+      .lifeline-chart{padding:2px 0 1px}
       .lifeline-scale,.lifeline-lane{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px}
       .lifeline-scale{align-items:end;margin-bottom:8px}
       .lifeline-scale-track{position:relative;height:22px;border-bottom:1px solid rgba(255,255,255,.14)}
@@ -1033,7 +1032,7 @@ function installLifelineUI(){
       .lifeline-lane{align-items:center;margin:8px 0}
       .lifeline-lane-label b{display:block;font-size:10px;color:#e2e8f0}
       .lifeline-lane-label span{display:block;margin-top:2px;font-size:8px;color:#71717a;font-family:'Orbitron',sans-serif}
-      .lifeline-track{position:relative;height:30px;border-radius:9px;background:linear-gradient(90deg,rgba(255,255,255,.035),rgba(255,255,255,.065));overflow:visible}
+      .lifeline-track{position:relative;height:30px;border:1px solid rgba(255,255,255,.04);border-radius:9px;background:linear-gradient(90deg,rgba(255,255,255,.025),rgba(255,255,255,.065));overflow:visible}
       .lifeline-track:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.09)}
       .lifeline-bar{position:absolute;top:7px;height:16px;min-width:8px;border-radius:6px;background:linear-gradient(90deg,#22d3ee,#818cf8);box-shadow:0 5px 18px rgba(34,211,238,.23)}
       .lifeline-bar.active{background:linear-gradient(90deg,#34d399,#22d3ee);box-shadow:0 0 0 1px rgba(52,211,153,.30),0 5px 20px rgba(52,211,153,.24)}
@@ -1041,16 +1040,10 @@ function installLifelineUI(){
       .lifeline-karaoke-track{position:relative;height:42px;border-radius:9px;background:rgba(244,114,182,.045);border:1px dashed rgba(244,114,182,.16)}
       .lifeline-karaoke-dot{position:absolute;top:8px;transform:translateX(-50%);width:11px;height:11px;border-radius:999px;background:#f472b6;border:2px solid #fce7f3;box-shadow:0 0 13px rgba(244,114,182,.55)}
       .lifeline-karaoke-dot span{position:absolute;top:13px;left:50%;transform:translateX(-50%);font-size:7px;color:#fbcfe8;font-family:'Orbitron',sans-serif;white-space:nowrap}
-      .lifeline-events{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;max-height:260px;overflow-y:auto;padding-right:2px}
-      .lifeline-event{display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.07);background:rgba(2,6,23,.25);border-radius:11px;padding:9px}
-      .lifeline-event-icon{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:rgba(34,211,238,.12);color:#67e8f9}
-      .lifeline-event.karaoke .lifeline-event-icon{background:rgba(244,114,182,.13);color:#f9a8d4}
       @media(max-width:640px){
         .lifeline-modal-panel>summary{padding:11px;font-size:10px}
-        .lifeline-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
         .lifeline-scale,.lifeline-lane{grid-template-columns:74px minmax(0,1fr);gap:7px}
         .lifeline-lane-label span{font-size:7px}
-        .lifeline-events{grid-template-columns:1fr;max-height:230px}
       }
     `;
     document.head.appendChild(style);
@@ -1060,25 +1053,6 @@ function installLifelineUI(){
 function lifelineDateLabel(date){
   if(!date)return'--';
   return date.getFullYear()+'/'+String(date.getMonth()+1).padStart(2,'0')+'/'+String(date.getDate()).padStart(2,'0');
-}
-
-function lifelineStory(song,history,karaoke){
-  const first=history[0],last=history[history.length-1],active=history.some(item=>item.row.removedDate==='Active');
-  const pieces=[];
-  pieces.push(lifelineDateLabel(first.start)+'に最初の登録。');
-  if(history.length>1){
-    let longestGap=0;
-    for(let index=1;index<history.length;index++)longestGap=Math.max(longestGap,Math.max(0,Math.round((history[index].start-history[index-1].end)/86400000)-1));
-    pieces.push(history.length+'回の在籍を重ね'+(longestGap?'、最長'+longestGap+'日間の空白を越えて再登場しました。':'て再び選ばれています。'));
-  }else pieces.push('現在までの登録は1回です。');
-  pieces.push('累計在籍は'+durationLabel(song.totalDays)+'。');
-  if(karaoke.length){
-    const best=Math.max(...karaoke.map(row=>Number(row.score)||0));
-    pieces.push('カラオケは'+karaoke.length+'回、最高'+best.toFixed(2).replace(/\.00$/,'')+'点を記録しています。');
-  }
-  if(active)pieces.push('現在もActiveで、記録は更新中です。');
-  else pieces.push('最新の在籍は'+lifelineDateLabel(last.end)+'に終了しました。');
-  return pieces.join('');
 }
 
 function renderLifeline(song,area){
@@ -1092,16 +1066,13 @@ function renderLifeline(song,area){
   if(maxDate-minDate<30*86400000)maxDate.setDate(minDate.getDate()+30);
   const span=Math.max(1,maxDate-minDate),pct=date=>Math.max(0,Math.min(100,(date-minDate)/span*100));
   const ticks=Array.from({length:5},(_,index)=>{const date=new Date(minDate.getTime()+span*index/4);return'<span class="lifeline-tick" style="left:'+index*25+'%">'+(date.getFullYear()===new Date().getFullYear()?(date.getMonth()+1)+'月':date.getFullYear()+'/'+(date.getMonth()+1))+'</span>'}).join('');
-  const lanes=history.map((item,index)=>{const active=item.row.removedDate==='Active',left=pct(item.start),width=Math.max(1.2,pct(item.end)-left),period=active?dayLabel(item.row.days):durationLabel(item.row.days);return'<div class="lifeline-lane"><div class="lifeline-lane-label"><b>在籍 '+(index+1)+'</b><span>'+period+'</span></div><div class="lifeline-track" title="'+esc(lifelineDateLabel(item.start)+' - '+(active?'Active':lifelineDateLabel(item.end)))+'"><span class="lifeline-bar '+(active?'active':'')+'" style="left:'+left+'%;width:'+width+'%"></span></div></div>'}).join('');
+  const lanes=history.map((item,index)=>{const active=item.row.removedDate==='Active',left=pct(item.start),width=Math.max(1.2,pct(item.end)-left),period=active?dayLabel(item.row.days):durationLabel(item.row.days);return'<div class="lifeline-lane"><div class="lifeline-lane-label"><b>第'+(index+1)+'期</b><span>'+period+'</span></div><div class="lifeline-track" title="'+esc(lifelineDateLabel(item.start)+' - '+(active?'Active':lifelineDateLabel(item.end)))+'"><span class="lifeline-bar '+(active?'active':'')+'" style="left:'+left+'%;width:'+width+'%"></span></div></div>'}).join('');
   const karaokeRail=karaoke.length?'<div class="lifeline-lane"><div class="lifeline-lane-label"><b>カラオケ</b><span>'+karaoke.length+'回</span></div><div class="lifeline-karaoke-track">'+karaoke.map(row=>'<span class="lifeline-karaoke-dot" style="left:'+pct(row.point)+'%" title="'+esc(lifelineDateLabel(row.point)+' / '+Number(row.score).toFixed(2).replace(/\.00$/,'')+'点')+'"><span>'+Number(row.score).toFixed(1)+'</span></span>').join('')+'</div></div>':'';
-  const historyEvents=history.flatMap((item,index)=>[
-    {date:item.start,type:'start',title:(index?'再登録':'初登録'),detail:lifelineDateLabel(item.start)},
-    ...(item.row.removedDate==='Active'?[]:[{date:item.end,type:'end',title:'在籍終了',detail:lifelineDateLabel(item.end)+' / '+durationLabel(item.row.days)}])
-  ]);
-  const karaokeEvents=karaoke.map(row=>({date:row.point,type:'karaoke',title:'カラオケ '+Number(row.score).toFixed(2).replace(/\.00$/,'')+'点',detail:lifelineDateLabel(row.point)+(row.memo?' / '+row.memo:'')}));
-  const events=[...historyEvents,...karaokeEvents].sort((a,b)=>b.date-a.date).map(event=>'<div class="lifeline-event '+event.type+'"><span class="lifeline-event-icon"><i class="fa-solid '+(event.type==='karaoke'?'fa-microphone-lines':event.type==='end'?'fa-circle-stop':'fa-play')+'"></i></span><span class="min-w-0"><b class="block text-[10px] text-zinc-200 truncate">'+esc(event.title)+'</b><span class="block text-[8px] text-zinc-500 truncate mt-0.5">'+esc(event.detail)+'</span></span></div>').join('');
-  const latest=history[history.length-1],active=history.some(item=>item.row.removedDate==='Active');
-  area.innerHTML='<div class="lifeline-stage"><div class="lifeline-summary"><div class="lifeline-stat"><span>初登録</span><b>'+lifelineDateLabel(history[0].start)+'</b></div><div class="lifeline-stat"><span>累計在籍</span><b class="text-cyan-200">'+durationLabel(song.totalDays)+'</b></div><div class="lifeline-stat"><span>登録回数</span><b>'+history.length+'回</b></div><div class="lifeline-stat"><span>現在</span><b class="'+(active?'text-emerald-300':'text-zinc-300')+'">'+(active?dayLabel(latest.row.days):'終了')+'</b></div></div><p class="lifeline-story">'+esc(lifelineStory(song,history,karaoke))+'</p><div class="lifeline-chart"><div class="lifeline-scale"><span class="text-[9px] text-zinc-500 font-black">時間軸</span><div class="lifeline-scale-track">'+ticks+'</div></div>'+lanes+karaokeRail+'</div><div class="flex items-center justify-between gap-2 mt-5"><p class="text-[10px] text-zinc-400 font-black">記録イベント</p><span class="text-[8px] text-zinc-600">新しい順</span></div><div class="lifeline-events">'+events+'</div></div>';
+  let longestGap=0;
+  for(let index=1;index<history.length;index++)longestGap=Math.max(longestGap,Math.max(0,Math.round((history[index].start-history[index-1].end)/86400000)-1));
+  const latest=history[history.length-1],active=history.some(item=>item.row.removedDate==='Active'),rangeEnd=active?'現在':lifelineDateLabel(latest.end);
+  const context='<div class="lifeline-context"><span><i class="fa-regular fa-calendar"></i>'+lifelineDateLabel(history[0].start)+' → '+rangeEnd+'</span>'+(longestGap?'<span><i class="fa-solid fa-rotate"></i>最長空白 '+durationLabel(longestGap)+'</span>':'')+'</div>';
+  area.innerHTML='<div class="lifeline-stage">'+context+'<div class="lifeline-chart"><div class="lifeline-scale"><span class="text-[9px] text-zinc-500 font-black">在籍の流れ</span><div class="lifeline-scale-track">'+ticks+'</div></div>'+lanes+karaokeRail+'</div></div>';
 }
 
 installLifelineUI();
@@ -1113,9 +1084,8 @@ function renderModalLifeline(title,artist){
   const panel=document.createElement('details');
   panel.className='lifeline-modal-panel';
   panel.open=true;
-  panel.innerHTML='<summary><i class="fa-solid fa-wave-square"></i>曲のライフライン<span>'+song.history.length+'回 / '+durationLabel(song.totalDays)+'</span></summary><div class="modal-lifeline-area"></div>';
-  const stats=content.querySelector('.grid.grid-cols-2');
-  if(stats&&stats.nextSibling)content.insertBefore(panel,stats.nextSibling);else content.appendChild(panel);
+  panel.innerHTML='<summary><i class="fa-solid fa-wave-square"></i>曲のライフライン<span>在籍を可視化</span></summary><div class="modal-lifeline-area"></div>';
+  content.appendChild(panel);
   renderLifeline(song,panel.querySelector('.modal-lifeline-area'));
 }
 
