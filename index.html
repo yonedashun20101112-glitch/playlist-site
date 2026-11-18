@@ -1094,6 +1094,218 @@ openModal=function(title,artist){
   openModalWithLifeline(title,artist);
   renderModalLifeline(title,artist);
 };
+
+const MEDIA_INTENT_KEY='dslMediaIntentV1';
+let mediaIntentMap=(()=>{try{return JSON.parse(localStorage.getItem(MEDIA_INTENT_KEY)||'{}')||{}}catch(e){return{}}})();
+let topArtistMetric='days';
+
+function retireCalendarAndKaraoke(){
+  document.querySelectorAll('[data-scene="calendar"],[data-scene="karaoke"]').forEach(element=>element.remove());
+  const historyCard=$('historyDate')&&$('historyDate').closest('.card');
+  if(historyCard)historyCard.remove();
+  const calendar=$('scene-calendar'),karaoke=$('scene-karaoke');
+  if(calendar)calendar.remove();
+  if(karaoke)karaoke.remove();
+}
+
+function installMediaIntentControl(){
+  const submit=$('songSubmit');
+  if(!submit||$('inputMediaTheme'))return;
+  const label=document.createElement('label');
+  label.className='media-intent-control';
+  label.innerHTML='<input id="inputMediaTheme" type="checkbox"><span class="media-intent-check"><i class="fa-solid fa-check"></i></span><span><b>アニメ・映画等主題歌</b><small>作品情報を検索</small></span>';
+  submit.parentElement.insertBefore(label,submit);
+}
+
+function installDsl2027Styles(){
+  if($('dsl2027Styles'))return;
+  const style=document.createElement('style');
+  style.id='dsl2027Styles';
+  style.textContent=`
+    .media-intent-control{display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;cursor:pointer;color:#e2e8f0;font-size:11px;font-weight:800}
+    .media-intent-control input{position:absolute;opacity:0;pointer-events:none}
+    .media-intent-check{display:grid;place-items:center;width:22px;height:22px;flex:0 0 auto;border:1px solid rgba(244,114,182,.32);border-radius:6px;background:#09090b;color:transparent}
+    .media-intent-control input:checked+.media-intent-check{background:#f472b6;border-color:#f9a8d4;color:#111827}
+    .media-intent-control small{display:block;margin-top:1px;color:#71717a;font-size:8px;font-weight:700}
+    .song-tag-media{border-color:rgba(34,211,238,.28);background:rgba(34,211,238,.10);color:#a5f3fc}
+    .award-shell{display:grid;gap:14px}
+    .award-head{display:flex;align-items:end;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.09);padding:0 0 14px}
+    .award-head h3{font-size:22px;line-height:1.15;font-weight:900}
+    .award-years,.award-metrics,.award-people{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+    .award-years::-webkit-scrollbar,.award-metrics::-webkit-scrollbar,.award-people::-webkit-scrollbar{display:none}
+    .award-year,.award-metric,.award-person{flex:0 0 auto;border:1px solid rgba(255,255,255,.09);background:rgba(2,6,23,.28);color:#94a3b8;border-radius:7px;padding:8px 11px;font-size:10px;font-weight:900}
+    .award-year.active{background:#fbbf24;border-color:#fde68a;color:#111827}
+    .award-metric.active{background:#22d3ee;border-color:#67e8f9;color:#082f49}
+    .award-person.active{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.10);color:#fef3c7}
+    .award-focus{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(220px,.65fr);gap:16px;align-items:stretch;border-top:2px solid #fbbf24;background:rgba(15,23,42,.46);padding:16px}
+    .award-name{font-size:clamp(28px,5vw,58px);line-height:1;font-weight:900;overflow-wrap:anywhere}
+    .award-cover{position:relative;min-height:210px;overflow:hidden;border-radius:8px;background:#09090b}
+    .award-cover img{width:100%;height:100%;object-fit:cover;display:block}
+    .award-cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(2,6,23,.72))}
+    .award-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:16px}
+    .award-kpi{border-left:2px solid rgba(34,211,238,.65);background:rgba(2,6,23,.26);padding:8px 9px}
+    .award-kpi span{display:block;color:#64748b;font-size:8px;font-weight:900}
+    .award-kpi b{display:block;margin-top:3px;font-family:'Orbitron',sans-serif;font-size:16px}
+    .award-chart{padding:2px 0}
+    .award-bars{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;align-items:end;min-height:148px}
+    .award-bar{display:grid;grid-template-rows:1fr auto auto;gap:4px;min-height:138px;text-align:center}
+    .award-bar-track{position:relative;align-self:stretch;min-height:90px;background:rgba(255,255,255,.035);border-radius:4px;overflow:hidden}
+    .award-bar-track i{position:absolute;inset:auto 0 0;background:linear-gradient(180deg,#22d3ee,#818cf8);border-radius:4px 4px 0 0;min-height:3px}
+    .award-bar b{font-family:'Orbitron',sans-serif;color:#cbd5e1;font-size:8px}
+    .award-bar span{color:#64748b;font-size:8px}
+    .award-songs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+    .award-song{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:center;border:1px solid rgba(255,255,255,.07);background:rgba(2,6,23,.22);border-radius:7px;padding:7px;text-align:left}
+    .award-song img,.award-song .no-poster{width:40px!important;height:40px!important;border-radius:6px!important}
+    .return-reasons{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+    .return-reason{border-left:2px solid #fbbf24;background:rgba(251,191,36,.07);padding:5px 7px;color:#cbd5e1;font-size:8px;font-weight:800}
+    @media(max-width:640px){
+      .award-head{display:block}
+      .award-head h3{font-size:19px}
+      .award-years{margin-top:11px}
+      .award-focus{grid-template-columns:1fr;padding:12px}
+      .award-cover{order:-1;min-height:150px;max-height:190px}
+      .award-name{font-size:31px}
+      .award-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .award-bars{grid-template-columns:repeat(4,minmax(0,1fr));min-height:0}
+      .award-bar{min-height:100px}
+      .award-bar-track{min-height:58px}
+      .award-songs{display:flex;overflow-x:auto;gap:7px;scroll-snap-type:x mandatory}
+      .award-song{flex:0 0 78%;scroll-snap-align:start}
+      .analysis-section{padding:13px}
+      .prediction-card{min-width:min(82vw,300px)}
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function saveMediaIntent(){
+  try{localStorage.setItem(MEDIA_INTENT_KEY,JSON.stringify(mediaIntentMap))}catch(e){}
+}
+
+retireCalendarAndKaraoke();
+installMediaIntentControl();
+installDsl2027Styles();
+
+karaokeRowsForSong=function(){return[]};
+karaokeSummaryHtml=function(){return''};
+
+const queueMediaTagScanChecked=queueMediaTagScan;
+queueMediaTagScan=function(songs){
+  queueMediaTagScanChecked((songs||[]).filter(song=>mediaIntentMap[tagSongKey(song.title,song.artist)]));
+};
+
+automaticSongTags=function(title,artist){
+  const key=tagSongKey(title,artist),tags=[];
+  const media=mediaTagExcluded({title,artist})?null:(verifiedMediaRecord({title,artist})||mediaTagCache[key]);
+  dataBankMediaTags(title,artist).forEach(label=>tags.push({label,type:label==='アニメ'?'anime':label==='ドラマ'?'drama':'movie'}));
+  if(media&&Array.isArray(media.tags))media.tags.forEach(label=>tags.push({label,type:label==='アニメ'?'anime':label==='ドラマ'?'drama':'movie'}));
+  if(mediaIntentMap[key]&&!tags.some(tag=>['アニメ','ドラマ','映画'].includes(tag.label)))tags.push({label:'作品主題歌',type:'media'});
+  (yearlyTopTagMap[key]||[]).forEach(label=>tags.push({label,type:'year'}));
+  return tags.filter((tag,index)=>tags.findIndex(other=>other.label===tag.label)===index);
+};
+
+const resetSongFormWithMediaIntent=resetSongForm;
+resetSongForm=function(){
+  resetSongFormWithMediaIntent();
+  if($('inputMediaTheme'))$('inputMediaTheme').checked=false;
+};
+
+submitSong=function(){
+  const year=$('inputYear').value,title=$('inputTitle').value.trim(),artist=$('inputArtist').value.trim(),img=$('inputImg').value.trim(),link=$('inputLink').value.trim(),mediaIntent=!!($('inputMediaTheme')&&$('inputMediaTheme').checked),outTracks=[...$('inputOut').selectedOptions].map(option=>option.value).filter(Boolean);
+  if(!title||!artist)return alert('曲名とアーティスト名は両方入力してください。');
+  const button=$('songSubmit'),original=button.textContent;
+  button.textContent='送信中...';button.disabled=true;
+  fetch(`${GAS_URL}?${new URLSearchParams({year,title,artist,img,link,outTrack:outTracks[0]||'',outTracks:outTracks.join(';;;')}).toString()}`,{method:'GET',mode:'cors'}).then(response=>response.json()).then(result=>{
+    if(result.status!=='success')throw new Error(result.message||'登録失敗');
+    const now=new Date(),raw=`${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`,today=`${year}/${raw}`;
+    outTracks.forEach(value=>{const [oldTitle,oldArtist]=value.split('|||'),row=tracks.find(item=>item.year===year&&item.removedDate==='Active'&&songKey(item.title,item.artist)===songKey(oldTitle,oldArtist));if(row){row.rawRem=raw;row.removedDate=today;row.days=daysBetween(parseDate(row.regDate),parseDate(today))}});
+    tracks.unshift({year,title,artist,days:1,img,link:link||'#',rawReg:raw,rawRem:'Active',regDate:`${year}/${raw}`,removedDate:'Active',sourceIndex:99999});
+    if(mediaIntent){const key=tagSongKey(title,artist);mediaIntentMap[key]={title,artist,addedAt:Date.now()};saveMediaIntent();mediaTagChecked.delete(key);delete mediaTagCache[key]}
+    rebuildMasters();localStorage.setItem('tracks',JSON.stringify(tracks));renderAll();
+    if(mediaIntent)queueMediaTagScanChecked([{title,artist}]);
+    resetSongForm();
+    alert(mediaIntent?'新曲を登録し、作品情報の検索を開始しました。':'新曲を登録しました。');
+    if(mediaIntent)setTimeout(()=>openModal(title,artist),200);
+  }).catch(error=>alert('送信に失敗しました。\n詳細: '+error.message)).finally(()=>{button.textContent=original;button.disabled=false});
+};
+
+function topArtistSeries(stat){
+  const year=Number(stat.year),startMonth=stat.year==='2025'?4:1;
+  return Array.from({length:13-startMonth},(_,index)=>index+startMonth).map(month=>{
+    const monthStart=new Date(year,month-1,1),monthEnd=new Date(year,month,0),songKeys=new Set();
+    let days=0,records=0;
+    stat.rows.forEach(row=>{
+      const registered=parseDate(row.regDate),removed=row.removedDate==='Active'?new Date():parseDate(row.removedDate);
+      if(registered&&registered.getFullYear()===year&&registered.getMonth()+1===month)records++;
+      if(!registered||!removed||registered>monthEnd||removed<monthStart)return;
+      const start=registered>monthStart?registered:monthStart,end=removed<monthEnd?removed:monthEnd;
+      days+=Math.max(1,Math.floor((end-start)/86400000)+1);
+      songKeys.add(songKey(row.title,row.artist));
+    });
+    return{month,days,songs:songKeys.size,records};
+  });
+}
+
+function topArtistMetricMeta(){
+  return{days:{label:'在籍日数',unit:'日'},songs:{label:'在籍曲数',unit:'曲'},records:{label:'登録回数',unit:'回'}}[topArtistMetric];
+}
+
+renderTopArtists=function(){
+  const box=$('topArtistsArea');if(!box)return;
+  const oldHero=$('scene-topartists')&&$('scene-topartists').querySelector('.top-artist-hero');if(oldHero)oldHero.remove();
+  const years=Object.keys(TOP_ARTISTS).sort().reverse();if(!TOP_ARTISTS[topArtistYear])topArtistYear=years[0];
+  const artists=TOP_ARTISTS[topArtistYear];if(!artists.includes(topArtistFocus))topArtistFocus=artists[0];
+  const stat=topArtistStats(topArtistYear,topArtistFocus),series=topArtistSeries(stat),meta=topArtistMetricMeta(),max=Math.max(1,...series.map(item=>item[topArtistMetric]));
+  const yearButtons=years.map(year=>'<button class="btn award-year '+(year===topArtistYear?'active':'')+'" data-top-year="'+year+'">'+year+'年度</button>').join('');
+  const people=artists.map(artist=>'<button class="btn award-person '+(artist===topArtistFocus?'active':'')+'" data-top-artist="'+esc(artist)+'">'+esc(artist)+'</button>').join('');
+  const metrics=[['days','在籍日数'],['songs','曲数'],['records','登録回数']].map(item=>'<button class="btn award-metric '+(item[0]===topArtistMetric?'active':'')+'" data-top-metric="'+item[0]+'">'+item[1]+'</button>').join('');
+  const bars=series.map(item=>'<div class="award-bar" title="'+item.month+'月 '+item[topArtistMetric]+meta.unit+'"><div class="award-bar-track"><i style="height:'+Math.max(item[topArtistMetric]?8:2,Math.round(item[topArtistMetric]/max*100))+'%"></i></div><b>'+item[topArtistMetric]+'</b><span>'+item.month+'月</span></div>').join('');
+  const songs=stat.songs.slice(0,4).map(song=>'<button class="btn award-song" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="min-w-0"><b class="block text-[10px] truncate">'+esc(song.title)+'</b><span class="block text-[8px] text-zinc-500 truncate mt-1">'+durationLabel(song.days)+(song.count>1?' / '+song.count+'回':'')+'</span></span></button>').join('');
+  const coverHtml=stat.longest&&stat.longest.img&&stat.longest.img!=='0'?'<img src="'+esc(stat.longest.img)+'" alt="'+esc(stat.longest.title)+'">':'<div class="no-poster w-full h-full"><i class="fa-solid fa-music"></i></div>';
+  box.innerHTML='<div class="award-shell"><header class="award-head"><div><p class="text-[9px] text-amber-300 font-black">年間TOPアーティスト</p><h3>'+topArtistYear+'年度の主役</h3></div><div class="award-years">'+yearButtons+'</div></header><div class="award-people">'+people+'</div><section class="award-focus"><div class="min-w-0"><p class="text-[9px] text-cyan-300 font-black">受賞アーティスト</p><h4 class="award-name mt-2">'+esc(stat.artist)+'</h4><p class="text-[10px] text-zinc-400 mt-3">'+topArtistLead(stat,artists.length,Math.max(0,artists.indexOf(topArtistFocus)))+'</p><div class="award-kpis"><div class="award-kpi"><span>総在籍</span><b>'+stat.totalDays+'日</b></div><div class="award-kpi"><span>曲数</span><b>'+stat.songs.length+'</b></div><div class="award-kpi"><span>再登録曲</span><b>'+stat.repeat+'</b></div><div class="award-kpi"><span>Active</span><b>'+stat.active+'</b></div></div></div><div class="award-cover">'+coverHtml+'</div></section><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="award-metrics">'+metrics+'</div><span class="text-[8px] text-zinc-600">'+meta.label+'で月別表示</span></div><section class="award-chart"><div class="award-bars">'+bars+'</div></section><div><div class="flex items-center justify-between mb-2"><p class="text-[10px] text-zinc-400 font-black">代表曲</p><button class="btn text-[9px] text-amber-200" data-artist-filter="'+esc(stat.artist)+'">履歴を見る <i class="fa-solid fa-arrow-right ml-1"></i></button></div><div class="award-songs">'+(songs||'<p class="text-xs text-zinc-500">代表曲データはありません。</p>')+'</div></div></div>';
+};
+
+function circularMonthDistance(a,b){const diff=Math.abs(a-b);return Math.min(diff,12-diff)}
+
+function songReturnSignals(){
+  const today=new Date(),currentMonth=today.getMonth()+1;
+  return masters.filter(song=>!song.history.some(row=>row.removedDate==='Active')).map(song=>{
+    const history=[...song.history].sort(sortOldest),latest=[...song.history].sort(sortNewest)[0],latestEnd=parseDate(latest&&latest.removedDate),inactiveDays=latestEnd?Math.max(0,Math.round((today-latestEnd)/86400000)):0;
+    const months=history.map(row=>{const date=parseDate(row.regDate);return date?date.getMonth()+1:null}).filter(Boolean),seasonDistance=months.length?Math.min(...months.map(month=>circularMonthDistance(month,currentMonth))):6;
+    const mediaLabels=automaticSongTags(song.title,song.artist).map(tag=>tag.label).filter(label=>['アニメ','映画','ドラマ','作品主題歌'].includes(label));
+    const artistMomentum=tracks.filter(row=>row.removedDate==='Active'&&norm(row.artist)===norm(song.artist)).length;
+    let score=22,reasons=[];
+    const residency=Math.min(20,Math.round(song.totalDays/5));score+=residency;if(song.totalDays>=45)reasons.push('長く残った曲');
+    const repeat=Math.min(16,Math.max(0,history.length-1)*8);score+=repeat;if(history.length>=2)reasons.push(history.length+'回選び直された');
+    const season=Math.max(0,18-seasonDistance*6);score+=season;if(seasonDistance===0)reasons.push('過去の登場月が今月');else if(seasonDistance===1)reasons.push('登場した季節が近い');
+    if(mediaLabels.length){score+=9;reasons.push(mediaLabels.slice(0,2).join('・')+'との再会');}
+    if(artistMomentum){score+=Math.min(12,artistMomentum*4);reasons.push('同じアーティストが現在Active');}
+    if(inactiveDays>=45&&inactiveDays<=420){score+=12;reasons.push('終了から'+inactiveDays+'日');}else if(inactiveDays<21)score-=10;
+    const signal=Math.max(28,Math.min(94,score)),status=signal>=72?'再会の気配が強い':signal>=56?'今の流れに戻りやすい':'静かに候補へ浮上';
+    return{song,signal,status,reasons:[...new Set(reasons)].slice(0,3),inactiveDays};
+  }).sort((a,b)=>b.signal-a.signal||b.song.totalDays-a.song.totalDays).slice(0,6);
+}
+
+renderAnalysis=function(){
+  const dna=musicDnaData().filter(item=>item.key!=='karaoke'),artists=analysisArtists(),predictions=songReturnSignals();
+  if(!analysisArtist&&artists[0])analysisArtist=artists[0].artist;
+  const summary=$('analysisSummary');
+  if(summary)summary.innerHTML='<div class="flex flex-wrap items-center gap-2"><div class="inline-flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-2"><i class="fa-solid fa-scale-balanced text-cyan-300"></i><span class="text-[10px] text-zinc-300">全'+masters.length+'曲を指標別に集計</span></div><span class="text-[9px] text-zinc-500">在籍期間と終了までの流れを優先しています。</span></div>';
+  const dnaArea=$('musicDnaArea');if(dnaArea)dnaArea.innerHTML=dna.map(item=>'<div class="dna-card"><div class="dna-ring" style="--pct:'+item.pct+';--dna:'+item.color+'"><b class="font-digital">'+item.pct+'%</b></div><div><p class="text-xs font-black">'+item.label+'</p><p class="text-[9px] text-zinc-500 mt-1">'+item.note+'</p><p class="text-[9px] font-digital mt-1" style="color:'+item.color+'">'+item.count+' / '+item.total+'曲</p></div></div>').join('');
+  const picker=$('analysisArtistPicker');if(picker)picker.innerHTML=artists.slice(0,8).map(item=>'<button class="btn analysis-artist-button '+(item.artist===analysisArtist?'active':'')+'" data-analysis-artist="'+esc(item.artist)+'">'+esc(item.artist)+'</button>').join('');
+  renderArtistDeepDive(artists);
+  const predictionArea=$('revivalPredictionArea');
+  const section=predictionArea&&predictionArea.closest('.analysis-section'),hint=section&&section.querySelector('.analysis-heading>span');if(hint)hint.textContent='季節・作品性・現在の流れを含む観察';
+  if(predictionArea)predictionArea.innerHTML=predictions.map(item=>'<button class="btn prediction-card" data-song-title="'+esc(item.song.title)+'" data-song-artist="'+esc(item.song.artist)+'"><div class="flex items-center gap-2">'+cover(item.song.img)+'<span class="min-w-0 flex-1"><span class="block text-xs font-black truncate">'+esc(item.song.title)+'</span><span class="block text-[9px] text-zinc-400 truncate">'+esc(item.song.artist)+'</span></span></div><p class="text-[10px] text-amber-100 font-bold mt-3">'+item.status+'</p><div class="return-reasons">'+item.reasons.map(reason=>'<span class="return-reason">'+esc(reason)+'</span>').join('')+'</div><span class="prediction-confidence mt-2"><i class="fa-solid fa-compass"></i>再会シグナル '+item.signal+'%</span></button>').join('')||'<p class="text-xs text-zinc-500">終了曲が増えると、曲ごとの再会シグナルを表示できます。</p>';
+  normalizeDurationTerms($('scene-analysis'));
+};
+
+document.addEventListener('click',event=>{
+  const metric=event.target.closest('[data-top-metric]');
+  if(!metric)return;
+  topArtistMetric=metric.dataset.topMetric;
+  renderTopArtists();
+});
 </script>
 </body>
 </html>
