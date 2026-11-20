@@ -20,7 +20,7 @@
   };
 
   const timings = {
-    intro: 1500,
+    intro: window.DSL_CHRISTMAS_ACTIVE ? 3000 : 1500,
     finalHold: 420
   };
 

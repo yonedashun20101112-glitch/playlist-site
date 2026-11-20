@@ -9,6 +9,19 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 <link rel="manifest" href="site.webmanifest">
+<script>
+(()=>{
+  const start=new Date(2026,10,21),end=new Date(2026,11,28);
+  window.DSL_IS_CHRISTMAS=()=>{const now=new Date();return now>=start&&now<end};
+  const update=()=>{
+    const active=window.DSL_IS_CHRISTMAS();window.DSL_CHRISTMAS_ACTIVE=active;
+    document.querySelectorAll('link[rel="icon"]').forEach(link=>{if(!link.dataset.normalHref)link.dataset.normalHref=link.getAttribute('href');link.href=active?'DSL_Christmas.gif':link.dataset.normalHref;link.type=active?'image/gif':'image/png'});
+    const apple=document.querySelector('link[rel="apple-touch-icon"]');if(apple){if(!apple.dataset.normalHref)apple.dataset.normalHref=apple.getAttribute('href');apple.href=active?'DSL_Christmas.png':apple.dataset.normalHref}
+    const manifest=document.querySelector('link[rel="manifest"]');if(manifest){if(!manifest.dataset.normalHref)manifest.dataset.normalHref=manifest.getAttribute('href');manifest.href=active?'site-christmas.webmanifest':manifest.dataset.normalHref}
+  };
+  update();setInterval(update,3600000);
+})();
+</script>
 <link rel="stylesheet" href="dsl-hero.css">
 <meta name="theme-color" content="#182436">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1416,6 +1429,18 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('keydown',event=>{if(event.target&&event.target.id==='analysisArtistSearch'&&event.key==='Enter'){event.preventDefault();selectAnalysisArtist(event.target.value)}if(event.target&&event.target.matches('[data-analysis-month]')&&(event.key==='Enter'||event.key===' ')){event.preventDefault();openAnalysisMonth(Number(event.target.dataset.analysisMonth))}});
 document.addEventListener('DOMContentLoaded',()=>{const webSearch=$('webSearch');if(webSearch)webSearch.remove()});
+
+function updateSeasonalBranding(){
+  const active=typeof window.DSL_IS_CHRISTMAS==='function'&&window.DSL_IS_CHRISTMAS();
+  document.querySelectorAll('.brand-logo').forEach(image=>{if(!image.dataset.normalSrc)image.dataset.normalSrc=image.getAttribute('src');image.src=active?'DSL_Christmas.gif':image.dataset.normalSrc});
+  const movie=$('dslMovie');if(!movie)return;
+  movie.classList.toggle('is-christmas',active);
+  let image=movie.querySelector('.dsl-christmas-opening');
+  if(active&&!image){image=document.createElement('img');image.className='dsl-christmas-opening';image.src='DSL_Christmas.gif';image.alt='DSL Christmas 2026';movie.querySelector('.dsl-movie__stage').appendChild(image)}
+  if(!active&&image)image.remove();
+}
+updateSeasonalBranding();
+setInterval(updateSeasonalBranding,3600000);
 </script>
 </body>
 </html>
