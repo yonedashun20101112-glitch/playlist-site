@@ -14,7 +14,7 @@
   const start=new Date(2026,10,21),end=new Date(2026,11,28);
   window.DSL_IS_CHRISTMAS=()=>{const now=new Date();return now>=start&&now<end};
   const update=()=>{
-    const active=window.DSL_IS_CHRISTMAS();window.DSL_CHRISTMAS_ACTIVE=active;
+    const active=window.DSL_IS_CHRISTMAS();window.DSL_CHRISTMAS_ACTIVE=active;document.documentElement.classList.toggle('dsl-christmas-date',active);
     document.querySelectorAll('link[rel="icon"]').forEach(link=>{if(!link.dataset.normalHref)link.dataset.normalHref=link.getAttribute('href');link.href=active?'DSL_Christmas.gif':link.dataset.normalHref;link.type=active?'image/gif':'image/png'});
     const apple=document.querySelector('link[rel="apple-touch-icon"]');if(apple){if(!apple.dataset.normalHref)apple.dataset.normalHref=apple.getAttribute('href');apple.href=active?'DSL_Christmas.png':apple.dataset.normalHref}
     const manifest=document.querySelector('link[rel="manifest"]');if(manifest){if(!manifest.dataset.normalHref)manifest.dataset.normalHref=manifest.getAttribute('href');manifest.href=active?'site-christmas.webmanifest':manifest.dataset.normalHref}
@@ -82,6 +82,7 @@
     <button class="dsl-movie__skip" id="dslMovieSkip" type="button">SKIP</button>
   </header>
   <div class="dsl-movie__stage">
+    <img class="dsl-christmas-opening" src="DSL_Christmas.gif" alt="DSL Christmas 2026">
     <div class="dsl-movie__intro" id="dslMovieIntro" aria-hidden="true">
       <p>75 MINUTES</p>
       <span>EVERY DAY, A DIFFERENT SOUND.</span>

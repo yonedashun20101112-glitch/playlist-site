@@ -112,6 +112,15 @@
       return;
     }
 
+    if (window.DSL_CHRISTMAS_ACTIVE) {
+      root.classList.remove("is-waiting", "is-final", "is-intro", "is-dismissed");
+      root.classList.add("is-christmas");
+      await wait(timings.intro);
+      dismiss();
+      sessionStorage.setItem("dslHeroPlayed", "1");
+      return;
+    }
+
     const mobile = isMobile();
     root.classList.toggle("is-mobile", mobile);
     root.classList.remove("is-waiting", "is-final", "is-dismissed");
