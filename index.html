@@ -1112,7 +1112,7 @@ openModal=function(title,artist){
 const MEDIA_INTENT_KEY='dslMediaIntentV1';
 let mediaIntentMap=(()=>{try{return JSON.parse(localStorage.getItem(MEDIA_INTENT_KEY)||'{}')||{}}catch(e){return{}}})();
 let topArtistMetric='days';
-let rankingView='song',rankingMonthYear='2026';
+let rankingView='song';
 
 function retireCalendarAndKaraoke(){
   document.querySelectorAll('[data-scene="calendar"],[data-scene="karaoke"]').forEach(element=>element.remove());
@@ -1376,9 +1376,9 @@ renderTopArtists=function(){
   box.innerHTML='<div class="award-shell"><header class="award-head"><div><p class="text-[9px] text-amber-300 font-black">年間TOPアーティスト</p><h3>'+topArtistYear+'年度の主役</h3></div><div class="award-years">'+yearButtons+'</div></header><div class="award-people">'+people+'</div><section class="award-focus"><div class="min-w-0"><p class="text-[9px] text-cyan-300 font-black">受賞アーティスト</p><h4 class="award-name mt-2">'+esc(stat.artist)+'</h4><p class="text-[10px] text-zinc-400 mt-3">'+topArtistLead(stat,artists.length,Math.max(0,artists.indexOf(topArtistFocus)))+'</p><div class="award-kpis"><div class="award-kpi"><span>総在籍</span><b>'+stat.totalDays+'日</b></div><div class="award-kpi"><span>曲数</span><b>'+stat.songs.length+'</b></div><div class="award-kpi"><span>再登録曲</span><b>'+stat.repeat+'</b></div><div class="award-kpi"><span>Active</span><b>'+stat.active+'</b></div></div></div><div class="award-cover">'+coverHtml+'</div></section><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="award-metrics">'+metrics+'</div><span class="text-[8px] text-zinc-600">'+meta.label+'で月別表示</span></div><section class="award-chart"><div class="award-bars">'+bars+'</div></section><div><div class="flex items-center justify-between mb-2"><p class="text-[10px] text-zinc-400 font-black">代表曲</p><button class="btn text-[9px] text-amber-200" data-artist-filter="'+esc(stat.artist)+'">履歴を見る <i class="fa-solid fa-arrow-right ml-1"></i></button></div><div class="award-songs">'+(songs||'<p class="text-xs text-zinc-500">代表曲データはありません。</p>')+'</div></div></div>';
 };
 
-function monthlyArtistLeaders(year){
-  const numericYear=Number(year),months=Array.from({length:12},(_,index)=>({month:index+1,artists:{}}));
-  tracks.forEach(row=>{const period=trackPeriod(row);if(!period.start||!period.end)return;months.forEach(item=>{const start=new Date(numericYear,item.month-1,1),end=new Date(numericYear,item.month,0);if(period.start>end||period.end<start)return;const overlapStart=period.start>start?period.start:start,overlapEnd=period.end<end?period.end:end,days=Math.max(1,Math.floor((overlapEnd-overlapStart)/86400000)+1),key=norm(row.artist);if(!item.artists[key])item.artists[key]={artist:row.artist,days:0,songs:new Set()};item.artists[key].days+=days;item.artists[key].songs.add(songKey(row.title,row.artist))})});
+function monthlyArtistLeaders(){
+  const months=Array.from({length:12},(_,index)=>({month:index+1,artists:{}}));
+  tracks.forEach(row=>{const period=trackPeriod(row);if(!period.start||!period.end)return;const cursor=new Date(period.start.getFullYear(),period.start.getMonth(),1),last=new Date(period.end.getFullYear(),period.end.getMonth(),1),key=norm(row.artist);while(cursor<=last){const item=months[cursor.getMonth()],start=new Date(cursor.getFullYear(),cursor.getMonth(),1),end=new Date(cursor.getFullYear(),cursor.getMonth()+1,0),overlapStart=period.start>start?period.start:start,overlapEnd=period.end<end?period.end:end,days=Math.max(1,Math.floor((overlapEnd-overlapStart)/86400000)+1);if(!item.artists[key])item.artists[key]={artist:row.artist,days:0,songs:new Set()};item.artists[key].days+=days;item.artists[key].songs.add(songKey(row.title,row.artist));cursor.setMonth(cursor.getMonth()+1)}});
   return months.map(item=>{const leader=Object.values(item.artists).sort((a,b)=>b.days-a.days||b.songs.size-a.songs.size)[0];return leader?{month:item.month,artist:leader.artist,days:leader.days,songs:leader.songs.size}:null}).filter(Boolean);
 }
 
@@ -1393,14 +1393,13 @@ function singleStayRankRows(year,limit=20){
 
 renderRanking=function(){
   const box=$('rankingArea');if(!box)return;
-  const years=[...new Set(tracks.map(row=>row.year).filter(Boolean))].sort().reverse();if(!years.includes(rankingMonthYear))rankingMonthYear=years[0]||'2026';
-  const leaders=monthlyArtistLeaders(rankingMonthYear),artists=analysisArtists(),topArtist=artists[0],topSong=[...masters].sort((a,b)=>b.totalDays-a.totalDays)[0];
-  const yearTabs=years.map(year=>'<button class="btn ranking-year-tab '+(year===rankingMonthYear?'active':'')+'" data-ranking-month-year="'+year+'">'+year+'年度</button>').join('');
-  const leaderCards=leaders.map(item=>'<button class="btn monthly-leader" data-artist-filter="'+esc(item.artist)+'"><span class="monthly-leader-month"><b>'+item.month+'月</b><i class="fa-solid fa-crown"></i></span><strong>'+esc(item.artist)+'</strong><span>'+item.days+'日間 / '+item.songs+'曲</span></button>').join('')||'<p class="text-xs text-zinc-500">月別データはありません。</p>';
+  const years=[...new Set(tracks.map(row=>row.year).filter(Boolean))].sort().reverse();
+  const leaders=monthlyArtistLeaders(),artists=analysisArtists(),topArtist=artists[0],topSong=[...masters].sort((a,b)=>b.totalDays-a.totalDays)[0];
+  const leaderCards=leaders.map(item=>'<button class="btn monthly-leader" data-artist-filter="'+esc(item.artist)+'"><span class="monthly-leader-month"><b>'+item.month+'月</b><i class="fa-solid fa-crown"></i></span><strong>'+esc(item.artist)+'</strong><span>累計'+item.days+'日間 / '+item.songs+'曲</span></button>').join('')||'<p class="text-xs text-zinc-500">月別データはありません。</p>';
   const kinds=[['song','曲日数'],['single','1回最長'],['artist','アーティスト'],['short','短期滞在'],['repeat','リピート']],kindTabs=kinds.map(item=>'<button class="btn ranking-kind-tab '+(item[0]===rankingView?'active':'')+'" data-ranking-kind="'+item[0]+'">'+item[1]+'</button>').join('');
-  const panels=rankingPanelHtml('累計',rankingView,'all')+(rankingView==='artist'?'':years.map(year=>rankingPanelHtml(year+'年度',rankingView,year)).join(''));
+  const panels=rankingPanelHtml('累計',rankingView,'all')+years.map(year=>rankingPanelHtml(year+'年度',rankingView,year)).join('');
   box.className='ranking-dashboard';
-  box.innerHTML='<header class="ranking-overview"><div class="ranking-overview-main"><p class="text-[9px] text-amber-300 font-black">DSL RANKING</p><h4 class="mt-1">記録の頂点を、コンパクトに。</h4><p class="text-[10px] text-zinc-500 mt-2">月間王者とTOP20を、横へ切り替えて確認できます。</p></div><div class="ranking-overview-stat"><span>累計TOPアーティスト</span><b>'+(topArtist?esc(topArtist.artist):'--')+'</b></div><div class="ranking-overview-stat"><span>最長楽曲</span><b>'+(topSong?esc(topSong.title):'--')+'</b></div></header><section class="ranking-section"><div class="ranking-section-head"><div><p>MONTHLY LEADER</p><h4 class="text-base font-black">月間最多滞在アーティスト</h4></div><div class="ranking-year-tabs">'+yearTabs+'</div></div><p class="text-[8px] text-zinc-600 mb-2">各月に在籍した曲の日数を、アーティスト単位で合計しています。</p><div class="monthly-leader-strip">'+leaderCards+'</div></section><section class="ranking-section"><div class="ranking-section-head"><div><p>TOP 20</p><h4 class="text-base font-black">ランキング詳細</h4></div></div><div class="ranking-kind-tabs mb-3">'+kindTabs+'</div><div class="ranking-panels">'+panels+'</div></section>';
+  box.innerHTML='<header class="ranking-overview"><div class="ranking-overview-main"><p class="text-[9px] text-amber-300 font-black">DSL RANKING</p><h4 class="mt-1">記録の頂点を、コンパクトに。</h4><p class="text-[10px] text-zinc-500 mt-2">月間王者とTOP20を、横へ切り替えて確認できます。</p></div><div class="ranking-overview-stat"><span>累計TOPアーティスト</span><b>'+(topArtist?esc(topArtist.artist):'--')+'</b></div><div class="ranking-overview-stat"><span>最長楽曲</span><b>'+(topSong?esc(topSong.title):'--')+'</b></div></header><section class="ranking-section"><div class="ranking-section-head"><div><p>MONTHLY LEADER</p><h4 class="text-base font-black">月別累計最多滞在アーティスト</h4></div></div><p class="text-[8px] text-zinc-600 mb-2">全年度の同じ月を合算し、曲の在籍日数が最も多いアーティストを表示しています。</p><div class="monthly-leader-strip">'+leaderCards+'</div></section><section class="ranking-section"><div class="ranking-section-head"><div><p>TOP 20</p><h4 class="text-base font-black">ランキング詳細</h4></div></div><div class="ranking-kind-tabs mb-3">'+kindTabs+'</div><div class="ranking-panels">'+panels+'</div></section>';
   normalizeDurationTerms(box);
 };
 
@@ -1493,7 +1492,6 @@ renderAll=function(){renderAllWithHomeInsights();renderHomeInsights()};
 
 document.addEventListener('click',event=>{
   const rankingKind=event.target.closest('[data-ranking-kind]');if(rankingKind){rankingView=rankingKind.dataset.rankingKind;renderRanking();return}
-  const rankingYear=event.target.closest('[data-ranking-month-year]');if(rankingYear){rankingMonthYear=rankingYear.dataset.rankingMonthYear;renderRanking();return}
   const metric=event.target.closest('[data-top-metric]');
   if(metric){topArtistMetric=metric.dataset.topMetric;renderTopArtists();return}
   const search=event.target.closest('[data-analysis-search]');if(search){selectAnalysisArtist(($('analysisArtistSearch')||{}).value||'');return}
