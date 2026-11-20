@@ -1170,6 +1170,11 @@ function installDsl2027Styles(){
     .award-song img,.award-song .no-poster{width:40px!important;height:40px!important;border-radius:6px!important}
     .return-reasons{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
     .return-reason{border-left:2px solid #fbbf24;background:rgba(251,191,36,.07);padding:5px 7px;color:#cbd5e1;font-size:8px;font-weight:800}
+    .modal-reunion{border:1px solid rgba(251,191,36,.18);background:#151a27;border-radius:8px;padding:12px}
+    .modal-reunion-head{display:flex;align-items:end;justify-content:space-between;gap:10px}
+    .modal-reunion-score{font-family:'Orbitron',sans-serif;color:#fde68a;font-size:22px;font-weight:900}
+    .modal-reunion-meter{height:5px;margin-top:9px;overflow:hidden;border-radius:999px;background:#27272a}
+    .modal-reunion-meter span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#22d3ee,#fbbf24)}
     .award-bars{display:flex;overflow-x:auto;gap:7px;scroll-snap-type:x proximity;padding:2px 0 7px;scrollbar-width:thin}
     .award-bar{flex:0 0 46px;scroll-snap-align:start}
     .award-bar-track{width:16px;justify-self:center}
@@ -1347,23 +1352,25 @@ renderTopArtists=function(){
 
 function circularMonthDistance(a,b){const diff=Math.abs(a-b);return Math.min(diff,12-diff)}
 
-function songReturnSignals(){
+function songReunionSignal(song){
   const today=new Date(),currentMonth=today.getMonth()+1;
-  return masters.filter(song=>!song.history.some(row=>row.removedDate==='Active')).map(song=>{
-    const history=[...song.history].sort(sortOldest),latest=[...song.history].sort(sortNewest)[0],latestEnd=parseDate(latest&&latest.removedDate),inactiveDays=latestEnd?Math.max(0,Math.round((today-latestEnd)/86400000)):0;
-    const months=history.map(row=>{const date=parseDate(row.regDate);return date?date.getMonth()+1:null}).filter(Boolean),seasonDistance=months.length?Math.min(...months.map(month=>circularMonthDistance(month,currentMonth))):6;
-    const mediaLabels=automaticSongTags(song.title,song.artist).map(tag=>tag.label).filter(label=>['アニメ','映画','ドラマ','作品主題歌'].includes(label));
-    const artistMomentum=tracks.filter(row=>row.removedDate==='Active'&&norm(row.artist)===norm(song.artist)).length;
-    let score=22,reasons=[];
-    const residency=Math.min(20,Math.round(song.totalDays/5));score+=residency;if(song.totalDays>=45)reasons.push('長く残った曲');
-    const repeat=Math.min(16,Math.max(0,history.length-1)*8);score+=repeat;if(history.length>=2)reasons.push(history.length+'回選び直された');
-    const season=Math.max(0,18-seasonDistance*6);score+=season;if(seasonDistance===0)reasons.push('過去の登場月が今月');else if(seasonDistance===1)reasons.push('登場した季節が近い');
-    if(mediaLabels.length){score+=9;reasons.push(mediaLabels.slice(0,2).join('・')+'との再会');}
-    if(artistMomentum){score+=Math.min(12,artistMomentum*4);reasons.push('同じアーティストが現在Active');}
-    if(inactiveDays>=45&&inactiveDays<=420){score+=12;reasons.push('終了から'+inactiveDays+'日');}else if(inactiveDays<21)score-=10;
-    const signal=Math.max(28,Math.min(94,score)),status=signal>=72?'再会の気配が強い':signal>=56?'今の流れに戻りやすい':'静かに候補へ浮上';
-    return{song,signal,status,reasons:[...new Set(reasons)].slice(0,3),inactiveDays};
-  }).sort((a,b)=>b.signal-a.signal||b.song.totalDays-a.song.totalDays).slice(0,6);
+  const history=[...song.history].sort(sortOldest),latest=[...song.history].sort(sortNewest)[0],active=history.some(row=>row.removedDate==='Active'),latestEnd=active?null:parseDate(latest&&latest.removedDate),inactiveDays=latestEnd?Math.max(0,Math.round((today-latestEnd)/86400000)):0;
+  const months=history.map(row=>{const date=parseDate(row.regDate);return date?date.getMonth()+1:null}).filter(Boolean),seasonDistance=months.length?Math.min(...months.map(month=>circularMonthDistance(month,currentMonth))):6;
+  const mediaLabels=automaticSongTags(song.title,song.artist).map(tag=>tag.label).filter(label=>['アニメ','映画','ドラマ','作品主題歌'].includes(label));
+  const artistMomentum=tracks.filter(row=>row.removedDate==='Active'&&norm(row.artist)===norm(song.artist)).length;
+  let score=22,reasons=[];
+  const residency=Math.min(20,Math.round(song.totalDays/5));score+=residency;if(song.totalDays>=45)reasons.push('長く残った曲');
+  const repeat=Math.min(16,Math.max(0,history.length-1)*8);score+=repeat;if(history.length>=2)reasons.push(history.length+'回選び直された');
+  const season=Math.max(0,18-seasonDistance*6);score+=season;if(seasonDistance===0)reasons.push('過去の登場月が今月');else if(seasonDistance===1)reasons.push('登場した季節が近い');
+  if(mediaLabels.length){score+=9;reasons.push(mediaLabels.slice(0,2).join('・')+'との再会');}
+  if(artistMomentum){score+=Math.min(12,artistMomentum*4);reasons.push('同じアーティストが現在Active');}
+  if(active)reasons.unshift('現在Active');else if(inactiveDays>=45&&inactiveDays<=420){score+=12;reasons.push('終了から'+inactiveDays+'日');}else if(inactiveDays<21)score-=10;
+  const signal=Math.max(28,Math.min(94,score)),status=active?'現在の熱が継続中':signal>=72?'再会の気配が強い':signal>=56?'今の流れに戻りやすい':'静かに候補へ浮上';
+  return{song,signal,status,reasons:[...new Set(reasons)].slice(0,3),inactiveDays,active};
+}
+
+function songReturnSignals(){
+  return masters.filter(song=>!song.history.some(row=>row.removedDate==='Active')).map(songReunionSignal).sort((a,b)=>b.signal-a.signal||b.song.totalDays-a.song.totalDays).slice(0,6);
 }
 
 renderAnalysis=function(){
@@ -1442,6 +1449,17 @@ function updateSeasonalBranding(){
 }
 updateSeasonalBranding();
 setInterval(updateSeasonalBranding,3600000);
+
+function renderModalReunionSignal(title,artist){
+  const song=masters.find(item=>songKey(item.title,item.artist)===songKey(title,artist));if(!song)return;
+  const item=songReunionSignal(song),panel=document.createElement('section');panel.className='modal-reunion';
+  panel.innerHTML='<div class="modal-reunion-head"><div><p class="text-[9px] text-amber-300 font-black">再会シグナル</p><h4 class="text-sm font-black mt-1">'+esc(item.status)+'</h4></div><b class="modal-reunion-score">'+item.signal+'%</b></div><div class="modal-reunion-meter"><span style="width:'+item.signal+'%"></span></div><div class="return-reasons">'+((item.reasons.length?item.reasons:['登録履歴から算出']).map(reason=>'<span class="return-reason">'+esc(reason)+'</span>').join(''))+'</div><p class="text-[8px] text-zinc-600 mt-2">在籍期間・季節・再登録・作品性・現在の流れによる期待度です。</p>';
+  const lifeline=$('modalContent')&&$('modalContent').querySelector('.lifeline-modal-panel');
+  if(lifeline)lifeline.before(panel);else if($('modalContent'))$('modalContent').appendChild(panel);
+}
+
+const openModalWithReunionSignal=openModal;
+openModal=function(title,artist){openModalWithReunionSignal(title,artist);renderModalReunionSignal(title,artist)};
 </script>
 </body>
 </html>
