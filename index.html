@@ -1101,8 +1101,6 @@ let topArtistMetric='days';
 
 function retireCalendarAndKaraoke(){
   document.querySelectorAll('[data-scene="calendar"],[data-scene="karaoke"]').forEach(element=>element.remove());
-  const historyCard=$('historyDate')&&$('historyDate').closest('.card');
-  if(historyCard)historyCard.remove();
   const calendar=$('scene-calendar'),karaoke=$('scene-karaoke');
   if(calendar)calendar.remove();
   if(karaoke)karaoke.remove();
@@ -1158,6 +1156,22 @@ function installDsl2027Styles(){
     .award-song img,.award-song .no-poster{width:40px!important;height:40px!important;border-radius:6px!important}
     .return-reasons{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
     .return-reason{border-left:2px solid #fbbf24;background:rgba(251,191,36,.07);padding:5px 7px;color:#cbd5e1;font-size:8px;font-weight:800}
+    .award-bars{display:flex;overflow-x:auto;gap:7px;scroll-snap-type:x proximity;padding:2px 0 7px;scrollbar-width:thin}
+    .award-bar{flex:0 0 66px;scroll-snap-align:start}
+    .analysis-artist-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;width:100%;margin-bottom:9px}
+    .analysis-artist-picker{display:block;overflow:visible}
+    .analysis-artist-tools input{min-width:0;border:1px solid rgba(34,211,238,.18);background:rgba(2,6,23,.52);border-radius:8px;padding:9px 10px;color:#f8fafc;font-size:11px;outline:none}
+    .analysis-artist-tools input:focus{border-color:rgba(34,211,238,.55)}
+    .analysis-artist-tools button{border:1px solid rgba(34,211,238,.24);background:rgba(34,211,238,.12);border-radius:8px;padding:0 12px;color:#a5f3fc;font-size:10px;font-weight:900}
+    .analysis-artist-presets{display:flex;gap:6px;overflow-x:auto;width:100%;scrollbar-width:none}
+    .artist-month-bar[data-analysis-month]{cursor:pointer;border-radius:6px;transition:background .18s ease,transform .18s ease}
+    .artist-month-bar[data-analysis-month]:hover{background:rgba(34,211,238,.08);transform:translateY(-2px)}
+    .home-insights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .home-insight{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.08);background:rgba(15,23,42,.55);border-radius:8px;padding:10px;text-align:left}
+    .home-insight-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:7px;background:rgba(34,211,238,.12);color:#67e8f9}
+    .home-insight:nth-child(2) .home-insight-icon{background:rgba(244,114,182,.12);color:#f9a8d4}
+    .home-insight strong,.home-insight span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .home-insight small{color:#64748b;font-size:8px;font-weight:800}
     @media(max-width:640px){
       .award-head{display:block}
       .award-head h3{font-size:19px}
@@ -1166,13 +1180,14 @@ function installDsl2027Styles(){
       .award-cover{order:-1;min-height:150px;max-height:190px}
       .award-name{font-size:31px}
       .award-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .award-bars{grid-template-columns:repeat(4,minmax(0,1fr));min-height:0}
-      .award-bar{min-height:100px}
+      .award-bars{display:flex;min-height:0;margin-right:-12px;padding-right:12px}
+      .award-bar{flex-basis:62px;min-height:100px}
       .award-bar-track{min-height:58px}
       .award-songs{display:flex;overflow-x:auto;gap:7px;scroll-snap-type:x mandatory}
       .award-song{flex:0 0 78%;scroll-snap-align:start}
       .analysis-section{padding:13px}
       .prediction-card{min-width:min(82vw,300px)}
+      .home-insights{grid-template-columns:1fr}
     }
   `;
   document.head.appendChild(style);
@@ -1185,6 +1200,15 @@ function saveMediaIntent(){
 retireCalendarAndKaraoke();
 installMediaIntentControl();
 installDsl2027Styles();
+
+function installChronicalStream(){
+  const input=$('historyDate'),card=input&&input.closest('.card');if(!card)return;
+  const heading=card.querySelector('h3'),copy=card.querySelector('h3+p');
+  if(heading)heading.innerHTML='<i class="fa-solid fa-wave-square text-indigo-400"></i> クロニカルストリーム';
+  if(copy)copy.textContent='選んだ日に在籍していた曲を、音楽の時間軸から呼び戻します。';
+}
+
+installChronicalStream();
 
 karaokeRowsForSong=function(){return[]};
 karaokeSummaryHtml=function(){return''};
@@ -1250,6 +1274,16 @@ function topArtistMetricMeta(){
   return{days:{label:'在籍日数',unit:'日'},songs:{label:'在籍曲数',unit:'曲'},records:{label:'登録回数',unit:'回'}}[topArtistMetric];
 }
 
+searchHistory=function(){
+  const input=$('historyDate');if(!input||!input.value)return alert('日付を選択してください。');
+  const parts=input.value.split('-').map(Number),target=new Date(parts[0],parts[1]-1,parts[2]);
+  const active=tracks.filter(row=>{const start=parseDate(row.regDate),end=row.removedDate==='Active'?new Date():parseDate(row.removedDate);return start&&end&&start<=target&&target<=end}).sort(sortNewest);
+  const stream=$('streamArea'),summary=$('situation'),results=$('historyResults');
+  if(stream)stream.classList.remove('hidden');
+  if(summary)summary.innerHTML='<span class="text-indigo-300 font-black">'+parts[0]+'年'+parts[1]+'月'+parts[2]+'日</span><br><span class="text-zinc-400">この日に在籍していた曲 '+active.length+'件</span>';
+  if(results)results.innerHTML=active.map(row=>'<button class="btn card history-compact flex items-center gap-2 text-left" data-song-title="'+esc(row.title)+'" data-song-artist="'+esc(row.artist)+'">'+cover(row.img)+'<span class="min-w-0 flex-1"><b class="block text-[11px] truncate">'+esc(row.title)+'</b><span class="block text-[9px] text-zinc-400 truncate">'+esc(row.artist)+'</span></span><span class="text-[9px] text-indigo-300 font-digital flex-shrink-0">'+durationLabel(row.days)+'</span></button>').join('')||'<p class="text-xs text-zinc-500 text-center py-6 font-bold">この日に在籍していた曲はありません。</p>';
+};
+
 renderTopArtists=function(){
   const box=$('topArtistsArea');if(!box)return;
   const oldHero=$('scene-topartists')&&$('scene-topartists').querySelector('.top-artist-hero');if(oldHero)oldHero.remove();
@@ -1292,7 +1326,7 @@ renderAnalysis=function(){
   const summary=$('analysisSummary');
   if(summary)summary.innerHTML='<div class="flex flex-wrap items-center gap-2"><div class="inline-flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-2"><i class="fa-solid fa-scale-balanced text-cyan-300"></i><span class="text-[10px] text-zinc-300">全'+masters.length+'曲を指標別に集計</span></div><span class="text-[9px] text-zinc-500">在籍期間と終了までの流れを優先しています。</span></div>';
   const dnaArea=$('musicDnaArea');if(dnaArea)dnaArea.innerHTML=dna.map(item=>'<div class="dna-card"><div class="dna-ring" style="--pct:'+item.pct+';--dna:'+item.color+'"><b class="font-digital">'+item.pct+'%</b></div><div><p class="text-xs font-black">'+item.label+'</p><p class="text-[9px] text-zinc-500 mt-1">'+item.note+'</p><p class="text-[9px] font-digital mt-1" style="color:'+item.color+'">'+item.count+' / '+item.total+'曲</p></div></div>').join('');
-  const picker=$('analysisArtistPicker');if(picker)picker.innerHTML=artists.slice(0,8).map(item=>'<button class="btn analysis-artist-button '+(item.artist===analysisArtist?'active':'')+'" data-analysis-artist="'+esc(item.artist)+'">'+esc(item.artist)+'</button>').join('');
+  const picker=$('analysisArtistPicker');if(picker)picker.innerHTML='<div class="analysis-artist-tools"><input id="analysisArtistSearch" list="analysisArtistOptions" value="'+esc(analysisArtist)+'" placeholder="アーティスト名を検索"><button class="btn" data-analysis-search><i class="fa-solid fa-magnifying-glass"></i> 表示</button><datalist id="analysisArtistOptions">'+artists.map(item=>'<option value="'+esc(item.artist)+'"></option>').join('')+'</datalist></div><div class="analysis-artist-presets">'+artists.slice(0,8).map(item=>'<button class="btn analysis-artist-button '+(item.artist===analysisArtist?'active':'')+'" data-analysis-artist="'+esc(item.artist)+'">'+esc(item.artist)+'</button>').join('')+'</div>';
   renderArtistDeepDive(artists);
   const predictionArea=$('revivalPredictionArea');
   const section=predictionArea&&predictionArea.closest('.analysis-section'),hint=section&&section.querySelector('.analysis-heading>span');if(hint)hint.textContent='季節・作品性・現在の流れを含む観察';
@@ -1300,12 +1334,52 @@ renderAnalysis=function(){
   normalizeDurationTerms($('scene-analysis'));
 };
 
+const renderArtistDeepDiveWithMonths=renderArtistDeepDive;
+renderArtistDeepDive=function(artists){
+  renderArtistDeepDiveWithMonths(artists);
+  document.querySelectorAll('#artistDeepArea .artist-month-bar').forEach((bar,index)=>{bar.dataset.analysisMonth=String(index+1);bar.tabIndex=0;bar.title=(index+1)+'月の在籍曲を表示'});
+};
+
+function openAnalysisMonth(month){
+  const selected=analysisArtists().find(item=>norm(item.artist)===norm(analysisArtist));if(!selected)return;
+  const found={};
+  selected.rows.forEach(row=>{const period=trackPeriod(row);if(!period.start||!period.end)return;const cursor=new Date(period.start.getFullYear(),period.start.getMonth(),1),last=new Date(period.end.getFullYear(),period.end.getMonth(),1);let matches=false;while(cursor<=last){if(cursor.getMonth()+1===month){matches=true;break}cursor.setMonth(cursor.getMonth()+1)}if(matches)found[songKey(row.title,row.artist)]={title:row.title,artist:row.artist,img:row.img}});
+  const songs=Object.values(found).sort((a,b)=>a.title.localeCompare(b.title,'ja'));
+  $('modalContent').innerHTML='<div class="pr-10"><p class="text-[10px] text-cyan-300 font-black">アーティスト深掘り</p><h3 class="text-xl font-black mt-1">'+esc(selected.artist)+' / '+month+'月</h3><p class="text-xs text-zinc-400 mt-1">過去の各年度で、この月に在籍していた曲 '+songs.length+'件</p></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">'+(songs.map(song=>'<button class="btn top-month-song text-left" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="min-w-0 flex-1"><b class="block text-xs truncate">'+esc(song.title)+'</b><span class="block text-[9px] text-zinc-500 truncate">'+esc(song.artist)+'</span></span></button>').join('')||'<p class="text-xs text-zinc-500">対象曲はありません。</p>')+'</div>';
+  $('modal').classList.remove('opacity-0','pointer-events-none');$('modalBox').classList.remove('modal-show');void $('modalBox').offsetWidth;$('modalBox').classList.add('modal-show');
+}
+
+function selectAnalysisArtist(value){
+  const artists=analysisArtists(),query=norm(value),match=artists.find(item=>norm(item.artist)===query)||artists.find(item=>norm(item.artist).includes(query));
+  if(!match)return alert('登録履歴からアーティストを見つけられませんでした。');
+  analysisArtist=match.artist;renderAnalysis();
+}
+
+function installHomeInsights(){
+  const home=$('scene-home');if(!home||$('homeInsightArea'))return;
+  const area=document.createElement('section');area.id='homeInsightArea';area.className='home-insights';home.insertBefore(area,home.children[1]||null);
+}
+
+function renderHomeInsights(){
+  const area=$('homeInsightArea');if(!area)return;
+  const prediction=songReturnSignals()[0],artist=analysisArtists()[0];
+  const comeback=prediction?'<button class="btn home-insight" data-song-title="'+esc(prediction.song.title)+'" data-song-artist="'+esc(prediction.song.artist)+'"><span class="home-insight-icon"><i class="fa-solid fa-rotate"></i></span><span><small>再ブーム予測</small><strong class="text-[11px]">'+esc(prediction.song.title)+'</strong><span class="text-[9px] text-zinc-400">再会シグナル '+prediction.signal+'%</span></span><i class="fa-solid fa-chevron-right text-zinc-600 text-[9px]"></i></button>':'';
+  const deep=artist?'<button class="btn home-insight" data-home-analysis-artist="'+esc(artist.artist)+'"><span class="home-insight-icon"><i class="fa-solid fa-chart-simple"></i></span><span><small>アーティスト深掘り</small><strong class="text-[11px]">'+esc(artist.artist)+'</strong><span class="text-[9px] text-zinc-400">'+artist.songs.size+'曲 / 累計'+artist.days+'日間</span></span><i class="fa-solid fa-chevron-right text-zinc-600 text-[9px]"></i></button>':'';
+  area.innerHTML=comeback+deep;
+}
+
+installHomeInsights();
+const renderAllWithHomeInsights=renderAll;
+renderAll=function(){renderAllWithHomeInsights();renderHomeInsights()};
+
 document.addEventListener('click',event=>{
   const metric=event.target.closest('[data-top-metric]');
-  if(!metric)return;
-  topArtistMetric=metric.dataset.topMetric;
-  renderTopArtists();
+  if(metric){topArtistMetric=metric.dataset.topMetric;renderTopArtists();return}
+  const search=event.target.closest('[data-analysis-search]');if(search){selectAnalysisArtist(($('analysisArtistSearch')||{}).value||'');return}
+  const month=event.target.closest('[data-analysis-month]');if(month){openAnalysisMonth(Number(month.dataset.analysisMonth));return}
+  const homeArtist=event.target.closest('[data-home-analysis-artist]');if(homeArtist){analysisArtist=homeArtist.dataset.homeAnalysisArtist;switchScene('analysis')}
 });
+document.addEventListener('keydown',event=>{if(event.target&&event.target.id==='analysisArtistSearch'&&event.key==='Enter'){event.preventDefault();selectAnalysisArtist(event.target.value)}if(event.target&&event.target.matches('[data-analysis-month]')&&(event.key==='Enter'||event.key===' ')){event.preventDefault();openAnalysisMonth(Number(event.target.dataset.analysisMonth))}});
 </script>
 </body>
 </html>
