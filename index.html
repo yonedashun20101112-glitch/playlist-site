@@ -1183,6 +1183,19 @@ function installDsl2027Styles(){
     .home-insight:nth-child(2) small{color:#f9a8d4}
     .home-insight-cta{margin-top:7px;color:#cbd5e1;font-size:8px;font-weight:900}
     .chronical-card>div:first-child>div{min-width:0}
+    body{background:#111827!important}
+    .bg{background:linear-gradient(180deg,#111827 0%,#0f172a 52%,#111827 100%)!important;background-attachment:fixed!important}
+    .bg:before,.bg:after,.bg-grid{display:none!important}
+    .card{background:rgba(20,24,35,.94)}
+    .chronical-card{display:grid;grid-template-columns:minmax(250px,.72fr) minmax(0,1.28fr);grid-template-rows:auto auto;gap:12px 20px;width:100%;padding:18px!important;border:1px solid rgba(129,140,248,.20)!important;border-left:3px solid #818cf8!important;border-radius:8px!important;background:#151a27!important;box-shadow:0 12px 28px rgba(2,6,23,.18)!important}
+    .chronical-card>div:first-child{grid-column:1;grid-row:1;margin:0!important;padding:0 0 12px!important;border-color:rgba(255,255,255,.08)!important}
+    .chronical-card>div:nth-child(2){grid-column:1;grid-row:2;width:100%;max-width:none!important;align-self:start}
+    .chronical-card #streamArea{grid-column:2;grid-row:1 / span 2;margin:0!important;padding-left:18px;border-left:1px solid rgba(255,255,255,.08)}
+    .chronical-card #situation{margin:0 0 9px;border-radius:7px;background:rgba(129,140,248,.07)}
+    .chronical-card #historyResults{max-height:240px;gap:7px}
+    .chronical-card #historyResults .card{border-radius:7px!important;background:#111623}
+    .chronical-card:has(#streamArea.hidden){grid-template-columns:1fr}
+    .chronical-card:has(#streamArea.hidden)>div:first-child,.chronical-card:has(#streamArea.hidden)>div:nth-child(2){grid-column:1}
     @media(max-width:640px){
       .award-head{display:block}
       .award-head h3{font-size:19px}
@@ -1201,6 +1214,9 @@ function installDsl2027Styles(){
       .home-insights{grid-template-columns:1fr}
       .chronical-card>div:first-child{align-items:flex-start;flex-wrap:wrap}
       .chronical-card #randomDate{margin-left:auto;max-width:100%;padding:6px 9px;white-space:nowrap}
+      .chronical-card{grid-template-columns:1fr;padding:14px!important;gap:10px}
+      .chronical-card>div:first-child,.chronical-card>div:nth-child(2),.chronical-card #streamArea{grid-column:1;grid-row:auto}
+      .chronical-card #streamArea{padding:11px 0 0;border-left:0;border-top:1px solid rgba(255,255,255,.08)}
     }
   `;
   document.head.appendChild(style);
@@ -1217,6 +1233,8 @@ installDsl2027Styles();
 function installChronicalStream(){
   const input=$('historyDate'),card=input&&input.closest('.card');if(!card)return;
   card.classList.add('chronical-card');
+  const home=$('scene-home'),stats=home&&home.firstElementChild;
+  if(home&&stats&&card.parentElement!==home)home.insertBefore(card,stats.nextSibling);
   const heading=card.querySelector('h3'),copy=card.querySelector('h3+p');
   if(heading)heading.innerHTML='<i class="fa-solid fa-wave-square text-indigo-400"></i> クロニカルストリーム';
   if(copy)copy.textContent='選んだ日に在籍していた曲を、音楽の時間軸から呼び戻します。';
