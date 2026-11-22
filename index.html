@@ -603,6 +603,48 @@ renderTopArtists=function(){
   box.innerHTML=tabs+'<section class="top-artist-stage"><div class="top-artist-hero"><p class="text-[10px] text-amber-300 font-black tracking-widest">'+topArtistYear+'年度の頂点</p><h4 class="top-artist-title font-black mt-1">受賞アーティスト</h4><p class="top-artist-copy text-zinc-400 mt-1">アーティストを選ぶと、その年の記録をコンパクトに楽しめます。</p>'+picker+'</div>'+topArtistCard(stat,selectedIndex,artists.length)+'</section>';
 };
 
+const SEASON_DEFS=[
+  {key:'spring',label:'春',months:[3,4,5],color:'#f472b6',copy:'芽吹く時期に戻ってくる音'},
+  {key:'summer',label:'夏',months:[6,7,8],color:'#22d3ee',copy:'光と熱の中で長く残った音'},
+  {key:'autumn',label:'秋',months:[9,10,11],color:'#fbbf24',copy:'余韻が深まる季節の音'},
+  {key:'winter',label:'冬',months:[12,1,2],color:'#818cf8',copy:'静かな時間を支えた音'}
+];
+
+function seasonalSongStats(){
+  const result={};SEASON_DEFS.forEach(season=>result[season.key]={});
+  tracks.forEach(row=>{const period=trackPeriod(row);if(!period.start||!period.end)return;const cursor=new Date(period.start.getFullYear(),period.start.getMonth(),1),last=new Date(period.end.getFullYear(),period.end.getMonth(),1),songId=songKey(row.title,row.artist);while(cursor<=last){const month=cursor.getMonth()+1,season=SEASON_DEFS.find(item=>item.months.includes(month)),start=new Date(cursor.getFullYear(),cursor.getMonth(),1),end=new Date(cursor.getFullYear(),cursor.getMonth()+1,0),overlapStart=period.start>start?period.start:start,overlapEnd=period.end<end?period.end:end,days=Math.max(1,Math.floor((overlapEnd-overlapStart)/86400000)+1),bucket=result[season.key];if(!bucket[songId])bucket[songId]={title:row.title,artist:row.artist,img:row.img,days:0,years:new Set()};bucket[songId].days+=days;bucket[songId].years.add(cursor.getFullYear());cursor.setMonth(cursor.getMonth()+1)}});
+  return result;
+}
+
+function installSeasonalUI(){
+  const nav=document.querySelector('.nav-scroll'),main=document.querySelector('main');if(!nav||!main)return;
+  if(!$('tab-seasonal')){const button=document.createElement('button');button.id='tab-seasonal';button.className='btn nav-tab px-4 py-2 rounded-lg text-zinc-300 whitespace-nowrap';button.dataset.scene='seasonal';button.innerHTML='<i class="fa-solid fa-leaf mr-1.5"></i>季節';nav.insertBefore(button,$('tab-ranking'))}
+  if(!$('scene-seasonal')){const section=document.createElement('section');section.id='scene-seasonal';section.className='scene seasonal-page';main.insertBefore(section,$('scene-ranking'))}
+}
+
+function renderSeasonal(){
+  const area=$('scene-seasonal');if(!area)return;const stats=seasonalSongStats(),seasonKeys={};
+  const bands=SEASON_DEFS.map(season=>{const songs=Object.values(stats[season.key]).sort((a,b)=>b.days-a.days||b.years.size-a.years.size),lead=songs[0];songs.forEach(song=>{const key=songKey(song.title,song.artist);if(!seasonKeys[key])seasonKeys[key]={...song,seasons:0,total:0};seasonKeys[key].seasons++;seasonKeys[key].total+=song.days});const feature=lead?'<button class="btn season-feature" data-song-title="'+esc(lead.title)+'" data-song-artist="'+esc(lead.artist)+'">'+cover(lead.img)+'<span class="min-w-0"><span class="text-[8px] font-black" style="color:'+season.color+'">季節の定番 #1</span><strong class="mt-1">'+esc(lead.title)+'</strong><span class="block text-[9px] text-zinc-400 truncate">'+esc(lead.artist)+'</span><span class="block text-[9px] text-zinc-500 mt-2">累計'+lead.days+'日間 / '+lead.years.size+'年度</span></span></button>':'<p class="text-xs text-zinc-500">記録がありません。</p>';const list=songs.slice(1,6).map(song=>'<button class="btn season-song" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="min-w-0"><b class="block text-[10px] truncate">'+esc(song.title)+'</b><span class="block text-[8px] text-zinc-500 truncate">'+song.days+'日間</span></span></button>').join('');return '<section class="season-band" style="--season:'+season.color+'"><div class="season-head"><div><span>'+season.label.toUpperCase()+' SELECTION</span><h4 class="text-lg font-black">'+season.label+'の定番曲</h4></div><p class="text-[8px] text-zinc-500">'+season.copy+'</p></div>'+feature+(list?'<div class="season-list">'+list+'</div>':'')+'</section>'}).join('');
+  const cross=Object.values(seasonKeys).filter(song=>song.seasons>=3).sort((a,b)=>b.seasons-a.seasons||b.total-a.total).slice(0,6).map(song=>'<button class="btn season-song" data-song-title="'+esc(song.title)+'" data-song-artist="'+esc(song.artist)+'">'+cover(song.img)+'<span class="min-w-0"><b class="block text-[10px] truncate">'+esc(song.title)+'</b><span class="block text-[8px] text-zinc-500">'+song.seasons+'季節を横断</span></span></button>').join('');
+  area.innerHTML='<header class="seasonal-intro"><p class="text-[9px] text-amber-300 font-black">SEASONAL DISCOVERY</p><h3 class="mt-1">季節が連れてくる、いつもの曲。</h3><p class="text-[10px] text-zinc-400 mt-2">登録日ではなく、実際にその季節へ在籍した日数から定番曲を選びます。</p></header><div class="seasonal-grid">'+bands+'</div><section class="season-cross"><div class="flex items-end justify-between gap-3 mb-3"><div><p class="text-[9px] text-emerald-300 font-black">CROSS SEASON</p><h4 class="text-base font-black">季節をまたぐロングセラー</h4></div><span class="text-[8px] text-zinc-600">3季節以上</span></div><div class="season-list">'+(cross||'<p class="text-xs text-zinc-500">複数季節にまたがる曲を蓄積中です。</p>')+'</div></section>';
+}
+
+renderMonthButtons=function(){
+  const value=monthFilter==='all'?0:Number(monthFilter),label=value?value+'月':'すべて';
+  $('monthButtons').className='w-full';
+  $('monthButtons').innerHTML='<div class="month-orbit"><div class="month-orbit-current"><small>表示する月</small><b id="monthOrbitLabel">'+label+'</b></div><div class="month-range-wrap"><input id="monthOrbit" class="month-range" type="range" min="0" max="12" step="1" value="'+value+'" aria-label="表示する月"><div class="month-range-labels"><span>ALL</span><span>3</span><span>6</span><span>9</span><span>12</span></div></div></div>';
+};
+
+renderMonthlyStats=function(){
+  const box=$('monthlyStats');if(!box)return;if(monthFilter==='all'){box.classList.add('hidden');box.innerHTML='';return}box.className='month-focus-new';
+  const summary=monthSummary(yearFilter,monthFilter),best=summary.longest,label=(yearFilter==='all'?'全年度':yearFilter)+'年 '+Number(monthFilter)+'月';
+  const song=best?'<button class="btn month-focus-song" data-song-title="'+esc(best.title)+'" data-song-artist="'+esc(best.artist)+'">'+cover(best.img)+'<span class="min-w-0"><span class="text-[8px] text-cyan-300 font-black">この月に登録された最長在籍曲</span><b class="block text-sm truncate mt-1">'+esc(best.title)+'</b><span class="block text-[9px] text-zinc-400 truncate">'+esc(best.artist)+' / '+durationLabel(best.days)+'</span></span></button>':'<p class="text-xs text-zinc-500">対象曲はありません。</p>';
+  box.innerHTML='<div class="flex items-end justify-between gap-3 mb-3"><div><p class="text-[9px] text-cyan-300 font-black">月の記録</p><h4 class="text-xl font-black mt-1">'+label+'</h4><p class="text-[9px] text-zinc-500 mt-1">選択した月の登録・終了・再登場をまとめています。</p></div><b class="font-digital text-3xl text-amber-200">'+(best?best.days:'--')+'<span class="text-[9px] text-zinc-500 font-sans">日間</span></b></div><div class="month-focus-layout"><div>'+song+'</div><div class="month-focus-stats"><div class="month-focus-stat"><span>登録</span><b>'+summary.count+'曲</b></div><div class="month-focus-stat"><span>終了</span><b>'+summary.removed+'曲</b></div><div class="month-focus-stat"><span>平均滞在</span><b>'+summary.avg+'日間</b></div><button class="btn month-focus-stat text-left" data-month-repeat="'+esc(yearFilter+'|||'+monthFilter)+'"><span>再登録</span><b>'+summary.repeat+'曲</b></button></div></div>';
+};
+
+const openMonthRepeatsWithoutDevText=openMonthRepeats;
+openMonthRepeats=function(year,month){openMonthRepeatsWithoutDevText(year,month);const content=$('modalContent');if(content)content.innerHTML=content.innerHTML.replace('MONTH REPEAT','月間リピート')};
+
 let analysisArtist='';
 
 function installAnalysisUI(){
@@ -1197,6 +1239,38 @@ function installDsl2027Styles(){
     .ranking-panels{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
     .ranking-panel-new{flex:0 0 min(82vw,340px);scroll-snap-align:start;border:1px solid rgba(255,255,255,.08);background:#151a27;border-radius:8px;padding:11px}
     .ranking-panel-new .rank-list{max-height:360px}
+    .theme-seasonal{--accent:#34d399}
+    .seasonal-page{display:grid;gap:14px}
+    .seasonal-intro{border-left:3px solid #fbbf24;background:#151a27;padding:15px}
+    .seasonal-intro h3{font-size:22px;font-weight:900}
+    .seasonal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .season-band{--season:#34d399;border-top:2px solid var(--season);background:#151a27;padding:13px;overflow:hidden}
+    .season-head{display:flex;align-items:end;justify-content:space-between;gap:8px;margin-bottom:10px}
+    .season-head span{color:var(--season);font-size:9px;font-weight:900}
+    .season-feature{display:grid;grid-template-columns:92px minmax(0,1fr);gap:11px;align-items:center;text-align:left}
+    .season-feature img,.season-feature>.no-poster{width:92px!important;height:92px!important;border-radius:7px!important}
+    .season-feature strong{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .season-list{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:3px}
+    .season-song{flex:0 0 150px;display:grid;grid-template-columns:38px minmax(0,1fr);gap:7px;align-items:center;border:1px solid rgba(255,255,255,.07);background:#111623;border-radius:7px;padding:7px;text-align:left}
+    .season-song img,.season-song>.no-poster{width:38px!important;height:38px!important;border-radius:6px!important}
+    .season-cross{border-top:1px solid rgba(255,255,255,.09);padding-top:13px}
+    .month-orbit{display:grid;grid-template-columns:auto minmax(150px,1fr);gap:12px;align-items:center;width:100%;padding:7px 9px;border:1px solid rgba(192,132,252,.16);background:#111623;border-radius:8px}
+    .month-orbit-current{min-width:72px}
+    .month-orbit-current small,.month-orbit-current b{display:block}
+    .month-orbit-current small{color:#71717a;font-size:8px;font-weight:900}
+    .month-orbit-current b{color:#e9d5ff;font-size:13px}
+    .month-range-wrap{min-width:0}
+    .month-range{width:100%;height:5px;appearance:none;border-radius:999px;background:linear-gradient(90deg,#c084fc,#22d3ee);outline:none}
+    .month-range::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border:3px solid #111827;border-radius:50%;background:#f8fafc;box-shadow:0 0 0 2px #c084fc;cursor:grab}
+    .month-range-labels{display:flex;justify-content:space-between;margin-top:6px;color:#64748b;font-size:7px;font-weight:900}
+    .month-focus-new{border-top:2px solid #22d3ee;background:#151a27;padding:14px}
+    .month-focus-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,.65fr);gap:13px;align-items:stretch}
+    .month-focus-song{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center;border:1px solid rgba(34,211,238,.13);background:#111623;border-radius:8px;padding:9px;text-align:left}
+    .month-focus-song img,.month-focus-song>.no-poster{width:72px!important;height:72px!important;border-radius:7px!important}
+    .month-focus-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .month-focus-stat{border-left:2px solid rgba(192,132,252,.55);background:#111623;padding:9px}
+    .month-focus-stat span{display:block;color:#71717a;font-size:8px;font-weight:900}
+    .month-focus-stat b{display:block;margin-top:3px;font-family:'Orbitron',sans-serif;font-size:15px}
     .award-bars{display:flex;overflow-x:auto;gap:2px;scroll-snap-type:x proximity;padding:2px 0 7px;scrollbar-width:thin}
     .award-bar{flex:0 0 35px;scroll-snap-align:start}
     .award-bar-track{width:16px;justify-self:center}
@@ -1262,6 +1336,11 @@ function installDsl2027Styles(){
       .ranking-overview-main{grid-column:1 / -1}
       .ranking-overview-main h4{font-size:19px}
       .monthly-leader{flex-basis:136px}
+      .seasonal-grid{grid-template-columns:1fr}
+      .season-feature{grid-template-columns:76px minmax(0,1fr)}
+      .season-feature img,.season-feature>.no-poster{width:76px!important;height:76px!important}
+      .month-orbit{grid-template-columns:1fr;gap:7px}
+      .month-focus-layout{grid-template-columns:1fr}
     }
   `;
   document.head.appendChild(style);
@@ -1396,7 +1475,8 @@ renderRanking=function(){
   const years=[...new Set(tracks.map(row=>row.year).filter(Boolean))].sort().reverse();
   const leaders=monthlyArtistLeaders(),artists=analysisArtists(),topArtist=artists[0],topSong=[...masters].sort((a,b)=>b.totalDays-a.totalDays)[0];
   const leaderCards=leaders.map(item=>'<button class="btn monthly-leader" data-artist-filter="'+esc(item.artist)+'"><span class="monthly-leader-month"><b>'+item.month+'月</b><i class="fa-solid fa-crown"></i></span><strong>'+esc(item.artist)+'</strong><span>累計'+item.days+'日間 / '+item.songs+'曲</span></button>').join('')||'<p class="text-xs text-zinc-500">月別データはありません。</p>';
-  const kinds=[['song','曲日数'],['single','1回最長'],['artist','アーティスト'],['short','短期滞在'],['repeat','リピート']],kindTabs=kinds.map(item=>'<button class="btn ranking-kind-tab '+(item[0]===rankingView?'active':'')+'" data-ranking-kind="'+item[0]+'">'+item[1]+'</button>').join('');
+  if(rankingView==='short')rankingView='song';
+  const kinds=[['song','曲日数'],['single','1回最長'],['artist','アーティスト'],['repeat','リピート']],kindTabs=kinds.map(item=>'<button class="btn ranking-kind-tab '+(item[0]===rankingView?'active':'')+'" data-ranking-kind="'+item[0]+'">'+item[1]+'</button>').join('');
   const panels=rankingPanelHtml('累計',rankingView,'all')+years.map(year=>rankingPanelHtml(year+'年度',rankingView,year)).join('');
   box.className='ranking-dashboard';
   box.innerHTML='<header class="ranking-overview"><div class="ranking-overview-main"><p class="text-[9px] text-amber-300 font-black">DSL RANKING</p><h4 class="mt-1">記録の頂点を、コンパクトに。</h4><p class="text-[10px] text-zinc-500 mt-2">月間王者とTOP20を、横へ切り替えて確認できます。</p></div><div class="ranking-overview-stat"><span>累計TOPアーティスト</span><b>'+(topArtist?esc(topArtist.artist):'--')+'</b></div><div class="ranking-overview-stat"><span>最長楽曲</span><b>'+(topSong?esc(topSong.title):'--')+'</b></div></header><section class="ranking-section"><div class="ranking-section-head"><div><p>MONTHLY LEADER</p><h4 class="text-base font-black">月別累計最多滞在アーティスト</h4></div></div><p class="text-[8px] text-zinc-600 mb-2">全年度の同じ月を合算し、曲の在籍日数が最も多いアーティストを表示しています。</p><div class="monthly-leader-strip">'+leaderCards+'</div></section><section class="ranking-section"><div class="ranking-section-head"><div><p>TOP 20</p><h4 class="text-base font-black">ランキング詳細</h4></div></div><div class="ranking-kind-tabs mb-3">'+kindTabs+'</div><div class="ranking-panels">'+panels+'</div></section>';
@@ -1489,6 +1569,23 @@ function renderHomeInsights(){
 installHomeInsights();
 const renderAllWithHomeInsights=renderAll;
 renderAll=function(){renderAllWithHomeInsights();renderHomeInsights()};
+
+installSeasonalUI();
+const switchSceneWithSeasonal=switchScene;
+switchScene=function(scene){
+  const seasonalTab=$('tab-seasonal');if(seasonalTab)seasonalTab.className='btn nav-tab px-4 py-2 rounded-lg text-zinc-300 whitespace-nowrap';
+  switchSceneWithSeasonal(scene);
+  if(scene==='seasonal'){if(seasonalTab)seasonalTab.classList.add('tab-active');requestAnimationFrame(renderSeasonal)}
+};
+const renderAllWithSeasonal=renderAll;
+renderAll=function(){renderAllWithSeasonal();if(isSceneActive('seasonal'))renderSeasonal()};
+
+document.addEventListener('input',event=>{
+  if(event.target&&event.target.id==='monthOrbit'){const value=Number(event.target.value),label=$('monthOrbitLabel');if(label)label.textContent=value?value+'月':'すべて'}
+});
+document.addEventListener('change',event=>{
+  if(event.target&&event.target.id==='monthOrbit'){const value=Number(event.target.value);monthFilter=value?String(value).padStart(2,'0'):'all';renderTable()}
+});
 
 document.addEventListener('click',event=>{
   const rankingKind=event.target.closest('[data-ranking-kind]');if(rankingKind){rankingView=rankingKind.dataset.rankingKind;renderRanking();return}
