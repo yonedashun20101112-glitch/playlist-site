@@ -1242,6 +1242,12 @@ function installDsl2027Styles(){
     .theme-seasonal{--accent:#34d399}
     .seasonal-page{display:none;gap:14px}
     .seasonal-page.active{display:grid}
+    .pull-refresh{position:fixed;z-index:90;left:50%;top:max(8px,env(safe-area-inset-top));display:flex;align-items:center;gap:8px;min-width:132px;justify-content:center;padding:9px 13px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(10,14,24,.94);color:#cbd5e1;box-shadow:0 12px 36px rgba(0,0,0,.35);font-size:10px;font-weight:900;opacity:0;pointer-events:none;transform:translate(-50%,-72px);transition:opacity .16s ease,transform .16s ease,border-color .16s ease,color .16s ease;will-change:transform,opacity}
+    .pull-refresh.visible{opacity:1;transition:none}
+    .pull-refresh.ready{border-color:rgba(52,211,153,.42);color:#6ee7b7}
+    .pull-refresh.refreshing{opacity:1;transform:translate(-50%,4px)!important;color:#67e8f9;border-color:rgba(34,211,238,.4)}
+    .pull-refresh.refreshing i{animation:pullSpin .7s linear infinite}
+    @keyframes pullSpin{to{transform:rotate(360deg)}}
     .seasonal-intro{border-left:3px solid #fbbf24;background:#151a27;padding:15px}
     .seasonal-intro h3{font-size:22px;font-weight:900}
     .seasonal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -1580,6 +1586,18 @@ switchScene=function(scene){
 };
 const renderAllWithSeasonal=renderAll;
 renderAll=function(){renderAllWithSeasonal();if(isSceneActive('seasonal'))renderSeasonal()};
+
+function installPullToRefresh(){
+  if($('pullRefresh')||!('ontouchstart' in window))return;
+  const indicator=document.createElement('div');indicator.id='pullRefresh';indicator.className='pull-refresh';indicator.setAttribute('aria-live','polite');indicator.innerHTML='<i class="fa-solid fa-arrow-down"></i><span>下へ引いて更新</span>';document.body.appendChild(indicator);
+  const label=indicator.querySelector('span'),icon=indicator.querySelector('i');let startX=0,startY=0,distance=0,tracking=false,pulling=false;
+  const reset=()=>{tracking=false;pulling=false;distance=0;indicator.classList.remove('visible','ready');indicator.style.transform='translate(-50%,-72px)';label.textContent='下へ引いて更新';icon.className='fa-solid fa-arrow-down'};
+  document.addEventListener('touchstart',event=>{if(scrollY>0||event.touches.length!==1||event.target.closest('input,textarea,select,.nav-scroll,.month-range'))return;startX=event.touches[0].clientX;startY=event.touches[0].clientY;tracking=true;pulling=false;distance=0},{passive:true});
+  document.addEventListener('touchmove',event=>{if(!tracking||event.touches.length!==1)return;const dx=event.touches[0].clientX-startX,dy=event.touches[0].clientY-startY;if(!pulling){if(dy<=8)return;if(Math.abs(dx)>dy*.8){tracking=false;return}pulling=true}if(dy<=0){reset();return}event.preventDefault();distance=Math.min(112,dy*.58);const ready=distance>=72;indicator.classList.add('visible');indicator.classList.toggle('ready',ready);indicator.style.transform='translate(-50%,'+(-58+distance*.55)+'px)';label.textContent=ready?'離して更新':'下へ引いて更新';icon.className='fa-solid '+(ready?'fa-rotate-right':'fa-arrow-down')},{passive:false});
+  document.addEventListener('touchend',()=>{if(!tracking)return;if(pulling&&distance>=72){tracking=false;pulling=false;indicator.classList.remove('ready');indicator.classList.add('refreshing');label.textContent='更新中';icon.className='fa-solid fa-rotate';setTimeout(()=>location.reload(),320)}else reset()},{passive:true});
+  document.addEventListener('touchcancel',reset,{passive:true});
+}
+installPullToRefresh();
 
 document.addEventListener('input',event=>{
   if(event.target&&event.target.id==='monthOrbit'){const value=Number(event.target.value),label=$('monthOrbitLabel');if(label)label.textContent=value?value+'月':'すべて'}
